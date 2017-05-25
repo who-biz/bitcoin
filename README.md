@@ -1,42 +1,57 @@
-Litecoin Core integration/staging tree
+Einsteinium Core integration/staging tree
 =====================================
 
-[![Build Status](https://travis-ci.org/litecoin-project/litecoin.svg?branch=master)](https://travis-ci.org/litecoin-project/litecoin)
+[![Build Status](https://travis-ci.org/litecoin-project/litecoin.svg?branch=master)](https://travis-ci.org/litecoin-project/litecoin) //add our own build status here//
 
-https://litecoin.org
+https://emc2.foundation
 
-What is Litecoin?
+//Temporary Explanation of the Repo//
+
+This Repository is currently in work-on state, building the gateway to upstream developments in the Litecoin Project. It will be renamed at the time of the first release.
+
+What is Einsteinium?
 ----------------
 
-Litecoin is an experimental digital currency that enables instant payments to
+Einsteinium is an experimental digital currency that enables instant payments to
 anyone, anywhere in the world. Litecoin uses peer-to-peer technology to operate
 with no central authority: managing transactions and issuing money are carried
-out collectively by the network. Litecoin Core is the name of open source
+out collectively by the network. Einsteinium Core is the name of open source
 software which enables the use of this currency.
 
+- Algorithm: Scrypt PoW
+- Total Einsteinium: 299,792,458
+- Initial block value: 1024
+- Reward Reduction Method: Block Halving
+- Block Target Time: 60 seconds
+- Difficulty Re-targeting: per block (Kimoto Gravity Well)
+- RPC Port: 41879
+- P2P Port: 41878
+- Donation to the Einsteinium Charitable Fund (per block): 2%
+- Donation to to faucets, give-aways and marketing (per block): 0.5%
+
 For more information, as well as an immediately useable, binary version of
-the Litecoin Core software, see [https://litecoin.org](https://litecoin.org).
+the Einsteinium Core software, see [https://emc2.foundation](https://emc2.foundation).
 
 License
 -------
 
-Litecoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+Einsteinium Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process
 -------------------
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/litecoin-project/litecoin/tags) are created
-regularly to indicate new official, stable release versions of Litecoin Core.
+completely stable. [Tags](https://github.com/HashUnlimited/Einsteinium-Core-Working-Repo/tags) //ToDo: change after first release //are created
+regularly to indicate new official, stable release versions of Einsteinium Core.
 
 The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The developer [mailing list](https://groups.google.com/forum/#!forum/litecoin-dev)
+The developer [mailing list](https://add mailing list link)
 should be used to discuss complicated or controversial changes before working
 on a patch set.
 
-Developer IRC can be found on Freenode at #litecoin-dev.
+Developers can easily be reached on our [Slack](http://emc2slack.herokuapp.com/).
 
 Testing
 -------
