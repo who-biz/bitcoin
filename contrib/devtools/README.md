@@ -85,7 +85,7 @@ couldn't mess with the sources.
 
 Setup
 ---------
-Configuring the github-merge tool for the litecoin repository is done in the following way:
+Configuring the github-merge tool for the einsteinium repository is done in the following way:
 
     git config githubmerge.repository litecoin-project/litecoin
     git config githubmerge.testcmd "make -j4 check" (adapt to whatever you want to use for testing)

@@ -1,4 +1,4 @@
-TOR SUPPORT IN LITECOIN
+TOR SUPPORT IN EINSTEINIUM
 ======================
 
 It is possible to run Einsteinium as a Tor hidden service, and connect to such services.
@@ -42,11 +42,11 @@ reachable from the Tor network. Add these lines to your /etc/tor/torrc (or equiv
 config file):
 
 	HiddenServiceDir /var/lib/tor/einsteinium-service/
-	HiddenServicePort 9333 127.0.0.1:9333
-	HiddenServicePort 19335 127.0.0.1:19335
+	HiddenServicePort 41878 127.0.0.1:41878
+	HiddenServicePort 41879 127.0.0.1:41879
 
 The directory can be different of course, but (both) port numbers should be equal to
-your einsteiniumd's P2P listen port (9333 by default).
+your einsteiniumd's P2P listen port (41878 by default).
 
 	-externalip=X   You can tell einsteinium about its publicly reachable address using
 	                this option, and this can be a .onion address. Given the above
@@ -81,7 +81,7 @@ as well, use `discover` instead:
 
 	./einsteiniumd ... -discover
 
-and open port 9333 on your firewall (or use -upnp).
+and open port 41878 on your firewall (or use -upnp).
 
 If you only want to use Tor to reach onion addresses, but not use it as a proxy
 for normal IPv4/IPv6 communication, use:

@@ -168,6 +168,17 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
     return chainActive.Tip()->GetBlockHash().GetHex();
 }
 
+UniValue getblockvalue(const UniValue& Params, bool fHelp)
+{
+    if (fHelp || Params.size() < 1 || Params.size() > 1)
+        throw runtime_error(
+            "getblockvalue [height] \n"
+            "Returns the value (subsidy) of the block speficied by [height] parameter.");
+
+    return  GetBlockValueHR(Params[0].get_int());
+}
+
+
 UniValue getdifficulty(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)

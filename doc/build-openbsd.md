@@ -43,8 +43,8 @@ This makes it necessary to build boost, or at least the parts used by Einsteiniu
 
 ```
 # Pick some path to install boost to, here we create a directory within the einsteinium directory
-LITECOIN_ROOT=$(pwd)
-BOOST_PREFIX="${LITECOIN_ROOT}/boost"
+EINSTEINIUM_ROOT=$(pwd)
+BOOST_PREFIX="${EINSTEINIUM_ROOT}/boost"
 mkdir -p $BOOST_PREFIX
 
 # Fetch the source and verify that it is not tampered with
@@ -75,8 +75,8 @@ You cannot use the BerkeleyDB library from ports, for the same reason as boost a
 
 ```bash
 # Pick some path to install BDB to, here we create a directory within the einsteinium directory
-LITECOIN_ROOT=$(pwd)
-BDB_PREFIX="${LITECOIN_ROOT}/db4"
+EINSTEINIUM_ROOT=$(pwd)
+BDB_PREFIX="${EINSTEINIUM_ROOT}/db4"
 mkdir -p $BDB_PREFIX
 
 # Fetch the source and verify that it is not tampered with

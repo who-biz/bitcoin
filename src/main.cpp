@@ -47,6 +47,9 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/math/distributions/poisson.hpp>
 #include <boost/thread.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+
 
 using namespace std;
 
@@ -115,6 +118,7 @@ static void CheckBlockIndex(const Consensus::Params& consensusParams);
 
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
+CScript CHARITY_SCRIPT;
 
 const string strMessageMagic = "Einsteinium Signed Message:\n";
 
@@ -1719,6 +1723,8 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
+/** Einsteinium: our own halvings here
+
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
@@ -1731,6 +1737,60 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     nSubsidy >>= halvings;
     return nSubsidy;
 }
+**/
+
+int static generateMTRandom(unsigned int s, int range)
+{
+    boost::mt19937 gen(s);
+    boost::uniform_int<> dist(1, range);
+    return dist(gen);
+}
+
+
+CAmount GetBlockSubsidy(int nHeight)
+{
+    int64_t nSubsidy = 0;
+
+    int StartOffset;
+    int WormholeStartBlock;
+    int mod = nHeight % 36000;
+    if (mod != 0) mod = 1;
+    int epoch = (nHeight / 36000) + mod;
+
+    long wseed = 5299860 * epoch; // Discovered: 1952, Atomic number: 99 Melting Point: 860
+
+    StartOffset = generateMTRandom(wseed, 35820);
+    WormholeStartBlock = StartOffset + ((epoch - 1)  * 36000); // Wormholes start from Epoch 2
+
+    if(epoch > 1 && epoch < 148 && nHeight >= WormholeStartBlock && nHeight < WormholeStartBlock + 180)
+    {
+        nSubsidy = 2973 * COIN;
+    }
+    else
+{
+    if (nHeight == 1) nSubsidy = 10747 * COIN;
+    else if (nHeight <= 72000) nSubsidy = 1024 * COIN;
+    else if(nHeight <= 144000) nSubsidy = 512 * COIN;
+    else if(nHeight <= 288000) nSubsidy = 256 * COIN;
+    else if(nHeight <= 432000) nSubsidy = 128 * COIN;
+    else if(nHeight <= 576000) nSubsidy = 64 * COIN;
+    else if(nHeight <= 864000) nSubsidy = 32 * COIN;
+    else if(nHeight <= 1080000) nSubsidy = 16 * COIN;
+    else if (nHeight <= 1584000) nSubsidy = 8 * COIN;
+    else if (nHeight <= 2304000) nSubsidy = 4 * COIN;
+    else if (nHeight <= 5256000) nSubsidy = 2 * COIN;
+    else if (nHeight <= 26280000) nSubsidy = 1 * COIN;
+
+}
+
+    return nSubsidy;
+}
+
+double GetBlockValueHR(int nHeight)
+{
+   return (GetBlockSubsidy(nHeight) / COIN);
+}
+
 
 bool IsInitialBlockDownload()
 {
@@ -2516,12 +2576,21 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
-    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
+    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight);
     if (block.vtx[0].GetValueOut() > blockReward)
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0].GetValueOut(), blockReward),
                                REJECT_INVALID, "bad-cb-amount");
+
+    // For Einsteinium also add the protocol rule that the first output in the coinbase must go to the charity address and have at least 2.5% of the subsidy (as per integer arithmetic)
+
+    if (block.vtx[0].vout[0].scriptPubKey != CHARITY_SCRIPT)
+        return state.DoS(100, error("ConnectBlock() : coinbase does not pay to the charity in the first output)"));
+    int64_t charityAmount = GetBlockSubsidy(pindex->nHeight) * 2.5 / 100;
+    if (block.vtx[0].vout[0].nValue < charityAmount)
+       return state.DoS(100, error("ConnectBlock() : coinbase does not pay enough to the charity"));
+
 
     if (!control.Wait())
         return state.DoS(100, false);
@@ -4376,6 +4445,9 @@ bool InitBlockIndex(const CChainParams& chainparams)
 
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
+
+    // Initialise the charity script here, as this takes place in the the test code also
+    CHARITY_SCRIPT << OP_DUP << OP_HASH160 << ParseHex(CHARITY_ADDRESS) << OP_EQUALVERIFY << OP_CHECKSIG;
 
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
