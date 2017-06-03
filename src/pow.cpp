@@ -14,23 +14,41 @@
 
 static const int64_t nDiffChangeTarget = 56000; // Patch effective @ block 56000
 
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
+{
+    int nHeight = pindexLast->nHeight + 1;
+    bool fNewDifficultyProtocol = (nHeight >= nDiffChangeTarget);
+
+    if (fNewDifficultyProtocol) {
+        return DigiShield(pindexLast, pblock, params);
+    }
+    else {
+
+        static const int64_t	            	 BlocksTargetSpacing                          = 60; // 1 minute
+        unsigned int                             TimeDaySeconds                               = 60 * 60 * 24;
+        int64_t                                  PastSecondsMin                               = TimeDaySeconds * 0.25;
+        int64_t                                  PastSecondsMax                               = TimeDaySeconds * 7;
+        uint64_t                                 PastBlocksMin                                = PastSecondsMin / BlocksTargetSpacing;
+        uint64_t                                 PastBlocksMax                                = PastSecondsMax / BlocksTargetSpacing;
+        return KimotoGravityWell(pindexLast, pblock, BlocksTargetSpacing, PastBlocksMin, PastBlocksMax, params);
+    }
+}
+
 unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    int64_t retargetTimespan = params.nPowTargetTimespan;
-    int64_t retargetInterval = params.nPowTargetTimespan / params.nPowTargetSpacing;
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
 
     // Only change once per interval
-    if ((pindexLast->nHeight+1) % retargetInterval != 0)
+    if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
         return pindexLast->nBits;
     }
 
     // Litecoin: This fixes an issue where a 51% attack can change difficulty at will.
     // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
-    int blockstogoback = retargetInterval-1;
-    if ((pindexLast->nHeight+1) != retargetInterval)
-        blockstogoback = retargetInterval;
+    int blockstogoback = params.DifficultyAdjustmentInterval()-1;
+    if ((pindexLast->nHeight+1) != params.DifficultyAdjustmentInterval())
+        blockstogoback = params.DifficultyAdjustmentInterval();
 
     // Go back by what we want to be 14 days worth of blocks
     const CBlockIndex* pindexFirst = pindexLast;
@@ -38,36 +56,53 @@ unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pbloc
         pindexFirst = pindexFirst->pprev;
     assert(pindexFirst);
 
+	return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+}	
+	
+unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)	
+{
     // Limit adjustment step
     int64_t nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
-//    printf(" nActualTimespan = %" PRI64d" before bounds\n", nActualTimespan);
 
     arith_uint256 bnNew;
     bnNew.SetCompact(pindexLast->nBits);
 
- //DigiShield implementation - thanks to RealSolid & WDC for this code
-// amplitude filter - thanks to daft27 for this code
-        nActualTimespan = retargetTimespan + (nActualTimespan - retargetTimespan)/8;
-//        printf("DIGISHIELD RETARGET\n");
-        if (nActualTimespan < (retargetTimespan - (retargetTimespan/4)) ) nActualTimespan = (retargetTimespan - (retargetTimespan/4));
-        if (nActualTimespan > (retargetTimespan + (retargetTimespan/2)) ) nActualTimespan = (retargetTimespan + (retargetTimespan/2));
+//DigiShield implementation - thanks to RealSolid & WDC for this code
+//amplitude filter - thanks to daft27 for this code
+        nActualTimespan = params.nPowTargetTimespan + (nActualTimespan - params.nPowTargetTimespan)/8;
+        if (nActualTimespan < (params.nPowTargetTimespan - (params.nPowTargetTimespan/4)) ) nActualTimespan = (params.nPowTargetTimespan - (params.nPowTargetTimespan/4));
+        if (nActualTimespan > (params.nPowTargetTimespan + (params.nPowTargetTimespan/2)) ) nActualTimespan = (params.nPowTargetTimespan + (params.nPowTargetTimespan/2));
     // Retarget
 
         bnNew *= nActualTimespan;
-        bnNew /= retargetTimespan;
+        bnNew /= params.nPowTargetTimespan;
 
         if (bnNew > bnPowLimit)
             bnNew = bnPowLimit;
 
     /// debug print
     LogPrintf("GetNextWorkRequired: DIGISHIELD RETARGET\n");
-//    printf("nTargetTimespan = %" PRI64d" nActualTimespan = %I64d"\n", retargetTimespan, nActualTimespan);
-//    printf("Before: %08x %s\n", pindexLast->nBits, arith_uint256().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
-//    printf("After: %08x %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
-
     return bnNew.GetCompact();
 }
 
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+        return false;
+
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
+
+    return true;
+}
 
 unsigned int KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader *pblock, uint64_t TargetBlocksSpacingSeconds, uint64_t PastBlocksMin, uint64_t PastBlocksMax, const Consensus::Params& params)
 {
@@ -138,47 +173,5 @@ unsigned int KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader
 */
 
         return bnNew.GetCompact();
-}
-
-// Using KGW
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
-{
-    int nHeight = pindexLast->nHeight + 1;
-    bool fNewDifficultyProtocol = (nHeight >= nDiffChangeTarget);
-
-    if (fNewDifficultyProtocol) {
-        return DigiShield(pindexLast, pblock, params);
-    }
-    else {
-
-        static const int64_t	            	 BlocksTargetSpacing                          = 60; // 1 minute
-        unsigned int                             TimeDaySeconds                               = 60 * 60 * 24;
-        int64_t                                  PastSecondsMin                               = TimeDaySeconds * 0.25;
-        int64_t                                  PastSecondsMax                               = TimeDaySeconds * 7;
-        uint64_t                                 PastBlocksMin                                = PastSecondsMin / BlocksTargetSpacing;
-        uint64_t                                 PastBlocksMax                                = PastSecondsMax / BlocksTargetSpacing;
-        return KimotoGravityWell(pindexLast, pblock, BlocksTargetSpacing, PastBlocksMin, PastBlocksMax, params);
-    }
-}
-
-
-
-bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
-{
-    bool fNegative;
-    bool fOverflow;
-    arith_uint256 bnTarget;
-
-    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-
-    // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
-        return false;
-
-    // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > bnTarget)
-        return false;
-
-    return true;
 }
 
