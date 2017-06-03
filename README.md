@@ -1,13 +1,20 @@
 Einsteinium Core integration/staging tree
 =====================================
 
-[![Build Status](https://travis-ci.org/litecoin-project/litecoin.svg?branch=master)](https://travis-ci.org/litecoin-project/litecoin) //add our own build status here//
+[![Build Status](https://travis-ci.org/hashunlimited/einsteinium-unlimited.svg?branch=default)](https://travis-ci.org/hashunlimited/einsteinium-unlimited)
 
 https://emc2.foundation
 
-//Temporary Explanation of the Repo//
+Repo & Branches:
+----------------
 
-This Repository is currently in work-on state, building the gateway to upstream developments in the Litecoin Project. It will be renamed at the time of the first release.
+The default branch is always set to the latest release or RC - for the first re-merge to Litecoin it is 0.13.x (coming soon) Releases and RCs are always tagged.
+
+Dev branches are in place for online and offline development - contributors please create your own fork or branch
+
+The "master" branch is used to rebase the latest Litecoun code - otherwise it stays untouched
+
+The current, deprecated Einsteinium 0.9.2 wallet is available as a tagged branch as well
 
 What is Einsteinium?
 ----------------
