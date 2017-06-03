@@ -36,8 +36,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
 unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-
     // Only change once per interval
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
@@ -62,7 +60,7 @@ unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pbloc
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)	
 {
     // Limit adjustment step
-    int64_t nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
+    int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
 
     arith_uint256 bnNew;
     bnNew.SetCompact(pindexLast->nBits);
@@ -77,6 +75,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
         bnNew *= nActualTimespan;
         bnNew /= params.nPowTargetTimespan;
 
+        const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
         if (bnNew > bnPowLimit)
             bnNew = bnPowLimit;
 
