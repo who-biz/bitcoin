@@ -75,8 +75,8 @@ public:
         consensus.nMajorityEnforceBlockUpgrade = 1875;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
         consensus.nMajorityRejectBlockOutdated = 2375;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
         consensus.nMajorityWindow = 2500;               // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
-        consensus.BIP34Height = 1;                      // <-- Einsteinium already since Block 1: OK
-        consensus.BIP34Hash = uint256S("d1c175570320d4d6388a4525385b8f20460d340f621cfeebb9824712b9e593c5");
+        consensus.BIP34Height = -1;                     // <-- Einsteinium already since Block 1: OK
+        consensus.BIP34Hash = uint256S("");
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
         consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK
         consensus.nPowTargetSpacing = 60;   // <-- Einsteinium: OK
