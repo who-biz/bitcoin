@@ -120,7 +120,7 @@ public:
 
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder01.emc2.foundation")); // <--Einsteinium: OK
-        vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder01.emc2.foundation")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder02.emc2.foundation")); // <--Einsteinium: OK
 
         // Einsteinium: Address encoding TBD!!!
 

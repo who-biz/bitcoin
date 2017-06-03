@@ -100,9 +100,6 @@ unsigned int KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader
                                     else
                                     PastDifficultyAverage = PastDifficultyAveragePrev - ((PastDifficultyAveragePrev - arith_uint256().SetCompact(BlockReading->nBits)) / i);
 
-
-                printf("PastAvgDiffPrev: %08x %s\n", PastDifficultyAveragePrev.GetCompact(), PastDifficultyAveragePrev.ToString().c_str());
-
                 PastDifficultyAveragePrev = PastDifficultyAverage;
 
                 PastRateActualSeconds                        = BlockLastSolved->GetBlockTime() - BlockReading->GetBlockTime();
