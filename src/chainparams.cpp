@@ -25,7 +25,6 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
-//    txNew.vout[0].scriptPubKey = CHARITY_SCRIPT;    // <-- Einsteinium
 
     CBlock genesis;
     genesis.nTime    = nTime;
@@ -71,19 +70,19 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 840000; // <-- Einsteinium: TBD, recalculate?
-        consensus.nMajorityEnforceBlockUpgrade = 750;
-        consensus.nMajorityRejectBlockOutdated = 950;
-        consensus.nMajorityWindow = 1000;
-        consensus.BIP34Height = 1;                  // <--Einsteinium already since Block 1: OK
+        consensus.nSubsidyHalvingInterval = 840000;     // <-- Einsteinium: unused
+        consensus.nMajorityEnforceBlockUpgrade = 1875;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
+        consensus.nMajorityRejectBlockOutdated = 2375;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
+        consensus.nMajorityWindow = 2500;               // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
+        consensus.BIP34Height = 1;                      // <-- Einsteinium already since Block 1: OK
         consensus.BIP34Hash = uint256S("d1c175570320d4d6388a4525385b8f20460d340f621cfeebb9824712b9e593c5");
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
-        consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK - replaces TimeSpanNEW in the old code, re-calculate for Timespan
+        consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK
         consensus.nPowTargetSpacing = 60;   // <-- Einsteinium: OK
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nRuleChangeActivationThreshold = 6048; // 75% of 8064
-        consensus.nMinerConfirmationWindow = 8064; // nPowTargetTimespan / nPowTargetSpacing * 4
+        consensus.nRuleChangeActivationThreshold = 15120; // 75% of 20160
+        consensus.nMinerConfirmationWindow = 20160; // <-- Einsteinium: approx. 2 weeks
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
@@ -110,7 +109,7 @@ public:
         pchMessageStart[1] = 0xf1;  // <--Einsteinium: OK
         pchMessageStart[2] = 0xc4;  // <--Einsteinium: OK
         pchMessageStart[3] = 0xac;  // <--Einsteinium: OK
-        nDefaultPort = 41878;        // <--Einsteinium: OK
+        nDefaultPort = 41878;       // <--Einsteinium: OK
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1392841423, 3236648, 0x1e0ffff0, 1, 50 * COIN); // <--Einsteinium: OK
@@ -122,12 +121,12 @@ public:
         vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder01.emc2.foundation")); // <--Einsteinium: OK
         vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder02.emc2.foundation")); // <--Einsteinium: OK
 
-        // Einsteinium: Address encoding TBD!!!
+        // Einsteinium: Address encoding P2SH BTC = 5 / LTC NEW = 50 / EMC2 OLD = 5
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,33);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
-        base58Prefixes[SCRIPT_ADDRESS2] = std::vector<unsigned char>(1,55);                                                                         // <-- Einsteinium: preliminary, different than LTC and BTC!
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,176);                                                                         // <-- Einsteinium: TBD!!!
+        base58Prefixes[SCRIPT_ADDRESS2] = std::vector<unsigned char>(1,55);                                                                         // <-- Einsteinium: different than LTC and BTC!
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,176);                                                                         // <-- Einsteinium: OK
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
@@ -147,10 +146,10 @@ public:
             (    51365, uint256S("0x702b407c68091f3c97a587a8d92684666bb622f6821944424b850964b366e42c"))  // <--Einsteinium: OK
             (   621000, uint256S("0xe2bf6d219cff9d6d7661b7964a05bfea3128265275c3673616ae71fed7072981"))  // <--Einsteinium: OK
             (  1410100, uint256S("0xf6736ff2a7743014ab1902e442328f5c9928ce7f4edb2b4fd0130010cb4cebc4")), // <--Einsteinium: OK
-            1494147472, // * UNIX timestamp of last checkpoint block                                    // <--Einsteinium: OK
-            2147811,    // * total number of transactions between genesis and last checkpoint           // <--Einsteinium: OK
+            1494147472, // * UNIX timestamp of last checkpoint block                                     // <--Einsteinium: OK
+            2147811,    // * total number of transactions between genesis and last checkpoint            // <--Einsteinium: OK
                       //   (the tx=... number in the SetBestChain debug.log lines)
-            2000     // * estimated number of transactions per day after checkpoint                     // <--Einsteinium: OK
+            2000     // * estimated number of transactions per day after checkpoint                      // <--Einsteinium: OK
             };
     }
 };
@@ -163,15 +162,15 @@ class CTestNetParams : public CChainParams {
 public:
     CTestNetParams() {
         strNetworkID = "test";
-        consensus.nSubsidyHalvingInterval = 840000; // <-- Einsteinium: TBD, recalculate?
-        consensus.nMajorityEnforceBlockUpgrade = 51;
-        consensus.nMajorityRejectBlockOutdated = 75;
-        consensus.nMajorityWindow = 100;
+        consensus.nSubsidyHalvingInterval = 840000;     // <-- Einsteinium: unused
+        consensus.nMajorityEnforceBlockUpgrade = 180;   // <-- Einsteinium: quicker on Testnet
+        consensus.nMajorityRejectBlockOutdated = 228;   // <-- Einsteinium: quicker on Testnet
+        consensus.nMajorityWindow = 240;                // <-- Einsteinium: quicker on Testnet
         consensus.BIP34Height = -1;
         consensus.BIP34Hash = uint256S("");
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK - replaces TimeSpanNEW in the old code, re-calculate for Timespan
-        consensus.nPowTargetSpacing = 60;   // <--Einsteinium: OK
+        consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK
+        consensus.nPowTargetSpacing = 60;   // <-- Einsteinium: OK
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
@@ -230,11 +229,11 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-                ( 0, uint256S("0xa4271888b5e60092c3e7183a76d454741e9a7a55f2b4afbe574615829e406bee"))
+                ( 0, uint256S("0xa4271888b5e60092c3e7183a76d454741e9a7a55f2b4afbe574615829e406bee"))  // <--Einsteinium: OK
                 ( 6, uint256S("0x8618a815ad94f918a7d3d4df7ebc4df5f14da1ea25d0eb156b6a32f9621c2ce4")), // <--Einsteinium: OK
-            1494590578,                                                                          // <--Einsteinium: OK
-            7,                                                                                   // <--Einsteinium: OK
-            1500                                                                                 // <--Einsteinium: OK
+            1494590578,                                                                               // <--Einsteinium: OK
+            7,                                                                                        // <--Einsteinium: OK
+            1500                                                                                      // <--Einsteinium: OK
         };
 
     }
@@ -242,7 +241,7 @@ public:
 static CTestNetParams testNetParams;
 
 /**
- * Regression test <-- Einsteinium: TBD from scratch
+ * Regression test <-- Einsteinium: TBD from scratch if needed
  */
 class CRegTestParams : public CChainParams {
 public:
@@ -255,8 +254,8 @@ public:
         consensus.BIP34Height = -1; // BIP34 has not necessarily activated on regtest
         consensus.BIP34Hash = uint256();
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 3.5 * 24 * 60 * 60; // two weeks
-        consensus.nPowTargetSpacing = 2.5 * 60;
+        consensus.nPowTargetTimespan = 60;
+        consensus.nPowTargetSpacing = 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
