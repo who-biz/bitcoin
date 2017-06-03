@@ -48,7 +48,7 @@ unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pbloc
  //DigiShield implementation - thanks to RealSolid & WDC for this code
 // amplitude filter - thanks to daft27 for this code
         nActualTimespan = retargetTimespan + (nActualTimespan - retargetTimespan)/8;
-        printf("DIGISHIELD RETARGET\n");
+//        printf("DIGISHIELD RETARGET\n");
         if (nActualTimespan < (retargetTimespan - (retargetTimespan/4)) ) nActualTimespan = (retargetTimespan - (retargetTimespan/4));
         if (nActualTimespan > (retargetTimespan + (retargetTimespan/2)) ) nActualTimespan = (retargetTimespan + (retargetTimespan/2));
     // Retarget
@@ -60,7 +60,7 @@ unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pbloc
             bnNew = bnPowLimit;
 
     /// debug print
-    printf("GetNextWorkRequired: DIGISHIELD RETARGET\n");
+    LogPrintf("GetNextWorkRequired: DIGISHIELD RETARGET\n");
 //    printf("nTargetTimespan = %" PRI64d" nActualTimespan = %I64d"\n", retargetTimespan, nActualTimespan);
 //    printf("Before: %08x %s\n", pindexLast->nBits, arith_uint256().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
 //    printf("After: %08x %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
@@ -123,7 +123,7 @@ unsigned int KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader
         arith_uint256 bnNew(PastDifficultyAverage);
 
         if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-            printf("Difficulty Retarget - Kimoto Gravity Well\n");
+            LogPrintf("Difficulty Retarget - Kimoto Gravity Well\n");
             bnNew *= PastRateActualSeconds;
             bnNew /= PastRateTargetSeconds;
        }
