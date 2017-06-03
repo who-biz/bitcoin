@@ -108,8 +108,7 @@ unsigned int KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader
         /* current difficulty formula - kimoto gravity well */
         const CBlockIndex *BlockLastSolved                                         = pindexLast;
         const CBlockIndex *BlockReading                                            = pindexLast;
-        const CBlockHeader *BlockCreating                                          = pblock;
-                                              BlockCreating                        = BlockCreating;
+
         uint64_t                              PastBlocksMass                       = 0;
         int64_t                               PastRateActualSeconds                = 0;
         int64_t                               PastRateTargetSeconds                = 0;
