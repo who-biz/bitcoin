@@ -3671,12 +3671,14 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
     // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
     // if 750 of the last 1,000 blocks are version 2 or greater (51/100 if testnet):
     bool checkHeightMismatch = false;
+
+
     if (block.nVersion >= 2)
     {
         if (consensusParams.BIP34Height != -1)
         {
-            // Mainnet 710k
-            if (nHeight >= consensusParams.BIP34Height)
+            // Mainnet - Einsteinium: enforce together with BIP66 because this part was forgotten in the previos code and V1 blocks are being mined, change can be ignored in future
+            if (IsSuperMajority(3, pindexPrev, consensusParams.nMajorityRejectBlockOutdated, consensusParams))
                 checkHeightMismatch = true;
         }
         else

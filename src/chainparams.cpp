@@ -75,8 +75,8 @@ public:
         consensus.nMajorityEnforceBlockUpgrade = 1875;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
         consensus.nMajorityRejectBlockOutdated = 2375;  // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
         consensus.nMajorityWindow = 2500;               // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
-        consensus.BIP34Height = -1;                     // <-- Einsteinium already since Block 1: OK
-        consensus.BIP34Hash = uint256S("");
+        consensus.BIP34Height = 1;                      // <-- Einsteinium: forgot to update initial code, update after V3 or higher active!!!
+        consensus.BIP34Hash = uint256S("0xd1c175570320d4d6388a4525385b8f20460d340f621cfeebb9824712b9e593c5"); // <-- Einsteinium: used for BIP30 enforcement, set to corresponding BIP34 Height after V3 activation!
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
         consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK
         consensus.nPowTargetSpacing = 60;   // <-- Einsteinium: OK
