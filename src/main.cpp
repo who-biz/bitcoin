@@ -1768,19 +1768,20 @@ CAmount GetBlockSubsidy(int nHeight)
     }
     else
 {
-    if (nHeight == 1) nSubsidy = 10747 * COIN;
-    else if (nHeight <= 72000) nSubsidy = 1024 * COIN;
-    else if(nHeight <= 144000) nSubsidy = 512 * COIN;
-    else if(nHeight <= 288000) nSubsidy = 256 * COIN;
-    else if(nHeight <= 432000) nSubsidy = 128 * COIN;
-    else if(nHeight <= 576000) nSubsidy = 64 * COIN;
-    else if(nHeight <= 864000) nSubsidy = 32 * COIN;
-    else if(nHeight <= 1080000) nSubsidy = 16 * COIN;
-    else if (nHeight <= 1584000) nSubsidy = 8 * COIN;
-    else if (nHeight <= 2304000) nSubsidy = 4 * COIN;
-    else if (nHeight <= 5256000) nSubsidy = 2 * COIN;
+    if      (nHeight == 0)        nSubsidy = 50 * COIN; // <-- PM-Tech: add genesis tx here for proper unit tests
+    else if (nHeight == 1)        nSubsidy = 10747 * COIN;
+    else if (nHeight <= 72000)    nSubsidy = 1024 * COIN;
+    else if (nHeight <= 144000)   nSubsidy = 512 * COIN;
+    else if (nHeight <= 288000)   nSubsidy = 256 * COIN;
+    else if (nHeight <= 432000)   nSubsidy = 128 * COIN;
+    else if (nHeight <= 576000)   nSubsidy = 64 * COIN;
+    else if (nHeight <= 864000)   nSubsidy = 32 * COIN;
+    else if (nHeight <= 1080000)  nSubsidy = 16 * COIN;
+    else if (nHeight <= 1584000)  nSubsidy = 8 * COIN;
+    else if (nHeight <= 2304000)  nSubsidy = 4 * COIN;
+    else if (nHeight <= 5256000)  nSubsidy = 2 * COIN;
     else if (nHeight <= 26280000) nSubsidy = 1 * COIN;
-
+    else nSubsidy = 0; // <-- PM-Tech: don't leave eternity undefined here
 }
 
     return nSubsidy;
