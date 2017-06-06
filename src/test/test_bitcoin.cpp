@@ -92,7 +92,7 @@ TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)
     {
         std::vector<CMutableTransaction> noTxns;
         CBlock b = CreateAndProcessBlock(noTxns, scriptPubKey);
-        coinbaseTxns.push_back(b.vtx[0]);
+        coinbaseTxns.push_back(b.vtx[1]);
     }
 }
 
