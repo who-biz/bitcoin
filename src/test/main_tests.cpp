@@ -12,10 +12,11 @@
 
 BOOST_FIXTURE_TEST_SUITE(main_tests, TestingSetup)
 
+/* PM-Tech: EMC2 Specifications, create our own test
 static void TestBlockSubsidyHalvings(const Consensus::Params& consensusParams)
 {
-    int maxHalvings = 64;
-    CAmount nInitialSubsidy = 50 * COIN;
+    int maxHalvings = 11;
+    CAmount nInitialSubsidy = 1024 * COIN;
 
     CAmount nPreviousSubsidy = nInitialSubsidy * 2; // for height == 0
     BOOST_CHECK_EQUAL(nPreviousSubsidy, nInitialSubsidy * 2);
@@ -42,7 +43,7 @@ BOOST_AUTO_TEST_CASE(block_subsidy_test)
     TestBlockSubsidyHalvings(150); // As in regtest
     TestBlockSubsidyHalvings(1000); // Just another interval
 }
-
+*/
 BOOST_AUTO_TEST_CASE(subsidy_limit_test)
 {
     CAmount nSum = 0;
