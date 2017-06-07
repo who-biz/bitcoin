@@ -1723,22 +1723,6 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
-/** Einsteinium: our own halvings here
-
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
-{
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
-
-    CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
-    return nSubsidy;
-}
-**/
-
 int static generateMTRandom(unsigned int s, int range)
 {
     boost::mt19937 gen(s);
@@ -1746,52 +1730,60 @@ int static generateMTRandom(unsigned int s, int range)
     return dist(gen);
 }
 
-
-CAmount GetBlockSubsidy(int nHeight)
+// PM-Tech: To ease things up let's use EMC2 specifications for unit tests and Litecoin specifications for regression tests
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    int64_t nSubsidy = 0;
-
-    int StartOffset;
-    int WormholeStartBlock;
-    int mod = nHeight % 36000;
-    if (mod != 0) mod = 1;
-    int epoch = (nHeight / 36000) + mod;
-
-    long wseed = 5299860 * epoch; // Discovered: 1952, Atomic number: 99 Melting Point: 860
-
-    StartOffset = generateMTRandom(wseed, 35820);
-    WormholeStartBlock = StartOffset + ((epoch - 1)  * 36000); // Wormholes start from Epoch 2
-
-    if(epoch > 1 && epoch < 148 && nHeight >= WormholeStartBlock && nHeight < WormholeStartBlock + 180)
+    if (params.fPowAllowMinDifficultyBlocks)
     {
-        nSubsidy = 2973 * COIN;
+        int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
+        // Force block reward to zero when right shift is undefined.
+        if (halvings >= 64)
+            return 0;
+
+        CAmount nSubsidy = 50 * COIN;
+        // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
+        nSubsidy >>= halvings;
+            return nSubsidy;
     }
     else
-{
-    if      (nHeight == 0)        nSubsidy = 50 * COIN; // <-- PM-Tech: add genesis tx here for proper unit tests
-    else if (nHeight == 1)        nSubsidy = 10747 * COIN;
-    else if (nHeight <= 72000)    nSubsidy = 1024 * COIN;
-    else if (nHeight <= 144000)   nSubsidy = 512 * COIN;
-    else if (nHeight <= 288000)   nSubsidy = 256 * COIN;
-    else if (nHeight <= 432000)   nSubsidy = 128 * COIN;
-    else if (nHeight <= 576000)   nSubsidy = 64 * COIN;
-    else if (nHeight <= 864000)   nSubsidy = 32 * COIN;
-    else if (nHeight <= 1080000)  nSubsidy = 16 * COIN;
-    else if (nHeight <= 1584000)  nSubsidy = 8 * COIN;
-    else if (nHeight <= 2304000)  nSubsidy = 4 * COIN;
-    else if (nHeight <= 5256000)  nSubsidy = 2 * COIN;
-    else if (nHeight <= 26280000) nSubsidy = 1 * COIN;
-    else nSubsidy = 0; // <-- PM-Tech: don't leave eternity undefined here
-}
+    {
+        int64_t nSubsidy = 0;
 
-    return nSubsidy;
-}
+        int StartOffset;
+        int WormholeStartBlock;
+        int mod = nHeight % 36000;
+        if (mod != 0) mod = 1;
+        int epoch = (nHeight / 36000) + mod;
 
-double GetBlockValueHR(int nHeight)
-{
-   return (GetBlockSubsidy(nHeight) / COIN);
-}
+        long wseed = 5299860 * epoch; // Discovered: 1952, Atomic number: 99 Melting Point: 860
 
+        StartOffset = generateMTRandom(wseed, 35820);
+        WormholeStartBlock = StartOffset + ((epoch - 1)  * 36000); // Wormholes start from Epoch 2
+
+        if(epoch > 1 && epoch < 148 && nHeight >= WormholeStartBlock && nHeight < WormholeStartBlock + 180)
+        {
+            nSubsidy = 2973 * COIN;
+        }
+        else
+        {
+        if      (nHeight == 0)        nSubsidy = 50 * COIN; // <-- PM-Tech: add genesis tx here for proper unit tests
+        else if (nHeight == 1)        nSubsidy = 10747 * COIN;
+        else if (nHeight <= 72000)    nSubsidy = 1024 * COIN;
+        else if (nHeight <= 144000)   nSubsidy = 512 * COIN;
+        else if (nHeight <= 288000)   nSubsidy = 256 * COIN;
+        else if (nHeight <= 432000)   nSubsidy = 128 * COIN;
+        else if (nHeight <= 576000)   nSubsidy = 64 * COIN;
+        else if (nHeight <= 864000)   nSubsidy = 32 * COIN;
+        else if (nHeight <= 1080000)  nSubsidy = 16 * COIN;
+        else if (nHeight <= 1584000)  nSubsidy = 8 * COIN;
+        else if (nHeight <= 2304000)  nSubsidy = 4 * COIN;
+        else if (nHeight <= 5256000)  nSubsidy = 2 * COIN;
+        else if (nHeight <= 26280000) nSubsidy = 1 * COIN;
+        else nSubsidy = 0; // <-- PM-Tech: don't leave eternity undefined here
+        }
+    }
+        return nSubsidy;
+}
 
 bool IsInitialBlockDownload()
 {
@@ -2577,7 +2569,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
-    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight);
+    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
     if (block.vtx[0].GetValueOut() > blockReward)
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
@@ -2588,7 +2580,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     if (block.vtx[0].vout[0].scriptPubKey != CHARITY_SCRIPT)
         return state.DoS(100, error("ConnectBlock() : coinbase does not pay to the charity in the first output)"));
-    int64_t charityAmount = GetBlockSubsidy(pindex->nHeight) * 2.5 / 100;
+    int64_t charityAmount = GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus()) * 2.5 / 100;
     if (block.vtx[0].vout[0].nValue < charityAmount)
        return state.DoS(100, error("ConnectBlock() : coinbase does not pay enough to the charity"));
 

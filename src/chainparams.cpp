@@ -274,17 +274,17 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
+        pchMessageStart[0] = 0xfa;  // <--Einsteinium: OK
+        pchMessageStart[1] = 0xa2;  // <--Einsteinium: OK
+        pchMessageStart[2] = 0xf0;  // <--Einsteinium: OK
+        pchMessageStart[3] = 0xc1;  // <--Einsteinium: OK
         nDefaultPort = 31880;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1494757042, 2231829, 0x1e0ffff0, 1, 50 * COIN);    // <--Einsteinium: Test
+        genesis = CreateGenesisBlock(1394240633, 987452, 0x1e0ffff0, 1, 50 * COIN);    // <--Einsteinium: Test
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0xa4271888b5e60092c3e7183a76d454741e9a7a55f2b4afbe574615829e406bee"));   // <--Einsteinium: Test
-        assert(genesis.hashMerkleRoot == uint256S("0xb3e47e8776012ee4352acf603e6b9df005445dcba85c606697f422be3cc26f9b"));   // <--Einsteinium: Test
+        assert(consensus.hashGenesisBlock == uint256S("0x6259347489c26417e91aa6690859fb2ed66a899d24598924a24927162edcd73f"));   // <-- PM-Tech: depreceted testnet1
+        assert(genesis.hashMerkleRoot == uint256S("0xb3e47e8776012ee4352acf603e6b9df005445dcba85c606697f422be3cc26f9b"));   // <-- PM-Tech: depreceted testnet1
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.

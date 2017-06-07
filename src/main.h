@@ -204,9 +204,6 @@ static const unsigned int DEFAULT_CHECKLEVEL = 3;
 #define CHARITY_ADDRESS "1cec44c9f9b769ae08ebf9d694c7611a16edf615" // EKnqTC9XEuucZEhD3miDGnbJxBptcxhByA
 extern CScript CHARITY_SCRIPT;
 
-double GetBlockValueHR(int nHeight);
-
-
 // Require that user allocate at least 550MB for block & undo files (blk???.dat and rev???.dat)
 // At 1MB per block, 288 blocks = 288MB.
 // Add 15% for Undo data = 331MB
@@ -275,7 +272,7 @@ std::string GetWarnings(const std::string& strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, const Consensus::Params& params, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
-CAmount GetBlockSubsidy(int nHeight);
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
 
 /**
  * Prune block and undo files (blk???.dat and undo???.dat) so that the disk space used is less than a user-defined target.

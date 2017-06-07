@@ -61,8 +61,8 @@ unsigned int DigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pbloc
                     pindex = pindex->pprev;
                 return pindex->nBits;
             }
+         }
         return pindexLast->nBits;
-        }
     }
 
     // Litecoin: This fixes an issue where a 51% attack can change difficulty at will.
