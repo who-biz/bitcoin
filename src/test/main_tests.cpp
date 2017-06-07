@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(block_subsidy_test)
 */
 BOOST_AUTO_TEST_CASE(subsidy_limit_test)
 {
+    const Consensus::Params& consensusParams = Params(CBaseChainParams::MAIN).GetConsensus();
     CAmount nSum = 0;
     for (int nHeight = 0; nHeight <= 26500000; nHeight += 1) { // For Einsteinium we have to check all, maybe a little more,this takes a while
         CAmount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
