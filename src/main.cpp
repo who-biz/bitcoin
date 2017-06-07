@@ -1733,6 +1733,7 @@ int static generateMTRandom(unsigned int s, int range)
 // PM-Tech: To ease things up let's use EMC2 specifications for unit tests and Litecoin specifications for regression tests
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
+    CAmount nSubsidy = 0
     if (consensusParams.fPowAllowMinDifficultyBlocks)
     {
         int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
@@ -1740,14 +1741,14 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
         if (halvings >= 64)
             return 0;
 
-        CAmount nSubsidy = 50 * COIN;
+        nSubsidy = 50 * COIN;
         // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
         nSubsidy >>= halvings;
             return nSubsidy;
     }
     else
     {
-        int64_t nSubsidy = 0;
+        nSubsidy = 0;
 
         int StartOffset;
         int WormholeStartBlock;
