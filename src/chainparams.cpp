@@ -242,7 +242,7 @@ public:
 static CTestNetParams testNetParams;
 
 /**
- * Regression test <-- Einsteinium: TBD from scratch if needed
+ * Regression test <-- PM-Tech: copy litecoin data here for useable automated testing
  */
 class CRegTestParams : public CChainParams {
 public:
@@ -255,8 +255,8 @@ public:
         consensus.BIP34Height = -1; // BIP34 has not necessarily activated on regtest
         consensus.BIP34Hash = uint256();
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 60;
-        consensus.nPowTargetSpacing = 60;
+        consensus.nPowTargetTimespan = 3.5 * 24 * 60 * 60; // two weeks
+        consensus.nPowTargetSpacing = 2.5 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
@@ -274,17 +274,18 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
-        pchMessageStart[0] = 0xfa;  // <--Einsteinium: OK
-        pchMessageStart[1] = 0xa2;  // <--Einsteinium: OK
-        pchMessageStart[2] = 0xf0;  // <--Einsteinium: OK
-        pchMessageStart[3] = 0xc1;  // <--Einsteinium: OK
+        pchMessageStart[0] = 0xfa;
+        pchMessageStart[1] = 0xbf;
+        pchMessageStart[2] = 0xb5;
+        pchMessageStart[3] = 0xda;
         nDefaultPort = 31880;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1394240633, 987452, 0x1e0ffff0, 1, 50 * COIN);    // <--Einsteinium: Test
+
+        genesis = CreateGenesisBlock(1296688602, 0, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x6259347489c26417e91aa6690859fb2ed66a899d24598924a24927162edcd73f"));   // <-- PM-Tech: depreceted testnet1
-        assert(genesis.hashMerkleRoot == uint256S("0xb3e47e8776012ee4352acf603e6b9df005445dcba85c606697f422be3cc26f9b"));   // <-- PM-Tech: depreceted testnet1
+        assert(consensus.hashGenesisBlock == uint256S("0x530827f38f93b43ed12af0b3ad25a288dc02ed74d6d7857862df51fc56c416f9"));
+        assert(genesis.hashMerkleRoot == uint256S("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
@@ -292,16 +293,16 @@ public:
         fMiningRequiresPeers = false;
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
-        fMineBlocksOnDemand = true; 
+        fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
 
-	checkpointData = (CCheckpointData){
-		boost::assign::map_list_of
-            ( 0, uint256S("0x6259347489c26417e91aa6690859fb2ed66a899d24598924a24927162edcd73f")),
-			0,
-			0,
-			0
-	};
+    checkpointData = (CCheckpointData){
+        boost::assign::map_list_of
+            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
+            0,
+            0,
+            0
+    };
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
@@ -348,4 +349,4 @@ void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
 {
     regTestParams.UpdateBIP9Parameters(d, nStartTime, nTimeout);
 }
- 
+
