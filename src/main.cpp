@@ -1733,7 +1733,7 @@ int static generateMTRandom(unsigned int s, int range)
 // PM-Tech: To ease things up let's use EMC2 specifications for unit tests and Litecoin specifications for regression tests
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    if (params.fPowAllowMinDifficultyBlocks)
+    if (consensusParams.fPowAllowMinDifficultyBlocks)
     {
         int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
         // Force block reward to zero when right shift is undefined.
