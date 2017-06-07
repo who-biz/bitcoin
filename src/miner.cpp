@@ -173,7 +173,7 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
 
     // Create coinbase transaction.
     // With Einsteinium, at least 2.5% of all of the block subsidy should go to the charity address.
-    int64_t reward = GetBlockSubsidy(pindexPrev->nHeight+1);
+    int64_t reward = GetBlockSubsidy(pindexPrev->nHeight+1, chainparams.GetConsensus());
     int64_t charityAmount = reward * 2.5 / 100;
     CMutableTransaction coinbaseTx;
     coinbaseTx.vin.resize(1);
