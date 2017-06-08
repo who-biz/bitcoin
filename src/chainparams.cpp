@@ -151,7 +151,7 @@ public:
 static CMainParams mainParams;
 
 /**
- * Testnet (v5)
+ * Testnet (v4)
  */
 class CTestNetParams : public CChainParams {
 public:
@@ -185,18 +185,18 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1517356801; // January 31st, 2018
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00"); // <-- Einsteinium: check after wallet update
+        consensus.nMinimumChainWork = uint256S("0x00"); // <-- Einsteinium: chaeck after wallet update
 
-        pchMessageStart[0] = 0xfc;
-        pchMessageStart[1] = 0xc1;
-        pchMessageStart[2] = 0xb7;
-        pchMessageStart[3] = 0xdc;
+        pchMessageStart[0] = 0xfa;  // <--Einsteinium: OK
+        pchMessageStart[1] = 0xa2;  // <--Einsteinium: OK
+        pchMessageStart[2] = 0xf0;  // <--Einsteinium: OK
+        pchMessageStart[3] = 0xc1;  // <--Einsteinium: OK
         nDefaultPort = 31878;       // <--Einsteinium: OK
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock("NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56", CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG, 1296688602, 0, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock("NY Times 19/Feb/2014 North Korea Arrests Christian Missionary From Australia", CScript() << OP_DUP << OP_HASH160 << ParseHex("1cec44c9f9b769ae08ebf9d694c7611a16edf615") << OP_EQUALVERIFY << OP_CHECKSIG, 1392841423, 3236648, 0x1e0ffff0, 1, 50 * COIN); // <--Einsteinium: OK
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0xf5ae71e26c74beacc88382716aced69cddf3dffff24f384e1808905e0188f68f"));   // <--Einsteinium: OK
+        assert(consensus.hashGenesisBlock == uint256S("0xa4271888b5e60092c3e7183a76d454741e9a7a55f2b4afbe574615829e406bee"));   // <--Einsteinium: OK
         assert(genesis.hashMerkleRoot == uint256S("0xb3e47e8776012ee4352acf603e6b9df005445dcba85c606697f422be3cc26f9b"));   // <--Einsteinium: OK
 
         vFixedSeeds.clear();
