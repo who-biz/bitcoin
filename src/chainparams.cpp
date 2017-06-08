@@ -194,7 +194,7 @@ public:
         nDefaultPort = 31878;       // <--Einsteinium: OK
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock("NY Times 19/Feb/2014 North Korea Arrests Christian Missionary From Australia", CScript() << OP_DUP << OP_HASH160 << ParseHex("1cec44c9f9b769ae08ebf9d694c7611a16edf615") << OP_EQUALVERIFY << OP_CHECKSIG, 1392841423, 3236648, 0x1e0ffff0, 1, 50 * COIN); // <--Einsteinium: OK
+        genesis = CreateGenesisBlock("NY Times 19/Feb/2014 North Korea Arrests Christian Missionary From Australia", CScript() << OP_DUP << OP_HASH160 << ParseHex("1cec44c9f9b769ae08ebf9d694c7611a16edf615") << OP_EQUALVERIFY << OP_CHECKSIG, 1494757042, 2231829, 0x1e0ffff0, 1, 50 * COIN); // <--Einsteinium: OK
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0xa4271888b5e60092c3e7183a76d454741e9a7a55f2b4afbe574615829e406bee"));   // <--Einsteinium: OK
         assert(genesis.hashMerkleRoot == uint256S("0xb3e47e8776012ee4352acf603e6b9df005445dcba85c606697f422be3cc26f9b"));   // <--Einsteinium: OK
@@ -276,23 +276,23 @@ public:
         nPruneAfterHeight = 1000;
 
 
-            /**
-             * For RegTest we simulate the Litecoin Genesis so we can re-use all validation data
-            */
+        /**
+        * For RegTest we simulate the Litecoin Genesis so we can re-use all validation data
+        */
 
-            genesis = CreateGenesisBlock("NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56", CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG, 1296688602, 0, 0x207fffff, 1, 50 * COIN);
-            consensus.hashGenesisBlock = genesis.GetHash();
-            assert(consensus.hashGenesisBlock == uint256S("0x530827f38f93b43ed12af0b3ad25a288dc02ed74d6d7857862df51fc56c416f9"));
-            assert(genesis.hashMerkleRoot == uint256S("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
+        genesis = CreateGenesisBlock("NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56", CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG, 1296688602, 0, 0x207fffff, 1, 50 * COIN);
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x530827f38f93b43ed12af0b3ad25a288dc02ed74d6d7857862df51fc56c416f9"));
+        assert(genesis.hashMerkleRoot == uint256S("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
 
-            vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
-            vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
+        vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
+        vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 
-            fMiningRequiresPeers = false;
-            fDefaultConsistencyChecks = true;
-            fRequireStandard = false;
-            fMineBlocksOnDemand = true;
-            fTestnetToBeDeprecatedFieldRPC = false;
+        fMiningRequiresPeers = false;
+        fDefaultConsistencyChecks = true;
+        fRequireStandard = false;
+        fMineBlocksOnDemand = true;
+        fTestnetToBeDeprecatedFieldRPC = false;
 
         checkpointData = (CCheckpointData){
             boost::assign::map_list_of
