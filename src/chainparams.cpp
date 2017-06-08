@@ -71,7 +71,7 @@ public:
         consensus.nMajorityWindow = 2500;               // <-- Einsteinium: 1000 blocks LTC = 2500 blocks EMC2
         consensus.BIP34Height = 1;                      // <-- Einsteinium: forgot to update initial code, update after V3 or higher active!!!
         consensus.BIP34Hash = uint256S("0xd1c175570320d4d6388a4525385b8f20460d340f621cfeebb9824712b9e593c5"); // <-- Einsteinium: used for BIP30 enforcement, set to corresponding BIP34 Height after V3 activation!
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
+        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 60;  // <-- Einsteinium: OK
         consensus.nPowTargetSpacing = 60;   // <-- Einsteinium: OK
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -133,8 +133,8 @@ public:
         fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = false;
 
-	checkpointData = (CCheckpointData) {
-		boost::assign::map_list_of
+    checkpointData = (CCheckpointData) {
+        boost::assign::map_list_of
             (        0, uint256S("0x4e56204bb7b8ac06f860ff1c845f03f984303b5b97eb7b42868f714611aed94b"))  // <--Einsteinium: OK
             (    14871, uint256S("0x5dedc3dd860f008c717d69b8b00f0476de8bc6bdac8d543fb58c946f32f982fa"))  // <--Einsteinium: OK
             (    36032, uint256S("0xff37468190b2801f2e72eb1762ca4e53cda6c075af48343f28a32b649512e9a8"))  // <--Einsteinium: OK
@@ -275,27 +275,6 @@ public:
         nDefaultPort = 31880;
         nPruneAfterHeight = 1000;
 
-
-        static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
-        {
-            CMutableTransaction txNew;
-            txNew.nVersion = 1;
-            txNew.vin.resize(1);
-            txNew.vout.resize(1);
-            txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-            txNew.vout[0].nValue = genesisReward;
-            txNew.vout[0].scriptPubKey = genesisOutputScript;
-
-            CBlock genesis;
-            genesis.nTime    = nTime;
-            genesis.nBits    = nBits;
-            genesis.nNonce   = nNonce;
-            genesis.nVersion = nVersion;
-            genesis.vtx.push_back(txNew);
-            genesis.hashPrevBlock.SetNull();
-            genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
-            return genesis;
-        }
 
             /**
              * For RegTest we simulate the Litecoin Genesis so we can re-use all validation data
