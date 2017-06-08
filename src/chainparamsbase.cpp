@@ -46,7 +46,7 @@ public:
     CBaseTestNetParams()
     {
         nRPCPort = 31879;
-        strDataDir = "testnet4";
+        strDataDir = "testnet5";
     }
 };
 static CBaseTestNetParams testNetParams;
