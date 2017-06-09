@@ -201,7 +201,6 @@ static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 static const signed int DEFAULT_CHECKBLOCKS = 6 * 4;
 static const unsigned int DEFAULT_CHECKLEVEL = 3;
 
-#define CHARITY_ADDRESS "1cec44c9f9b769ae08ebf9d694c7611a16edf615" // EKnqTC9XEuucZEhD3miDGnbJxBptcxhByA
 extern CScript CHARITY_SCRIPT;
 
 // Require that user allocate at least 550MB for block & undo files (blk???.dat and rev???.dat)

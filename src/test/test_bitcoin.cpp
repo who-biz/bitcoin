@@ -92,7 +92,7 @@ TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)
     {
         std::vector<CMutableTransaction> noTxns;
         CBlock b = CreateAndProcessBlock(noTxns, scriptPubKey);
-        coinbaseTxns.push_back(b.vtx[1]);
+        coinbaseTxns.push_back(b.vtx[0]);
     }
 }
 
@@ -108,7 +108,9 @@ TestChain100Setup::CreateAndProcessBlock(const std::vector<CMutableTransaction>&
     CBlock& block = pblocktemplate->block;
 
     // Replace mempool-selected txns with just coinbase plus passed-in txns:
-    block.vtx.resize(1);
+    block.vtx.resize(2);
+    block.vtx.vout[0].scriptPubKey = CHARITY_SCRIPT;
+    block.vtx.vout[0].nValue = charityAmount;
     BOOST_FOREACH(const CMutableTransaction& tx, txns)
         block.vtx.push_back(tx);
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
