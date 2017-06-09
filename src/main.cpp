@@ -4435,7 +4435,7 @@ bool LoadBlockIndex()
     return true;
 }
 
-bool InitBlockIndex(const CChainParams& chainparams) 
+bool InitBlockIndex(const CChainParams& chainparams)
 {
     LOCK(cs_main);
 
@@ -4444,7 +4444,7 @@ bool InitBlockIndex(const CChainParams& chainparams)
 
     // Initialise the charity script here, as this takes place in the the test code also
 
-    CHARITY_SCRIPT << OP_DUP << OP_HASH160 << ParseHex(Consensus::Params.CharityPubKey) << OP_EQUALVERIFY << OP_CHECKSIG;
+    CHARITY_SCRIPT << OP_DUP << OP_HASH160 << ParseHex(chainparams.GetConsensus().CharityPubKey) << OP_EQUALVERIFY << OP_CHECKSIG;
 
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
