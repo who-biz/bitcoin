@@ -3,7 +3,7 @@ dist: trusty
 
 #workaround for https://github.com/travis-ci/travis-ci/issues/5227
 addons:
-  hostname: litecoin-tester
+  hostname: einsteinium-tester
 
 os: linux
 language: generic
@@ -67,9 +67,11 @@ script:
     - mkdir build && cd build
     - ../configure $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false)
     - make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make $GOAL V=1 ; false )
-    - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
-    - if [ "$RUN_TESTS" = "true" ]; then travis_wait make $MAKEJOBS check VERBOSE=1; fi
-    - if [ "$RUN_TESTS" = "true" ]; then travis_wait qa/pull-tester/rpc-tests.py --coverage; fi
+    - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/li
+    - if [ "$RUN_TESTS" = "true" ]; then travis_wait 30 make $MAKEJOBS check VERBOSE=1; fi
+    - if [ "$RUN_TESTS" = "true" ]; then travis_wait 30 qa/pull-tester/rpc-tests.py --coverage; fi
+
+    ->>> 0.13_master_EMC2
 after_script:
     - echo $TRAVIS_COMMIT_RANGE
     - echo $TRAVIS_COMMIT_LOG
