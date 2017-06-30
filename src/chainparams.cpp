@@ -116,6 +116,13 @@ public:
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder01.emc2.foundation")); // <--Einsteinium: OK
         vSeeds.push_back(CDNSSeedData("emc2.foundation", "dnsseeder02.emc2.foundation")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed01.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed02.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed03.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed04.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed05.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed06.chainworksindustries.com")); // <--Einsteinium: OK
+        vSeeds.push_back(CDNSSeedData("chainworksindustries.com", "emc2-seed07.chainworksindustries.com")); // <--Einsteinium: OK
 
         // Einsteinium: Address encoding P2SH BTC = 5 / LTC NEW = 50 / EMC2 OLD = 5
 
