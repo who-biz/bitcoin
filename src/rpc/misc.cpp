@@ -104,6 +104,13 @@ UniValue getinfo(const UniValue& params, bool fHelp)
 #endif
     obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
+
+    extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID;
+    extern int32_t NOTARIZED_HEIGHT;
+    obj.push_back(Pair("notarizedhash",      NOTARIZED_HASH.GetHex()));
+    obj.push_back(Pair("notarizedtxid",      NOTARIZED_DESTTXID.GetHex()));
+    obj.push_back(Pair("notarized",          (int)NOTARIZED_HEIGHT));
+
     return obj;
 }
 
