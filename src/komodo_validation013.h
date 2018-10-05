@@ -81,7 +81,7 @@ int32_t KOMODO_TXINDEX = 1;
 int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsize,uint256 txid,int32_t n)
 {
     static uint256 zero; int32_t i,m; uint8_t *ptr; CTransaction tx; uint256 hashBlock;
-    CTransactionRef txref=0;
+
     LOCK(cs_main);
     if ( KOMODO_TXINDEX != 0 )
     {
@@ -100,22 +100,22 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
             if ( it != pwallet->mapWallet.end() )
             {
                 const CWalletTx& wtx = it->second;
-                txref = wtx.tx;
+                tx = *wtx.tx;
                 //fprintf(stderr,"found tx in wallet\n");
             }
         }
     }
-    if ( txref != 0 && n >= 0 && n <= (int32_t)txref->vout.size() ) // vout.size() seems off by 1
+    if ( !tx.IsNull() && n >= 0 && n <= (int32_t)tx.vout.size() ) // vout.size() seems off by 1
     {
-        ptr = (uint8_t *)&txref->vout[n].scriptPubKey[0];
-        m = txref->vout[n].scriptPubKey.size();
+        ptr = (uint8_t *)&tx.vout[n].scriptPubKey[0];
+        m = tx.vout[n].scriptPubKey.size();
         for (i=0; i<maxsize&&i<m; i++)
             scriptPubKey[i] = ptr[i];
         //fprintf(stderr,"got scriptPubKey[%d] via rawtransaction ht.%d %s\n",m,height,txid.GetHex().c_str());
         return(i);
     }
-    else if ( txref != 0 )
-        fprintf(stderr,"gettxout_scriptPubKey ht.%d n.%d > voutsize.%d\n",height,n,(int32_t)txref->vout.size());
+    else if ( !tx.IsNull() )
+        fprintf(stderr,"gettxout_scriptPubKey ht.%d n.%d > voutsize.%d\n",height,n,(int32_t)tx.vout.size());
     return(-1);
 }
 
