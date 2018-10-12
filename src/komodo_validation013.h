@@ -84,10 +84,32 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
 
     LOCK(cs_main);
 
-    if ( GetTransaction(txid,tx,Params().GetConsensus(),hashBlock, KOMODO_TXINDEX == 0) == 0 )
+    if ( KOMODO_TXINDEX != 0 )
     {
-        //fprintf(stderr,"ht.%d couldnt get txid.%s\n",height,txid.GetHex().c_str());
-        return(-1);
+        if ( GetTransaction(txid,tx,Params().GetConsensus(),hashBlock,false) == 0 )
+        {
+            //fprintf(stderr,"ht.%d couldnt get txid.%s\n",height,txid.GetHex().c_str());
+            return(-1);
+        }
+    }
+    else
+    {
+        CWallet * const pwallet = pwalletMain;
+        if ( pwallet != 0 )
+        {
+            //fprintf(stderr,"Size of tx in wallet: %d\n", pwallet->mapWallet.size());
+            auto it = pwallet->mapWallet.find(txid);
+            if ( it != pwallet->mapWallet.end() )
+            {
+                //fprintf(stderr,"try to found tx in wallet\n");
+                const CWalletTx& wtx = it->second;
+                tx = wtx;
+                //fprintf(stderr,"found tx in wallet\n");
+            }
+            /*else{
+                fprintf(stderr,"cannot found tx in wallet\n");
+            }*/
+        }
     }
     
     if ( !tx.IsNull() && n >= 0 && n <= (int32_t)tx.vout.size() ) // vout.size() seems off by 1
@@ -753,7 +775,7 @@ portable_mutex_t komodo_mutex;
 
 void komodo_importpubkeys()
 {
-    int32_t i,n,m,offset,val,dispflag = 0; std::string addr; char *pubkey;
+    int32_t i,n,m,offset=1,val,dispflag = 0; std::string addr; char *pubkey;
 
     n = (int32_t)(sizeof(Notaries_elected1)/sizeof(*Notaries_elected1));
     for (i=0; i<n; i++) // each year add new notaries too
@@ -1213,7 +1235,9 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                             signedmask |= (1LL << k);
                             break;
                         }
-                } // else if ( block.vtx[i].vin[j].prevout.hash != zero ) printf("%s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",ASSETCHAINS_SYMBOL,height,i,j);
+                }  else if ( block.vtx[i].vin[j].prevout.hash != zero ) {
+                    printf("%s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",ASSETCHAINS_SYMBOL,height,i,j);
+                }
             }
             numvalid = bitweight(signedmask);
             if ( numvalid >= KOMODO_MINRATIFY )
