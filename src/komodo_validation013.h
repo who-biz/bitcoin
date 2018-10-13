@@ -106,10 +106,6 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
                 tx = wtx;
                 //fprintf(stderr,"found tx in wallet\n");
             }
-            else if( GetTransaction(txid,tx,Params().GetConsensus(),hashBlock,true) == 0 ){
-                //fprintf(stderr,"ht.%d couldnt get txid.%s\n",height,txid.GetHex().c_str());
-                return(-1);
-            }
         }
     }
     
@@ -1224,7 +1220,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
             specialtx = notarizedheight = notarized = 0;
             signedmask = 0;
             numvins = block.vtx[i].vin.size();
-            for (j=0; j<numvins && numvins >= KOMODO_MINRATIFY; j++)
+            for (j=0; j<numvins; j++)
             {
                 if ( i == 0 && j == 0 )
                     continue;
