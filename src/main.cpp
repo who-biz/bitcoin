@@ -4469,9 +4469,9 @@ bool InitBlockIndex(const CChainParams& chainparams)
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
     // Initialise the charity script here, as this takes place in the the test code also
-
-    CHARITY_SCRIPT << OP_DUP << OP_HASH160 << ParseHex(chainparams.GetConsensus().CharityPubKey) << OP_EQUALVERIFY << OP_CHECKSIG;
-
+    if (!fReindex) {
+        CHARITY_SCRIPT << OP_DUP << OP_HASH160 << ParseHex(chainparams.GetConsensus().CharityPubKey) << OP_EQUALVERIFY << OP_CHECKSIG;
+    }
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
         return true;
