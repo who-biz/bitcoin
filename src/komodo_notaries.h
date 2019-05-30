@@ -13,8 +13,8 @@
  *                                                                            *
  ******************************************************************************/
 
-extern uint32_t NUM_KMD_SEASONS
-extern uint32_t NUM_KMD_NOTARIES;
+#define NUM_KMD_SEASONS    3   // 2019
+#define NUM_KMD_NOTARIES  64
 
 static const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] = { {
 {

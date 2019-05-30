@@ -54,7 +54,7 @@
 }*/
 
 #include <wallet/wallet.h>
-//#include <key_io.h>
+#include <key_io.h>
 #include <base58.h>
 #include <komodo_notaries.h>
 
@@ -79,8 +79,6 @@
     // 1751328000 = dummy timestamp, 1 July 2025!
     // 7113400 = 5x current KMD blockheight.
 // to add 4th season, change NUM_KMD_SEASONS to 4, and add timestamp and height of activation to these arrays.
-uint32_t NUM_KMD_SEASONS  = 3;
-uint32_t NUM_KMD_NOTARIES = 64;
 // timestamp activation is below, this is easiest. Just use that and the timestamps already here to activate at July 15.
 static const uint32_t KMD_SEASON_TIMESTAMPS[NUM_KMD_SEASONS] = {1525132800, 1563148800, 1751328000};
 // Much safer to use block height, but you need to work out what height to place here, these are for KMD.
@@ -649,6 +647,27 @@ uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
 int32_t NUM_NPOINTS,last_NPOINTSi,NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH,KOMODO_NEEDPUBKEYS;
 portable_mutex_t komodo_mutex;
 
+bool Getscriptaddress(char *destaddr,const CScript &scriptPubKey)
+{
+    CTxDestination address;
+    if ( ExtractDestination(scriptPubKey,address) != 0 )
+    {
+        strcpy(destaddr,(char *)EncodeDestination(address).c_str());
+        return(true);
+    }
+    //fprintf(stderr,"ExtractDestination failed\n");
+    return(false);
+}
+
+
+bool pubkey2addr(char *destaddr,uint8_t *pubkey33)
+{
+    std::vector<uint8_t>pk; int32_t i;
+    for (i=0; i<33; i++)
+        pk.push_back(pubkey33[i]);
+    return(Getscriptaddress(destaddr,CScript() << pk << OP_CHECKSIG));
+}
+
 void komodo_importpubkeys()
 {
     int32_t i,n,val,dispflag = 0; std::string addr;
@@ -671,31 +690,11 @@ void komodo_importpubkeys()
         fprintf(stderr,"%d Notary pubkeys imported\n",dispflag);
 }
 
-bool Getscriptaddress(char *destaddr,const CScript &scriptPubKey)
-{
-    CTxDestination address;
-    if ( ExtractDestination(scriptPubKey,address) != 0 )
-    {
-        strcpy(destaddr,(char *)EncodeDestination(address).c_str());
-        return(true);
-    }
-    //fprintf(stderr,"ExtractDestination failed\n");
-    return(false);
-}
-
-bool pubkey2addr(char *destaddr,uint8_t *pubkey33)
-{
-    std::vector<uint8_t>pk; int32_t i;
-    for (i=0; i<33; i++)
-        pk.push_back(pubkey33[i]);
-    return(Getscriptaddress(destaddr,CScript() << pk << OP_CHECKSIG));
-}
-
 int32_t getkmdseason(int32_t height)
 {
     if ( height <= KMD_SEASON_HEIGHTS[0] )
         return(1);
-    for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+    for (uint32_t i = 1; i < NUM_KMD_SEASONS; i++)
     {
         if ( height <= KMD_SEASON_HEIGHTS[i] && height >= KMD_SEASON_HEIGHTS[i-1] )
             return(i+1);
@@ -707,7 +706,7 @@ int32_t getacseason(uint32_t timestamp)
 {
     if ( timestamp <= KMD_SEASON_TIMESTAMPS[0] )
         return(1);
-    for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+    for (uint32_t i = 1; i < NUM_KMD_SEASONS; i++)
     {
         if ( timestamp <= KMD_SEASON_TIMESTAMPS[i] && timestamp >= KMD_SEASON_TIMESTAMPS[i-1] )
             return(i+1);
@@ -775,7 +774,7 @@ uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
-    int32_t i, kmd_season = 0;
+    uint32_t i, kmd_season = 0;
     static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
 
     if ( timestamp == 0 && ASSETCHAINS_SYMBOL[0] != 0 )
