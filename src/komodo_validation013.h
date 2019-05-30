@@ -674,6 +674,31 @@ void komodo_importpubkeys()
         fprintf(stderr,"%d Notary pubkeys imported\n",dispflag);
 }
 
+int32_t getkmdseason(int32_t height)
+{
+    if ( height <= KMD_SEASON_HEIGHTS[0] )
+        return(1);
+    for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+    {
+        if ( height <= KMD_SEASON_HEIGHTS[i] && height >= KMD_SEASON_HEIGHTS[i-1] )
+            return(i+1);
+    }
+    return(0);
+}
+
+int32_t getacseason(uint32_t timestamp)
+{
+    if ( timestamp <= KMD_SEASON_TIMESTAMPS[0] )
+        return(1);
+    for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+    {
+        if ( timestamp <= KMD_SEASON_TIMESTAMPS[i] && timestamp >= KMD_SEASON_TIMESTAMPS[i-1] )
+            return(i+1);
+    }
+    return(0);
+}
+
+
 int32_t komodo_init()
 {
     NOTARY_PUBKEY = GetArg("-pubkey", "");
@@ -733,42 +758,27 @@ uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
-    static uint8_t elected_pubkeys0[64][33],elected_pubkeys1[64][33],did0,did1; static int32_t n0,n1;
-    int32_t i;
+    int32_t i, kmd_season = 0;
+    static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
+
     if ( timestamp == 0 && ASSETCHAINS_SYMBOL[0] != 0 )
         timestamp = komodo_heightstamp(height);
-    else if ( ASSETCHAINS_SYMBOL[0] == 0 )
-        timestamp = 0;
-    if ( ASSETCHAINS_SYMBOL[0] != 0 )
+
+    if ( ASSETCHAINS_SYMBOL[0] == 0 ) { // height-based
+        kmd_season = getkmdseason(height);
+    } else { // timestamp-based
+        kmd_season = getacseason(timestamp);
+    }
+    if ( kmd_season != 0 )
     {
-        if ( (timestamp != 0 && timestamp <= KOMODO_NOTARIES_TIMESTAMP1) || (ASSETCHAINS_SYMBOL[0] == 0 && height <= KOMODO_NOTARIES_HEIGHT1) )
+        if ( didinit[kmd_season-1] == 0 )
         {
-            if ( did0 == 0 )
-            {
-                n0 = (int32_t)(sizeof(Notaries_elected0)/sizeof(*Notaries_elected0));
-                for (i=0; i<n0; i++)
-                    decode_hex(elected_pubkeys0[i],33,(char *)Notaries_elected0[i][1]);
-                did0 = 1;
-            }
-            memcpy(pubkeys,elected_pubkeys0,n0 * 33);
-            //if ( ASSETCHAINS_SYMBOL[0] != 0 )
-            //fprintf(stderr,"%s height.%d t.%u elected.%d notaries\n",ASSETCHAINS_SYMBOL,height,timestamp,n0);
-            return(n0);
+            for (i=0; i<NUM_KMD_NOTARIES; i++)
+                decode_hex(kmd_pubkeys[kmd_season-1][i],33,(char *)notaries_elected[kmd_season-1][i][1]);
+            didinit[kmd_season-1] = 1;
         }
-        else //if ( (timestamp != 0 && timestamp <= KOMODO_NOTARIES_TIMESTAMP2) || height <= KOMODO_NOTARIES_HEIGHT2 )
-        {
-            if ( did1 == 0 )
-            {
-                n1 = (int32_t)(sizeof(Notaries_elected1)/sizeof(*Notaries_elected1));
-                for (i=0; i<n1; i++)
-                    decode_hex(elected_pubkeys1[i],33,(char *)Notaries_elected1[i][1]);
-                if ( 0 && ASSETCHAINS_SYMBOL[0] != 0 )
-                    fprintf(stderr,"%s height.%d t.%u elected.%d notaries2\n",ASSETCHAINS_SYMBOL,height,timestamp,n1);
-                did1 = 1;
-            }
-            memcpy(pubkeys,elected_pubkeys1,n1 * 33);
-            return(n1);
-        }
+        memcpy(pubkeys,kmd_pubkeys[kmd_season-1],NUM_KMD_NOTARIES * 33);
+        return(NUM_KMD_NOTARIES);
     }
     return(-1);
 }
