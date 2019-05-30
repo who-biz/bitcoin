@@ -72,6 +72,20 @@
 #define KOMODO_NOTARIES_TIMESTAMP1 1525132800 // May 1st 2018 1530921600 // 7/7/2017
 #define KOMODO_NOTARIES_HEIGHT1 ((814000 / KOMODO_ELECTION_GAP) * KOMODO_ELECTION_GAP)
 
+// KMD Notary Seasons
+// 1: May 1st 2018 1530921600
+// 2: July 15th 2019 1563148800 -> estimated height 1444000
+// 3: 3rd season ending isnt known, so use very far times in future.
+    // 1751328000 = dummy timestamp, 1 July 2025!
+    // 7113400 = 5x current KMD blockheight.
+// to add 4th season, change NUM_KMD_SEASONS to 4, and add timestamp and height of activation to these arrays.
+#define NUM_KMD_SEASONS 3
+#define NUM_KMD_NOTARIES 64
+// timestamp activation is below, this is easiest. Just use that and the timestamps already here to activate at July 15.
+static const uint32_t KMD_SEASON_TIMESTAMPS[NUM_KMD_SEASONS] = {1525132800, 1563148800, 1751328000};
+// Much safer to use block height, but you need to work out what height to place here, these are for KMD.
+static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {814000, 1444000, 7113400};
+
 union _bits256 { uint8_t bytes[32]; uint16_t ushorts[16]; uint32_t uints[8]; uint64_t ulongs[4]; uint64_t txid; };
 typedef union _bits256 bits256;
 
