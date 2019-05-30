@@ -651,27 +651,44 @@ portable_mutex_t komodo_mutex;
 
 void komodo_importpubkeys()
 {
-    int32_t i,n,m,offset=1,val,dispflag = 0; std::string addr; char *pubkey;
-
-    n = (int32_t)(sizeof(Notaries_elected1)/sizeof(*Notaries_elected1));
-    for (i=0; i<n; i++) // each year add new notaries too
+    int32_t i,n,val,dispflag = 0; std::string addr;
+    for (n = 0; n < NUM_KMD_SEASONS-1; n++) // FIXME: -1 to stop segfault on season 3 until we get keys!
     {
-        if ( Notaries_elected1[i][offset] == 0 )
-            continue;
-        if ( (m= (int32_t)strlen((char *)Notaries_elected1[i][offset])) > 0 )
+        for (i=0; i<NUM_KMD_NOTARIES; i++)
         {
-            pubkey = (char*) Notaries_elected1[i][offset];
-            const std::vector<unsigned char> vPubkey(pubkey, pubkey + m);
-            std::string addr = CBitcoinAddress(CPubKey(ParseHex(pubkey)).GetID()).ToString();
-            // fprintf(stderr,"pubkey:%s,addr:%s\n", pubkey, addr.c_str() );
+            uint8_t pubkey[33]; char address[64];
+            decode_hex(pubkey,33,(char *)notaries_elected[n][i][1]);
+            pubkey2addr((char *)address,(uint8_t *)pubkey);
+            addr.clear();
+            addr.append(address);
             if ( (val= komodo_importaddress(addr)) < 0 )
                 fprintf(stderr,"error importing (%s)\n",addr.c_str());
-            else if ( val == 0 )
+            else if ( val != 0 )
                 dispflag++;
         }
     }
     if ( dispflag != 0 )
         fprintf(stderr,"%d Notary pubkeys imported\n",dispflag);
+}
+
+bool Getscriptaddress(char *destaddr,const CScript &scriptPubKey)
+{
+    CTxDestination address;
+    if ( ExtractDestination(scriptPubKey,address) != 0 )
+    {
+        strcpy(destaddr,(char *)EncodeDestination(address).c_str());
+        return(true);
+    }
+    //fprintf(stderr,"ExtractDestination failed\n");
+    return(false);
+}
+
+bool pubkey2addr(char *destaddr,uint8_t *pubkey33)
+{
+    std::vector<uint8_t>pk; int32_t i;
+    for (i=0; i<33; i++)
+        pk.push_back(pubkey33[i]);
+    return(Getscriptaddress(destaddr,CScript() << pk << OP_CHECKSIG));
 }
 
 int32_t getkmdseason(int32_t height)
