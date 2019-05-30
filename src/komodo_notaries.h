@@ -13,7 +13,10 @@
  *                                                                            *
  ******************************************************************************/
 
-const char *Notaries_elected0[][2] =
+extern uint32_t NUM_KMD_SEASONS
+extern uint32_t NUM_KMD_NOTARIES;
+
+static const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] = { {
 {
     { "0_jl777_testA", "03b7621b44118017a16043f19b30cc8a4cfe068ac4e42417bae16ba460c80f3828" },
     { "0_jl777_testB", "02ebfc784a4ba768aad88d44d1045d240d47b26e248cafaf1c5169a42d7a61d344" },
@@ -78,10 +81,8 @@ const char *Notaries_elected0[][2] =
     { "vanbreuk_EU", "024f3cad7601d2399c131fd070e797d9cd8533868685ddbe515daa53c2e26004c3" }, // 60
     { "xrobesx_NA", "03f0cc6d142d14a40937f12dbd99dbd9021328f45759e26f1877f2a838876709e1" },
     { "xxspot1_XX", "02ef445a392fcaf3ad4176a5da7f43580e8056594e003eba6559a713711a27f955" },
-    { "xxspot2_XX", "03d85b221ea72ebcd25373e7961f4983d12add66a92f899deaf07bab1d8b6f5573" }
-};
-
-const char *Notaries_elected1[][3] =
+    { "xxspot2_XX", "03d85b221ea72ebcd25373e7961f4983d12add66a92f899deaf07bab1d8b6f5573" },
+},
 {
     {"0dev1_jl777"       , "03b7621b44118017a16043f19b30cc8a4cfe068ac4e42417bae16ba460c80f3828" , "RNJmgYaFF5DbnrNUX6pMYz9rcnDKC2tuAc"},
     {"0dev2_kolo"        , "030f34af4b908fb8eb2099accb56b8d157d49f6cfb691baa80fdd34f385efed961" , "RLj9h7zfnx4X9hvquR3sEwzHvcvF61W2Rc"},
@@ -147,4 +148,10 @@ const char *Notaries_elected1[][3] =
     {"titomane_SH"       , "03573713c5b20c1e682a2e8c0f8437625b3530f278e705af9b6614de29277a435b" , "RAqoFL81YGFJ7hidAYUw2rzX8wjFKPCecP"},
     {"webworker01_NA"    , "03bb7d005e052779b1586f071834c5facbb83470094cff5112f0072b64989f97d7" , "RMbNsa4Nf3BAd16BQaAAmfzAgnuorUDrCr"},
     {"xrobesx_NA"        , "03f0cc6d142d14a40937f12dbd99dbd9021328f45759e26f1877f2a838876709e1" , "RLQoAcs1RaqW1xfN2NJwoZWW5twexPhuGB"},
-};
+},
+{
+     // New pubkeys from @kolo will go here
+        {"webworker01_NA", "03bb7d005e052779b1586f071834c5facbb83470094cff5112f0072b64989f97d7" }
+}
+
+} };

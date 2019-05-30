@@ -79,8 +79,8 @@
     // 1751328000 = dummy timestamp, 1 July 2025!
     // 7113400 = 5x current KMD blockheight.
 // to add 4th season, change NUM_KMD_SEASONS to 4, and add timestamp and height of activation to these arrays.
-#define NUM_KMD_SEASONS 3
-#define NUM_KMD_NOTARIES 64
+uint32_t NUM_KMD_SEASONS  = 3;
+uint32_t NUM_KMD_NOTARIES = 64;
 // timestamp activation is below, this is easiest. Just use that and the timestamps already here to activate at July 15.
 static const uint32_t KMD_SEASON_TIMESTAMPS[NUM_KMD_SEASONS] = {1525132800, 1563148800, 1751328000};
 // Much safer to use block height, but you need to work out what height to place here, these are for KMD.
