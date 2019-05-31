@@ -23,6 +23,6 @@ buildemc2 () {
     make -j$(nproc)
 }
 
-cd ~/einsteinium
 berkeleydb
 buildemc2
+echo "Done building EMC2!"
