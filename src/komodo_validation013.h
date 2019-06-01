@@ -136,18 +136,18 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
     return(-1);
 }
 
-void ImportAddress(CWallet*, const CTxDestination& dest, const std::string& strLabel);
+void ImportAddress(const CBitcoinAddress& address, const std::string& strLabel);
 
 int32_t komodo_importaddress(std::string addr)
 {
-    CTxDestination address; CWallet * const pwallet = pwalletMain;
+    CBitcoinAddress address(addr);
+    CWallet * const pwallet = pwalletMain;
     if ( pwallet != 0 )
     {
         LOCK2(cs_main, pwallet->cs_wallet);
-        address = DecodeDestination(addr);
-        if ( IsValidDestination(address) != 0 )
+        if ( address.IsValid() != 0 )
         {
-            isminetype mine = IsMine(*pwallet, address);
+            isminetype mine = IsMine(*pwallet, address.Get());
             if ( (mine & ISMINE_SPENDABLE) != 0 || (mine & ISMINE_WATCH_ONLY) != 0 )
             {
                 //printf("komodo_importaddress %s already there\n",EncodeDestination(address).c_str());
@@ -155,15 +155,16 @@ int32_t komodo_importaddress(std::string addr)
             }
             else
             {
-                printf("komodo_importaddress %s\n",EncodeDestination(address).c_str());
-                ImportAddress(pwallet, address, addr);
+                //printf("komodo_importaddress %s\n",addr.c_str());
+                ImportAddress(address, addr);
                 return(1);
             }
         }
-        printf("%s -> komodo_importaddress.(%s) failed valid.%d\n",addr.c_str(),EncodeDestination(address).c_str(),IsValidDestination(address));
+        LogPrint("dpow","%s -> komodo_importaddress failed valid.%d\n",addr.c_str(),address.IsValid());
     }
     return(-1);
 }
+
 
 // following is ported from libtom
 /* LibTomCrypt, modular cryptographic library -- Tom St Denis
