@@ -69,20 +69,6 @@
 #define KOMODO_MINRATIFY 11
 #define KOMODO_ELECTION_GAP 2000
 #define KOMODO_ASSETCHAIN_MAXLEN 65
-#define KOMODO_NOTARIES_TIMESTAMP1 1525132800 // May 1st 2018 1530921600 // 7/7/2017
-#define KOMODO_NOTARIES_HEIGHT1 ((814000 / KOMODO_ELECTION_GAP) * KOMODO_ELECTION_GAP)
-
-// KMD Notary Seasons
-// 1: May 1st 2018 1530921600
-// 2: July 15th 2019 1563148800 -> estimated height 1444000
-// 3: 3rd season ending isnt known, so use very far times in future.
-    // 1751328000 = dummy timestamp, 1 July 2025!
-    // 7113400 = 5x current KMD blockheight.
-// to add 4th season, change NUM_KMD_SEASONS to 4, and add timestamp and height of activation to these arrays.
-// timestamp activation is below, this is easiest. Just use that and the timestamps already here to activate at July 15.
-static const uint32_t KMD_SEASON_TIMESTAMPS[NUM_KMD_SEASONS] = {1525132800, 1563148800, 1751328000};
-// Much safer to use block height, but you need to work out what height to place here, these are for KMD.
-static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {814000, 1444000, 7113400};
 
 union _bits256 { uint8_t bytes[32]; uint16_t ushorts[16]; uint32_t uints[8]; uint64_t ulongs[4]; uint64_t txid; };
 typedef union _bits256 bits256;
@@ -672,19 +658,6 @@ int32_t getkmdseason(int32_t height)
     return(0);
 }
 
-int32_t getacseason(uint32_t timestamp)
-{
-    if ( timestamp <= KMD_SEASON_TIMESTAMPS[0] )
-        return(1);
-    for (uint32_t i = 1; i < NUM_KMD_SEASONS; i++)
-    {
-        if ( timestamp <= KMD_SEASON_TIMESTAMPS[i] && timestamp >= KMD_SEASON_TIMESTAMPS[i-1] )
-            return(i+1);
-    }
-    return(0);
-}
-
-
 int32_t komodo_init()
 {
     NOTARY_PUBKEY = GetArg("-pubkey", "");
@@ -744,22 +717,13 @@ uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
-    uint32_t i, kmd_season = 0;
+    int32_t i, kmd_season;
     static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
-
-    if ( timestamp == 0 && ASSETCHAINS_SYMBOL[0] != 0 )
-        timestamp = komodo_heightstamp(height);
-
-    if ( ASSETCHAINS_SYMBOL[0] == 0 ) { // height-based
-        kmd_season = getkmdseason(height);
-    } else { // timestamp-based
-        kmd_season = getacseason(timestamp);
-    }
-    if ( kmd_season != 0 )
+    if ( (kmd_season= getkmdseason(height)) != 0 )
     {
         if ( didinit[kmd_season-1] == 0 )
         {
-            for (i=0; i<NUM_KMD_NOTARIES; i++)
+            for (i=0; i<NUM_KMD_NOTARIES; i++) 
                 decode_hex(kmd_pubkeys[kmd_season-1][i],33,(char *)notaries_elected[kmd_season-1][i][1]);
             didinit[kmd_season-1] = 1;
         }
