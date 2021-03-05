@@ -17,12 +17,33 @@
 #define komodo_rpcblockchain_h
 
 #include "main.h"
+#include <komodo_notaries.h>
+#include <base58.h>
 
 int32_t komodo_MoMdata(int32_t *notarized_htp,uint256 *MoMp,uint256 *kmdtxidp,int32_t height,uint256 *MoMoMp,int32_t *MoMoMoffsetp,int32_t *MoMoMdepthp,int32_t *kmdstartip,int32_t *kmdendip);
 uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth);
+int32_t decode_hex(uint8_t *bytes,int32_t n,char *hex);
+bool pubkey2addr(char *destaddr,uint8_t *pubkey33);
 extern char ASSETCHAINS_SYMBOL[65];
 uint32_t DPOWCONFS = 1;
 extern int32_t NOTARIZED_HEIGHT;
+
+bool is_address_notary(std::string addressToCheck) {
+    int32_t i,n = 0;
+    for (n = 0; n < NUM_KMD_SEASONS; n++)
+    {
+        for (i = 0; i < NUM_KMD_NOTARIES; i++)
+        {
+            uint8_t pubkey[33]; char address[64];
+            decode_hex(pubkey,33,(char *)notaries_elected[n][i][1]);
+            pubkey2addr((char *)address,(uint8_t *)pubkey);
+            if (addressToCheck == address) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 int32_t komodo_dpowconfs(int32_t txheight,int32_t numconfs)
 {

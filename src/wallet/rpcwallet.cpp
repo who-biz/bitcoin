@@ -30,6 +30,7 @@ using namespace std;
 int64_t nWalletUnlockTime;
 static CCriticalSection cs_nWalletUnlockTime;
 int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
+bool is_address_notary(std::string addressToCheck);
 
 std::string HelpRequiringPassphrase()
 {
@@ -2425,6 +2426,9 @@ UniValue listunspent(const UniValue& params, bool fHelp)
         bool fValidAddress = ExtractDestination(scriptPubKey, address);
 
         if (setAddress.size() && (!fValidAddress || !setAddress.count(address)))
+            continue;
+
+        if (!out.fSpendable && fValidAddress && is_address_notary(CBitcoinAddress(address).ToString()))
             continue;
 
         UniValue entry(UniValue::VOBJ);
