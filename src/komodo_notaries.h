@@ -24,9 +24,9 @@
  // first season had no third party coins, so it ends at block 0. 
  // second season ends at approx block 2430952, Please check this it should be as close as possible to July 15th 0:00 UTC!!!!!!!
  // third season ending is approx. on June 14th, 2020 03:00:00 PM UTC at block approx. 2988679
- // fourth season ending height 3932480 around 4th of July
+ // fourth season ending height 3914855 around Monday, June 14th, 2021 (03:00:00 PM UTC)
  // 5th season ending height is unknown so it set to very very far in future.
- static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {0, 2430952, 3004222, 3932480, 999999999};
+ static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {0, 2430952, 3004222, 3914855, 999999999};
 
  // Era array of pubkeys. Add extra seasons to bottom as requried, after adding appropriate info above. 
  static const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] =
