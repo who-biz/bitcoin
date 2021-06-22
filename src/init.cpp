@@ -47,9 +47,8 @@
 #include <rpc/util.h>
 #include <scheduler.h>
 #include <script/sigcache.h>
-//#include <script/cc.h>
+#include <script/cc.h>
 #include <script/standard.h>
-//#include <script/serverchecker.h>
 #include <shutdown.h>
 #include <sync.h>
 #include <timedata.h>
@@ -1132,6 +1131,8 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     for (const auto& client : node.chain_clients) {
         client->registerRpcs();
     }
+    g_rpc_node = &node;
+
 #if ENABLE_ZMQ
     RegisterZMQRPCCommands(tableRPC);
 #endif
