@@ -41,36 +41,39 @@
 
 #include <univalue.h>
 
-UniValue getinfo(const JSONRPCRequest& request)
+static RPCHelpMan getinfo()
 {
-    if (request.params.size() != 0)
-        throw std::runtime_error(
-            "getinfo\n"
-            "\nDEPRECATED. Returns an object containing various state info.\n"
-            "\nResult:\n"
-            "{\n"
-            "  \"version\": xxxxx,           (numeric) the server version\n"
-            "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total bitcoin balance of the wallet\n"
-            "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
-            "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
-            "  \"connections\": xxxxx,       (numeric) the number of connections\n"
-            "  \"proxy\": \"host:port\",       (string, optional) the proxy used by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
-            "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
-            "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
-            "  \"keypoolsize\": xxxx,        (numeric) how many new keys are pre-generated\n"
-            "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in " + CURRENCY_UNIT + "/kB\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for transactions in " + CURRENCY_UNIT + "/kB\n"
-            "  \"errors\": \"...\"             (string) any error messages\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getinfo", "")
-            + HelpExampleRpc("getinfo", "")
-        );
+    return RPCHelpMan{"getinfo",
+                "\nReturns an object containing various state info.\n",
+                {},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::NUM, "version", "the server version"},
+                        {RPCResult::Type::NUM, "protocolversion", "the protocol version"},
+                        {RPCResult::Type::NUM, "walletversion", "the wallet version"},
+                        {RPCResult::Type::NUM, "balance", "the total bitcoin balance of the wallet"},
+                        {RPCResult::Type::NUM, "blocks", "the current number of blocks processed in the server"},
+                        {RPCResult::Type::NUM, "timeoffset", "the time offset"},
+                        {RPCResult::Type::NUM, "connections", "the number of connections"},
+                        {RPCResult::Type::STR, "proxy", "the proxy used by the server"},
+                        {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
+                        {RPCResult::Type::BOOL, "testnet", "if the server is using testnet or not"},
+                        {RPCResult::Type::NUM, "keypoololdest", "the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool"},
+                        {RPCResult::Type::NUM, "keypoolsize", "how many new keys are pre-generated"},
+                        {RPCResult::Type::NUM, "unlocked_until", "the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked"},
+                        {RPCResult::Type::NUM, "paytxfee", "the transaction fee set in CHIPS/kB"},
+                        {RPCResult::Type::NUM, "relayfee", "minimum relay fee for transactions in CHIPS/kB"},
+                        {RPCResult::Type::STR, "errors", "any error messages"}
+                    },
 
+                },
+                RPCExamples{
+                    HelpExampleCli("getinfo", "") +
+                    HelpExampleRpc("getinfo", "")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
 #ifdef ENABLE_WALLET
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     if (!wallet) return NullUniValue;
@@ -80,10 +83,6 @@ UniValue getinfo(const JSONRPCRequest& request)
 #else
     LOCK(cs_main);
 #endif
-
-    NodeContext& node = EnsureAnyNodeContext(request.context);
-    if(!node.connman)
-        throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
 
     CBlockIndex* pindex = g_rpc_node->chainman->ActiveChain().Tip();
 
@@ -101,8 +100,8 @@ UniValue getinfo(const JSONRPCRequest& request)
 #endif
     obj.pushKV("blocks",        (int)pindex->nHeight);
     obj.pushKV("timeoffset",    GetTimeOffset());
-    if (node.connman)
-        obj.pushKV("connections",   (int)node.connman->GetNodeCount(ConnectionDirection::Both));
+    if (g_rpc_node->connman)
+        obj.pushKV("connections",   (int)g_rpc_node->connman->GetNodeCount(ConnectionDirection::Both));
     obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
     {
         int32_t komodo_prevMoMheight();
@@ -130,6 +129,8 @@ UniValue getinfo(const JSONRPCRequest& request)
     obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
     obj.pushKV("errors",        GetWarnings("statusbar").original);
     return obj;
+},
+    };
 }
 
 static RPCHelpMan validateaddress()
@@ -854,6 +855,7 @@ static const CRPCCommand commands[] =
   //  --------------------- ------------------------
     { "control",            &getmemoryinfo,           },
     { "control",            &logging,                 },
+    { "util",               &getinfo,                 },
     { "util",               &validateaddress,         },
     { "util",               &createmultisig,          },
     { "util",               &deriveaddresses,         },
