@@ -12,6 +12,7 @@
 #include <addrman.h>
 #include <amount.h>
 #include <banman.h>
+#include <genconfig.h>
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -1069,6 +1070,10 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     const ArgsManager& args = *Assert(node.args);
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 4a: application initialization
+
+    std::string configError;
+    bitcoinConfigCreator(configError);
+
     if (!CreatePidFile(args)) {
         // Detailed error printed inside CreatePidFile().
         return false;

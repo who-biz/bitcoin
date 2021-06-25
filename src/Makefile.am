@@ -341,6 +341,7 @@ libbitcoin_server_a_SOURCES = \
   dbwrapper.cpp \
   deploymentstatus.cpp \
   flatfile.cpp \
+  genconfig.cpp \
   httprpc.cpp \
   httpserver.cpp \
   i2p.cpp \
