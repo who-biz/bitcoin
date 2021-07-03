@@ -6,6 +6,7 @@
 #include <banman.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <deploymentstatus.h>
 #include <external_signer.h>
 #include <init.h>
 #include <interfaces/chain.h>
@@ -180,7 +181,7 @@ public:
         ExternalSigner::Enumerate(command, signers, Params().NetworkIDString());
         return signers;
 #else
-        // This result is undistinguisable from a succesful call that returns
+        // This result is indistinguishable from a successful call that returns
         // no signers. For the current GUI this doesn't matter, because the wallet
         // creation dialog disables the external signer checkbox in both
         // cases. The return type could be changed to std::optional<std::vector>
@@ -692,7 +693,7 @@ public:
     {
         LOCK(::cs_main);
         const CBlockIndex* tip = Assert(m_node.chainman)->ActiveChain().Tip();
-        return VersionBitsState(tip, Params().GetConsensus(), Consensus::DEPLOYMENT_TAPROOT, versionbitscache) == ThresholdState::ACTIVE;
+        return DeploymentActiveAfter(tip, Params().GetConsensus(), Consensus::DEPLOYMENT_TAPROOT);
     }
     NodeContext& m_node;
 };

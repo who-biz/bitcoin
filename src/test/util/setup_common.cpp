@@ -186,17 +186,17 @@ TestingSetup::TestingSetup(const std::string& chainName, const std::vector<const
     assert(!m_node.chainman->ActiveChainstate().CanFlushToDisk());
     m_node.chainman->ActiveChainstate().InitCoinsCache(1 << 23);
     assert(m_node.chainman->ActiveChainstate().CanFlushToDisk());
-    if (!m_node.chainman->ActiveChainstate().LoadGenesisBlock(chainparams)) {
+    if (!m_node.chainman->ActiveChainstate().LoadGenesisBlock()) {
         throw std::runtime_error("LoadGenesisBlock failed.");
     }
 
     BlockValidationState state;
-    if (!m_node.chainman->ActiveChainstate().ActivateBestChain(state, chainparams)) {
+    if (!m_node.chainman->ActiveChainstate().ActivateBestChain(state)) {
         throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)", state.ToString()));
     }
 
     m_node.addrman = std::make_unique<CAddrMan>();
-    m_node.banman = std::make_unique<BanMan>(m_args.GetDataDirBase() / "banlist.dat", nullptr, DEFAULT_MISBEHAVING_BANTIME);
+    m_node.banman = std::make_unique<BanMan>(m_args.GetDataDirBase() / "banlist", nullptr, DEFAULT_MISBEHAVING_BANTIME);
     m_node.connman = std::make_unique<CConnman>(0x1337, 0x1337, *m_node.addrman); // Deterministic randomness for tests.
     m_node.peerman = PeerManager::make(chainparams, *m_node.connman, *m_node.addrman,
                                        m_node.banman.get(), *m_node.scheduler, *m_node.chainman,
