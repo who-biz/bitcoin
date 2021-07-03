@@ -7,7 +7,6 @@
 
 #include <amount.h>
 #include <blockfilter.h>
-#include <cc/betprotocol.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
@@ -66,6 +65,7 @@ static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock GUARDED_BY(cs_blockchange);
 
 int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
+uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex);
 
 NodeContext& EnsureAnyNodeContext(const std::any& context)
 {
@@ -2746,99 +2746,6 @@ static std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leav
     return ret;
 }
 
-
-static RPCHelpMan txMoMproof()
-{
-    return RPCHelpMan{"txMoMproof",
-                "\n",
-                {},
-                RPCResult{
-                    RPCResult::Type::NUM, "", "The current block count"},
-                RPCExamples{
-                    HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
-                },
-        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
-{
-    uint256 hash, notarisationHash, MoM,MoMoM;
-    int32_t notarisedHeight, depth,MoMoMdepth,MoMoMoffset,kmdstarti,kmdendi;
-    CBlockIndex* blockIndex = NULL;
-    std::vector<uint256> branch;
-    int nIndex;
-
-    // parse params and get notarisation data for tx
-    {
-        if (request.params.size() != 0)
-            throw std::runtime_error("txMoMproof needs a txid");
-
-        hash = uint256S(request.params[0].get_str());
-        if (hash.IsNull()) throw std::runtime_error("invalid txid");
-
-        uint256 blockHash;
-        CTransactionRef txDontNeed = GetTransaction(g_rpc_node->chainman->ActiveChain().Tip(), nullptr, hash, Params().GetConsensus(), blockHash);
-        if (!txDontNeed) throw std::runtime_error("couldnt find tx");
-
-        depth = komodo_MoM(&notarisedHeight, &MoM, &notarisationHash, blockIndex->nHeight, &MoMoM, &MoMoMoffset, &MoMoMdepth, &kmdstarti, &kmdendi);
-        if (!depth) throw std::runtime_error("notarisation not found");
-
-        // index of block in MoM leaves
-        nIndex = notarisedHeight - blockIndex->nHeight;
-    }
-
-    // build merkle chain from blocks to MoM
-    {
-        std::vector<uint256> leaves;
-        for (int i=0; i<depth; i++) {
-            uint256 mRoot = g_rpc_node->chainman->ActiveChain()[notarisedHeight - i]->hashMerkleRoot;
-            leaves.push_back(mRoot);
-        }
-        branch = ComputeMerkleBranch(leaves, nIndex);
-
-        // Check branch
-        if (MoM != ComputeMerkleRootFromBranch(blockIndex->hashMerkleRoot, branch, nIndex))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed merkle block->MoM");
-    }
-
-    // Now get the tx merkle branch
-    {
-        CBlock block;
-        if(!ReadBlockFromDisk(block, blockIndex, Params().GetConsensus()))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
-
-        // Get txids from block
-        std::vector<uint256> txids;
-        int nTxIndex = -1;
-        for (int i=0; i<(int32_t)block.vtx.size(); i++) {
-            uint256 txid = block.vtx[i]->GetHash();
-            txids.push_back(txid);
-            if (nTxIndex == -1 && hash == txid) nTxIndex = i;
-        }
-
-        if (nTxIndex == -1)
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Error locating tx in block");
-
-        std::vector<uint256> txBranch = ComputeMerkleBranch(txids, nTxIndex);
-
-        // Check branch
-        if (block.hashMerkleRoot != ComputeMerkleRootFromBranch(hash, txBranch, nTxIndex))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed merkle tx->block");
-        // concatenate branches
-        nIndex = (nIndex << txBranch.size()) + nTxIndex;
-        branch.insert(branch.begin(), txBranch.begin(), txBranch.end());
-    }
-
-    // Check the proof
-    if (MoM != ComputeMerkleRootFromBranch(hash, branch, nIndex))
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed validating MoM");
-
-    // Encode and return
-    CDataStream ssProof(SER_NETWORK, PROTOCOL_VERSION);
-    ssProof << MoMProof(nIndex, branch, notarisationHash);
-    return HexStr(ssProof);
-},
-    };
-}
-
 static RPCHelpMan calc_MoM()
 {
     return RPCHelpMan{"calc_MoM",
@@ -2955,7 +2862,6 @@ static const CRPCCommand commands[] =
     { "blockchain",         &scantxoutset,                       },
     { "blockchain",         &getblockfilter,                     },
 
-    { "blockchain",         &txMoMproof,                         },
     { "blockchain",         &calc_MoM,                           },
     { "blockchain",         &height_MoM,                         },
 

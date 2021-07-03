@@ -48,7 +48,6 @@
 #include <rpc/util.h>
 #include <scheduler.h>
 #include <script/sigcache.h>
-#include <script/cc.h>
 #include <script/standard.h>
 #include <shutdown.h>
 #include <sync.h>
@@ -1782,8 +1781,6 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     if (!node.connman->Start(*node.scheduler, connOptions)) {
         return false;
     }
-
-    ASSETCHAINS_CC = gArgs.GetBoolArg("-ac_cc", false);
 
     // ********************************************************* Step 13: finished
 
