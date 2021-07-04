@@ -105,6 +105,7 @@ struct Params {
     uint256 nMinimumChainWork;
     /** By default assume that the signatures in ancestors of this block are valid */
     uint256 defaultAssumeValid;
+    int nManualTaprootHeight;
 
     /** Retarget based parameters */
     int nAdaptivePoWActivationThreshold;
