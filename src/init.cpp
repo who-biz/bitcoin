@@ -798,10 +798,11 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     if (network == CBaseChainParams::SIGNET) {
         LogPrintf("Signet derived magic (message start): %s\n", HexStr(chainparams.MessageStart()));
     }
+
     bilingual_str errors;
-    for (const auto& arg : args.GetUnsuitableSectionOnlyArgs()) {
-        errors += strprintf(_("Config setting for %s only applied on %s network when in [%s] section.") + Untranslated("\n"), arg, network, network);
-    }
+//  for (const auto& arg : args.GetUnsuitableSectionOnlyArgs()) {
+//      errors += strprintf(_("Config setting for %s only applied on %s network when in [%s] section.") + Untranslated("\n"), arg, network, network);
+//  }
 
     if (!errors.empty()) {
         return InitError(errors);
