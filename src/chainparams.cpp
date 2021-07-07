@@ -14,7 +14,6 @@
 #include <tinyformat.h>
 #include <util/system.h>
 #include <util/strencodings.h>
-#include <versionbitsinfo.h>
 
 #include <assert.h>
 
