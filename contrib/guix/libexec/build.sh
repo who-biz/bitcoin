@@ -214,6 +214,7 @@ make -C depends --jobs="$JOBS" HOST="$HOST" \
                                    x86_64_linux_NM=x86_64-linux-gnu-nm \
                                    x86_64_linux_STRIP=x86_64-linux-gnu-strip \
                                    qt_config_opts_i686_linux='-platform linux-g++ -xplatform bitcoin-linux-g++' \
+                                   qt_config_opts_x86_64_linux='-platform linux-g++ -xplatform bitcoin-linux-g++' \
                                    FORCE_USE_SYSTEM_CLANG=1
 
 
@@ -239,7 +240,7 @@ mkdir -p "$OUTDIR"
 # CONFIGFLAGS
 CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --disable-fuzz-binary"
 case "$HOST" in
-    *linux*) CONFIGFLAGS+=" --enable-glibc-back-compat" ;;
+    *linux*) CONFIGFLAGS+=" --disable-threadlocal" ;;
 esac
 
 # CFLAGS
@@ -257,6 +258,13 @@ HOST_CXXFLAGS="$HOST_CFLAGS"
 case "$HOST" in
     *linux*)  HOST_LDFLAGS="-Wl,--as-needed -Wl,--dynamic-linker=$glibc_dynamic_linker -static-libstdc++ -Wl,-O2" ;;
     *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
+esac
+
+# Using --no-tls-get-addr-optimize retains compatibility with glibc 2.17, by
+# avoiding a PowerPC64 optimisation available in glibc 2.22 and later.
+# https://sourceware.org/binutils/docs-2.35/ld/PowerPC64-ELF64.html
+case "$HOST" in
+    *powerpc64*) HOST_LDFLAGS="${HOST_LDFLAGS} -Wl,--no-tls-get-addr-optimize" ;;
 esac
 
 case "$HOST" in
@@ -445,5 +453,6 @@ mv --no-target-directory "$OUTDIR" "$ACTUAL_OUTDIR" \
         find "$ACTUAL_OUTDIR" -type f
     } | xargs realpath --relative-base="$PWD" \
       | xargs sha256sum \
+      | sort -k2 \
       | sponge "$ACTUAL_OUTDIR"/SHA256SUMS.part
 )
