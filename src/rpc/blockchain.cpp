@@ -19,6 +19,7 @@
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>
 #include <node/blockstorage.h>
+#include <komodo_rpcblockchain.h>
 #include <node/coinstats.h>
 #include <node/context.h>
 #include <node/utxo_snapshot.h>
@@ -57,9 +58,14 @@ struct CUpdatedBlock
     int height;
 };
 
+NodeContext* g_rpc_node = nullptr;
+
 static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock GUARDED_BY(cs_blockchange);
+
+int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
+uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex);
 
 NodeContext& EnsureAnyNodeContext(const std::any& context)
 {
@@ -177,9 +183,12 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hash", blockindex->GetBlockHash().GetHex());
-    const CBlockIndex* pnext;
-    int confirmations = ComputeNextBlockAndDepth(tip, blockindex, pnext);
-    result.pushKV("confirmations", confirmations);
+    int confirmations = -1;
+    // Only report confirmations if the block is on the main chain
+    if (g_rpc_node->chainman->ActiveChain().Contains(blockindex))
+        confirmations = g_rpc_node->chainman->ActiveChain().Height() - blockindex->nHeight + 1;
+    result.pushKV("rawconfirmations", confirmations);
+    result.pushKV("confirmations", komodo_dpowconfs(blockindex->nHeight,confirmations));
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", blockindex->nVersion);
     result.pushKV("versionHex", strprintf("%08x", blockindex->nVersion));
@@ -194,6 +203,7 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
 
     if (blockindex->pprev)
         result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
+    CBlockIndex *pnext = g_rpc_node->chainman->ActiveChain().Next(blockindex);
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
     return result;
@@ -203,6 +213,13 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
 {
     UniValue result = blockheaderToJSON(tip, blockindex);
 
+    result.pushKV("hash", blockindex->GetBlockHash().GetHex());
+    int confirmations = -1;
+    // Only report confirmations if the block is on the main chain
+    if (g_rpc_node->chainman->ActiveChain().Contains(blockindex))
+        confirmations = g_rpc_node->chainman->ActiveChain().Height() - blockindex->nHeight + 1;
+    result.pushKV("rawconfirmations", confirmations);
+    result.pushKV("confirmations", komodo_dpowconfs(blockindex->nHeight,confirmations));
     result.pushKV("strippedsize", (int)::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS));
     result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
     result.pushKV("weight", (int)::GetBlockWeight(block));
@@ -225,6 +242,11 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
     }
     result.pushKV("tx", txs);
 
+    if (blockindex->pprev)
+        result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
+    CBlockIndex *pnext = g_rpc_node->chainman->ActiveChain().Next(blockindex);
+    if (pnext)
+        result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
     return result;
 }
 
@@ -2629,6 +2651,186 @@ UniValue CreateUTXOSnapshot(NodeContext& node, CChainState& chainstate, CAutoFil
     return result;
 }
 
+#include "komodo_rpcblockchain.h"
+
+static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) {
+    if (pbranch) pbranch->clear();
+    if (leaves.size() == 0) {
+        if (pmutated) *pmutated = false;
+        if (proot) *proot = uint256();
+        return;
+    }
+    bool mutated = false;
+    // count is the number of leaves processed so far.
+    uint32_t count = 0;
+    // inner is an array of eagerly computed subtree hashes, indexed by tree
+    // level (0 being the leaves).
+    // For example, when count is 25 (11001 in binary), inner[4] is the hash of
+    // the first 16 leaves, inner[3] of the next 8 leaves, and inner[0] equal to
+    // the last leaf. The other inner entries are undefined.
+    uint256 inner[32];
+    // Which position in inner is a hash that depends on the matching leaf.
+    int matchlevel = -1;
+    // First process all leaves into 'inner' values.
+    while (count < leaves.size()) {
+        uint256 h = leaves[count];
+        bool matchh = count == branchpos;
+        count++;
+        int level;
+        // For each of the lower bits in count that are 0, do 1 step. Each
+        // corresponds to an inner value that existed before processing the
+        // current leaf, and each needs a hash to combine it.
+        for (level = 0; !(count & (((uint32_t)1) << level)); level++) {
+            if (pbranch) {
+                if (matchh) {
+                    pbranch->push_back(inner[level]);
+                } else if (matchlevel == level) {
+                    pbranch->push_back(h);
+                    matchh = true;
+                }
+            }
+            mutated |= (inner[level] == h);
+            CHash256().Write(inner[level]).Write(h).Finalize(h);
+        }
+        // Store the resulting hash at inner position level.
+        inner[level] = h;
+        if (matchh) {
+            matchlevel = level;
+        }
+    }
+    // Do a final 'sweep' over the rightmost branch of the tree to process
+    // odd levels, and reduce everything to a single top value.
+    // Level is the level (counted from the bottom) up to which we've sweeped.
+    int level = 0;
+    // As long as bit number level in count is zero, skip it. It means there
+    // is nothing left at this level.
+    while (!(count & (((uint32_t)1) << level))) {
+        level++;
+    }
+    uint256 h = inner[level];
+    bool matchh = matchlevel == level;
+    while (count != (((uint32_t)1) << level)) {
+        // If we reach this point, h is an inner value that is not the top.
+        // We combine it with itself (Bitcoin's special rule for odd levels in
+        // the tree) to produce a higher level one.
+        if (pbranch && matchh) {
+            pbranch->push_back(h);
+        }
+        CHash256().Write(h).Write(h).Finalize(h);
+        // Increment count to the value it would have if two entries at this
+        // level had existed.
+        count += (((uint32_t)1) << level);
+        level++;
+        // And propagate the result upwards accordingly.
+        while (!(count & (((uint32_t)1) << level))) {
+            if (pbranch) {
+                if (matchh) {
+                    pbranch->push_back(inner[level]);
+                } else if (matchlevel == level) {
+                    pbranch->push_back(h);
+                    matchh = true;
+                }
+            }
+            CHash256().Write(inner[level]).Write(h).Finalize(h);
+            level++;
+        }
+    }
+    // Return result.
+    if (pmutated) *pmutated = mutated;
+    if (proot) *proot = h;
+}
+
+static std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leaves, uint32_t position) {
+    std::vector<uint256> ret;
+    MerkleComputation(leaves, nullptr, nullptr, position, &ret);
+    return ret;
+}
+
+static RPCHelpMan calc_MoM()
+{
+    return RPCHelpMan{"calc_MoM",
+                "\n",
+                {},
+                RPCResult{
+                    RPCResult::Type::NUM, "", "The current block count"},
+                RPCExamples{
+                    HelpExampleCli("getblockcount", "")
+            + HelpExampleRpc("getblockcount", "")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    int32_t height,MoMdepth; uint256 MoM; UniValue ret(UniValue::VOBJ); UniValue a(UniValue::VARR);
+    if ( request.params.size() != 2 )
+        throw std::runtime_error("calc_MoM height MoMdepth\n");
+    LOCK(cs_main);
+    height = atoi(request.params[0].get_str().c_str());
+    MoMdepth = atoi(request.params[1].get_str().c_str());
+    if ( height <= 0 || MoMdepth <= 0 || MoMdepth >= height )
+        throw std::runtime_error("calc_MoM illegal height or MoMdepth\n");
+    //fprintf(stderr,"height_MoM height.%d\n",height);
+    MoM = komodo_calcMoM(height,MoMdepth);
+    ret.pushKV("coin",(char *)(ASSETCHAINS_SYMBOL[0] == 0 ? "KMD" : ASSETCHAINS_SYMBOL));
+    ret.pushKV("height",height);
+    ret.pushKV("MoMdepth",MoMdepth);
+    ret.pushKV("MoM",MoM.GetHex());
+    return ret;
+},
+    };
+}
+
+static RPCHelpMan height_MoM()
+{
+    return RPCHelpMan{"height_MoM",
+                "\n",
+                {},
+                RPCResult{
+                    RPCResult::Type::NUM, "", "The current block count"},
+                RPCExamples{
+                    HelpExampleCli("getblockcount", "")
+            + HelpExampleRpc("getblockcount", "")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    int32_t height,depth,notarized_height,MoMoMdepth,MoMoMoffset,kmdstarti,kmdendi; uint256 MoM,MoMoM,kmdtxid; uint32_t timestamp = 0; UniValue ret(UniValue::VOBJ); UniValue a(UniValue::VARR);
+    if ( request.params.size() != 1 )
+        throw std::runtime_error("height_MoM height\n");
+    LOCK(cs_main);
+    height = atoi(request.params[0].get_str().c_str());
+    if ( height <= 0 )
+    {
+        if ( g_rpc_node->chainman->ActiveChain().Tip() == 0 )
+        {
+            ret.pushKV("error",(char *)"no active chain yet");
+            return(ret);
+        }
+        height = g_rpc_node->chainman->ActiveChain().Height();
+    }
+    //fprintf(stderr,"height_MoM height.%d\n",height);
+    depth = komodo_MoM(&notarized_height,&MoM,&kmdtxid,height,&MoMoM,&MoMoMoffset,&MoMoMdepth,&kmdstarti,&kmdendi);
+    ret.pushKV("coin",(char *)(ASSETCHAINS_SYMBOL[0] == 0 ? "KMD" : ASSETCHAINS_SYMBOL));
+    ret.pushKV("height",height);
+    ret.pushKV("timestamp",(uint64_t)timestamp);
+    if ( depth > 0 )
+    {
+        ret.pushKV("depth",depth);
+        ret.pushKV("notarized_height",notarized_height);
+        ret.pushKV("MoM",MoM.GetHex());
+        ret.pushKV("kmdtxid",kmdtxid.GetHex());
+        if ( ASSETCHAINS_SYMBOL[0] != 0 )
+        {
+            ret.pushKV("MoMoM",MoMoM.GetHex());
+            ret.pushKV("MoMoMoffset",MoMoMoffset);
+            ret.pushKV("MoMoMdepth",MoMoMdepth);
+            ret.pushKV("kmdstarti",kmdstarti);
+            ret.pushKV("kmdendi",kmdendi);
+        }
+    } else ret.pushKV("error",(char *)"no MoM for height");
+
+    return ret;
+},
+    };
+}
+
 void RegisterBlockchainRPCCommands(CRPCTable &t)
 {
 // clang-format off
@@ -2659,6 +2861,9 @@ static const CRPCCommand commands[] =
     { "blockchain",         &preciousblock,                      },
     { "blockchain",         &scantxoutset,                       },
     { "blockchain",         &getblockfilter,                     },
+
+    { "blockchain",         &calc_MoM,                           },
+    { "blockchain",         &height_MoM,                         },
 
     /* Not shown in help */
     { "hidden",              &invalidateblock,                   },

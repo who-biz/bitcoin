@@ -9,7 +9,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(merkle_tests, TestingSetup)
 
-static uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex) {
+uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex) {
     uint256 hash = leaf;
     for (std::vector<uint256>::const_iterator it = vMerkleBranch.begin(); it != vMerkleBranch.end(); ++it) {
         if (nIndex & 1) {
@@ -23,7 +23,7 @@ static uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vecto
 }
 
 /* This implements a constant-space merkle root/path calculator, limited to 2^32 leaves. */
-static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) {
+void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) {
     if (pbranch) pbranch->clear();
     if (leaves.size() == 0) {
         if (pmutated) *pmutated = false;

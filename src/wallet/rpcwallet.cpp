@@ -13,6 +13,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <rpc/blockchain.h>
 #include <rpc/rawtransaction_util.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
@@ -35,17 +36,30 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
+#include <validation.h>
 
 #include <optional>
 #include <stdint.h>
 
 #include <univalue.h>
 
-
 using interfaces::FoundBlock;
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 static const std::string HELP_REQUIRING_PASSPHRASE{"\nRequires wallet passphrase to be set with walletpassphrase call if wallet is encrypted.\n"};
+
+int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
+
+int32_t komodo_blockheight(uint256 hash)
+{
+    BlockMap::const_iterator it; CBlockIndex *pindex = 0;
+    if ( (it = g_rpc_node->chainman->m_blockman.m_block_index.find(hash)) != g_rpc_node->chainman->m_blockman.m_block_index.end() )
+    {
+        if ( (pindex= it->second) != 0 )
+            return(pindex->nHeight);
+    }
+    return(0);
+}
 
 static inline bool GetAvoidReuseFlag(const CWallet& wallet, const UniValue& param) {
     bool can_avoid_reuse = wallet.IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
@@ -1036,10 +1050,15 @@ struct tallyitem
 {
     CAmount nAmount{0};
     int nConf{std::numeric_limits<int>::max()};
+    int nHeight{std::numeric_limits<int>::max()};
     std::vector<uint256> txids;
     bool fIsWatchonly{false};
     tallyitem()
     {
+        nAmount = 0;
+        nHeight = -1;
+        nConf = std::numeric_limits<int>::max();
+        fIsWatchonly = false;
     }
 };
 
@@ -1135,11 +1154,13 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
         CAmount nAmount = 0;
         int nConf = std::numeric_limits<int>::max();
         bool fIsWatchonly = false;
+        int nHeight;
         if (it != mapTally.end())
         {
             nAmount = (*it).second.nAmount;
             nConf = (*it).second.nConf;
             fIsWatchonly = (*it).second.fIsWatchonly;
+            nHeight = (*it).second.nHeight;
         }
 
         if (by_label)
@@ -1155,8 +1176,10 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
             if(fIsWatchonly)
                 obj.pushKV("involvesWatchonly", true);
             obj.pushKV("address",       EncodeDestination(address));
+            obj.pushKV("account",       label);
             obj.pushKV("amount",        ValueFromAmount(nAmount));
-            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("rawconfirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : komodo_dpowconfs(nHeight, nConf)));
             obj.pushKV("label", label);
             UniValue transactions(UniValue::VARR);
             if (it != mapTally.end())
@@ -1177,11 +1200,13 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
         {
             CAmount nAmount = entry.second.nAmount;
             int nConf = entry.second.nConf;
+            int nHeight = entry.second.nHeight;
             UniValue obj(UniValue::VOBJ);
             if (entry.second.fIsWatchonly)
                 obj.pushKV("involvesWatchonly", true);
             obj.pushKV("amount",        ValueFromAmount(nAmount));
-            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("rawconfirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : komodo_dpowconfs(nHeight, nConf)));
             obj.pushKV("label",         entry.first);
             ret.push_back(obj);
         }
@@ -3043,9 +3068,14 @@ static RPCHelpMan listunspent()
             }
         }
 
+        int32_t txheight = -1;
+        if (g_rpc_node->chainman->ActiveChain().Tip())
+             txheight = (g_rpc_node->chainman->ActiveChain().Tip()->nHeight - out.nDepth - 1);
+
         entry.pushKV("scriptPubKey", HexStr(scriptPubKey));
         entry.pushKV("amount", ValueFromAmount(out.tx->tx->vout[out.i].nValue));
-        entry.pushKV("confirmations", out.nDepth);
+        entry.pushKV("rawconfirmations",out.nDepth);
+        entry.pushKV("confirmations",komodo_dpowconfs(txheight,out.nDepth));
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
