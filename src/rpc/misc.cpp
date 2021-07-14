@@ -41,98 +41,6 @@
 
 #include <univalue.h>
 
-static RPCHelpMan getinfo()
-{
-    return RPCHelpMan{"getinfo",
-                "\nReturns an object containing various state info.\n",
-                {},
-                RPCResult{
-                    RPCResult::Type::OBJ, "", "",
-                    {
-                        {RPCResult::Type::NUM, "version", "the server version"},
-                        {RPCResult::Type::NUM, "protocolversion", "the protocol version"},
-                        {RPCResult::Type::NUM, "walletversion", "the wallet version"},
-                        {RPCResult::Type::NUM, "balance", "the total bitcoin balance of the wallet"},
-                        {RPCResult::Type::NUM, "blocks", "the current number of blocks processed in the server"},
-                        {RPCResult::Type::NUM, "timeoffset", "the time offset"},
-                        {RPCResult::Type::NUM, "connections", "the number of connections"},
-                        {RPCResult::Type::STR, "proxy", "the proxy used by the server"},
-                        {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
-                        {RPCResult::Type::BOOL, "testnet", "if the server is using testnet or not"},
-                        {RPCResult::Type::NUM, "keypoololdest", "the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool"},
-                        {RPCResult::Type::NUM, "keypoolsize", "how many new keys are pre-generated"},
-                        {RPCResult::Type::NUM, "unlocked_until", "the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked"},
-                        {RPCResult::Type::NUM, "paytxfee", "the transaction fee set in CHIPS/kB"},
-                        {RPCResult::Type::NUM, "relayfee", "minimum relay fee for transactions in CHIPS/kB"},
-                        {RPCResult::Type::STR, "errors", "any error messages"}
-                    },
-
-                },
-                RPCExamples{
-                    HelpExampleCli("getinfo", "") +
-                    HelpExampleRpc("getinfo", "")
-                },
-        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
-{
-#ifdef ENABLE_WALLET
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) return NullUniValue;
-    CWallet* const pwallet = wallet.get();
-
-    LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
-#else
-    LOCK(cs_main);
-#endif
-
-    CBlockIndex* pindex = g_rpc_node->chainman->ActiveChain().Tip();
-
-    proxyType proxy;
-    GetProxy(NET_IPV4, proxy);
-
-    UniValue obj(UniValue::VOBJ);
-    obj.pushKV("version", CLIENT_VERSION);
-    obj.pushKV("protocolversion", PROTOCOL_VERSION);
-#ifdef ENABLE_WALLET
-    if (pwallet) {
-        obj.pushKV("walletversion", pwallet->GetVersion());
-        obj.pushKV("balance",       ValueFromAmount(pwallet->GetBalance().m_mine_untrusted_pending));
-    }
-#endif
-    obj.pushKV("blocks",        (int)pindex->nHeight);
-    obj.pushKV("timeoffset",    GetTimeOffset());
-    if (g_rpc_node->connman)
-        obj.pushKV("connections",   (int)g_rpc_node->connman->GetNodeCount(ConnectionDirection::Both));
-    obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
-    {
-        int32_t komodo_prevMoMheight();
-        extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
-        extern int32_t NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH;
-        obj.pushKV("notarizedhash",         NOTARIZED_HASH.GetHex());
-        obj.pushKV("notarizedtxid",         NOTARIZED_DESTTXID.GetHex());
-        obj.pushKV("notarized",                (int)NOTARIZED_HEIGHT);
-        obj.pushKV("prevMoMheight",                (int)komodo_prevMoMheight());
-        obj.pushKV("notarized_MoMdepth",                (int)NOTARIZED_MOMDEPTH);
-        obj.pushKV("notarized_MoM",         NOTARIZED_MOM.GetHex());
-    }
-    obj.pushKV("difficulty",    (double)GetDifficulty(pindex));
-    obj.pushKV("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET);
-#ifdef ENABLE_WALLET
-    if (pwallet) {
-        obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
-        obj.pushKV("keypoolsize",   (int)pwallet->GetKeyPoolSize());
-    }
-    if (pwallet && pwallet->IsCrypted()) {
-        obj.pushKV("unlocked_until", pwallet->nRelockTime);
-    }
-    obj.pushKV("paytxfee",      ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
-#endif
-    obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
-    obj.pushKV("errors",        GetWarnings("statusbar").original);
-    return obj;
-},
-    };
-}
-
 static RPCHelpMan validateaddress()
 {
     return RPCHelpMan{"validateaddress",
@@ -855,7 +763,6 @@ static const CRPCCommand commands[] =
   //  --------------------- ------------------------
     { "control",            &getmemoryinfo,           },
     { "control",            &logging,                 },
-    { "util",               &getinfo,                 },
     { "util",               &validateaddress,         },
     { "util",               &createmultisig,          },
     { "util",               &deriveaddresses,         },

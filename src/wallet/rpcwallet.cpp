@@ -7,6 +7,7 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
+#include <net.h>
 #include <node/context.h>
 #include <outputtype.h>
 #include <policy/feerate.h>
@@ -37,6 +38,7 @@
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
 #include <validation.h>
+#include <warnings.h>
 
 #include <optional>
 #include <stdint.h>
@@ -2432,6 +2434,106 @@ static RPCHelpMan getbalances()
     };
 }
 
+static RPCHelpMan getinfo()
+{
+    return RPCHelpMan{"getinfo",
+                "Returns an object containing various wallet/blockchain state info.\n",
+                {},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {
+                        {RPCResult::Type::NUM, "version", "the server version"},
+                        {RPCResult::Type::NUM, "protocolversion", "the protocol version"},
+                        {RPCResult::Type::NUM, "walletversion", "the wallet version"},
+                        {RPCResult::Type::NUM, "balance", "the total chips balance of the wallet"},
+                        {RPCResult::Type::NUM, "blocks", "the current number of blocks processed in the server"},
+                        {RPCResult::Type::STR, "bestblockhash", "the hash of the currently best block"},
+                        {RPCResult::Type::STR, "notarizedhash", "the hash of the currently best notarized block"},
+                        {RPCResult::Type::STR, "notarizedtxid", "notarizedtxid"},
+                        {RPCResult::Type::NUM, "prevMoMheight", "prevMoMheight"},
+                        {RPCResult::Type::NUM, "notarized_MoMdepth", "notarized_MoMdepth"},
+                        {RPCResult::Type::STR, "notarized_MoM", "notarized_MoM"},
+                        {RPCResult::Type::NUM, "notarized", "the height of the currently best notarized block"},
+                        {RPCResult::Type::NUM, "timeoffset", "the time offset"},
+                        {RPCResult::Type::NUM, "connections", "the number of connections"},
+                        {RPCResult::Type::STR, "proxy", "the proxy used by the server"},
+                        {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
+                        {RPCResult::Type::STR, "chain", "current network name as defined in BIP70 (main, test, regtest"},
+                        {RPCResult::Type::BOOL,"testnet", "if the server is using testnet or not"},
+                        {RPCResult::Type::NUM, "keypoololdest", "the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool"},
+                        {RPCResult::Type::NUM, "keypoolsize", "how many new keys are pre-generated"},
+                        {RPCResult::Type::NUM, "unlocked_until", "the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked"},
+                        {RPCResult::Type::NUM, "paytxfee", "the transaction fee set in CHIPS/kB"},
+                        {RPCResult::Type::NUM, "relayfee", "minimum relay fee for transactions in CHIPS/kB"},
+                        {RPCResult::Type::STR, "errors", "any error messages"}
+                    }},
+                },
+                RPCExamples{
+                    HelpExampleCli("getinfo", "")
+            + HelpExampleRpc("getinfo", "")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    std::shared_ptr<CWallet> const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!pwallet) return NullUniValue;
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    LOCK(pwallet->cs_wallet);
+
+    UniValue obj(UniValue::VOBJ);
+
+    size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
+    const auto bal = pwallet->GetBalance();
+    int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
+
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+
+    obj.pushKV("version", CLIENT_VERSION);
+    obj.pushKV("protocolversion", PROTOCOL_VERSION);
+    obj.pushKV("walletversion", pwallet->GetVersion());
+    obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
+    obj.pushKV("balance", ValueFromAmount(bal.m_mine_trusted));
+    obj.pushKV("chain", Params().NetworkIDString());
+    obj.pushKV("blocks",                (int)g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
+    obj.pushKV("timeoffset",    0);
+    // timeoffset = 0, in KMD RPC
+    obj.pushKV("bestblockhash", g_rpc_node->chainman->ActiveChain().Tip()->GetBlockHash().GetHex());
+    obj.pushKV("connections", g_rpc_node->connman->GetNodeCount(ConnectionDirection::Both));
+
+    {
+        int32_t komodo_prevMoMheight();
+        extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
+        extern int32_t NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH;
+        obj.pushKV("notarizedhash",         NOTARIZED_HASH.GetHex());
+        obj.pushKV("notarizedtxid",         NOTARIZED_DESTTXID.GetHex());
+        obj.pushKV("notarized",                (int)NOTARIZED_HEIGHT);
+        obj.pushKV("prevMoMheight",                (int)komodo_prevMoMheight());
+        obj.pushKV("notarized_MoMdepth",                (int)NOTARIZED_MOMDEPTH);
+        obj.pushKV("notarized_MoM",         NOTARIZED_MOM.GetHex());
+    }
+
+    obj.pushKV("difficulty",    (double)GetDifficulty(g_rpc_node->chainman->ActiveChain().Tip()));
+    obj.pushKV("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET);
+    obj.pushKV("keypoololdest", kp_oldest);
+    obj.pushKV("keypoolsize", kpExternalSize);
+    obj.pushKV("txcount",       (int)pwallet->mapWallet.size());
+    if (pwallet->IsCrypted()) {
+        obj.pushKV("unlocked_until", pwallet->nRelockTime);
+    }
+    obj.pushKV("paytxfee",      ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
+    obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
+    obj.pushKV("errors",        GetWarnings("statusbar").original);
+    return obj;
+},
+    };
+}
+
+
 static RPCHelpMan getwalletinfo()
 {
     return RPCHelpMan{"getwalletinfo",
@@ -4679,6 +4781,7 @@ static const CRPCCommand commands[] =
     { "wallet",             &gettransaction,                 },
     { "wallet",             &getunconfirmedbalance,          },
     { "wallet",             &getbalances,                    },
+    { "wallet",             &getinfo,                        },
     { "wallet",             &getwalletinfo,                  },
     { "wallet",             &importaddress,                  },
     { "wallet",             &importdescriptors,              },
