@@ -66,9 +66,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("Chipss");
-    case mBTC: return QString("Milli-Chipss (1 / 1" THIN_SP_UTF8 "000)");
-    case uBTC: return QString("Micro-Chipss (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+    case BTC: return QString("Chips");
+    case mBTC: return QString("Milli-Chips (1 / 1" THIN_SP_UTF8 "000)");
+    case uBTC: return QString("Micro-Chips (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     case SAT: return QString("Satoshi (sat) (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     default: return QString("???");
     }
