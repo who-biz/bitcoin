@@ -2766,13 +2766,23 @@ static std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leav
 static RPCHelpMan calc_MoM()
 {
     return RPCHelpMan{"calc_MoM",
-                "\n",
-                {},
+                "Calculates MoM for a given height and MoMdepth\n",
+                {
+                  {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "requested height"},
+                  {"MoMdepth", RPCArg::Type::NUM, RPCArg::Optional::NO, "requested depth for MoM"},
+                },
                 RPCResult{
-                    RPCResult::Type::NUM, "", "The current block count"},
+                  RPCResult::Type::OBJ, "", "",
+                  {
+                    {RPCResult::Type::STR, "coin", "active coin for calculation"},
+                    {RPCResult::Type::NUM, "height", "requested block height"},
+                    {RPCResult::Type::NUM, "MoMdepth", "requested MoMdepth"},
+                    {RPCResult::Type::STR_HEX, "MoM", "calculated MoM"},
+                  }
+                },
                 RPCExamples{
-                    HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
+                    HelpExampleCli("calc_MoM", "100 1")
+            + HelpExampleRpc("calc_MoM", "100, 1")
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
