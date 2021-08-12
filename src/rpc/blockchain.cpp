@@ -2766,13 +2766,23 @@ static std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leav
 static RPCHelpMan calc_MoM()
 {
     return RPCHelpMan{"calc_MoM",
-                "\n",
-                {},
+                                "Calculates MoM for a given height and MoMdepth\n",
+                {
+                  {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "requested height"},
+                  {"MoMdepth", RPCArg::Type::NUM, RPCArg::Optional::NO, "requested depth for MoM"},
+                },
                 RPCResult{
-                    RPCResult::Type::NUM, "", "The current block count"},
+                  RPCResult::Type::OBJ, "", "",
+                  {
+                    {RPCResult::Type::STR, "coin", "active coin for calculation"},
+                    {RPCResult::Type::NUM, "height", "requested block height"},
+                    {RPCResult::Type::NUM, "MoMdepth", "requested MoMdepth"},
+                    {RPCResult::Type::STR_HEX, "MoM", "calculated MoM"},
+                  }
+                },
                 RPCExamples{
-                    HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
+                    HelpExampleCli("calc_MoM", "100 1")
+            + HelpExampleRpc("calc_MoM", "100, 1")
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
@@ -2784,7 +2794,6 @@ static RPCHelpMan calc_MoM()
     MoMdepth = atoi(request.params[1].get_str().c_str());
     if ( height <= 0 || MoMdepth <= 0 || MoMdepth >= height )
         throw std::runtime_error("calc_MoM illegal height or MoMdepth\n");
-    //fprintf(stderr,"height_MoM height.%d\n",height);
     MoM = komodo_calcMoM(height,MoMdepth);
     ret.pushKV("coin",(char *)(ASSETCHAINS_SYMBOL[0] == 0 ? "KMD" : ASSETCHAINS_SYMBOL));
     ret.pushKV("height",height);
@@ -2798,13 +2807,29 @@ static RPCHelpMan calc_MoM()
 static RPCHelpMan height_MoM()
 {
     return RPCHelpMan{"height_MoM",
-                "\n",
-                {},
+                "Calculates MoM for a given height, if it exists\n",
+                {
+                  {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "height for MoM calculation"},
+                },
                 RPCResult{
-                    RPCResult::Type::NUM, "", "The current block count"},
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "coin", "active coin"},
+                        {RPCResult::Type::NUM, "height", "requested block height"},
+                        {RPCResult::Type::NUM, "timestamp", "timestamp"},
+                        {RPCResult::Type::NUM, "depth", "MoMdepth"},
+                        {RPCResult::Type::NUM, "notarized_height", "height of last notarization"},
+                        {RPCResult::Type::STR_HEX, "MoM", "MoM hash"},
+                        {RPCResult::Type::STR_HEX, "kmdtxid", "txid from komodo"},
+                        {RPCResult::Type::STR_HEX, "MoMoM", "MoMoM hash"},
+                        {RPCResult::Type::NUM, "MoMoMoffset", "MoMoffset"},
+                        {RPCResult::Type::NUM, "kmdstarti", "kmdstarti"},
+                        {RPCResult::Type::NUM, "kmdendi", "kmdendi"},
+                    }
+                 },
                 RPCExamples{
-                    HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
+                    HelpExampleCli("height_MoM", "100")
+            + HelpExampleRpc("height_MoM", "100")
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
