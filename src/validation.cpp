@@ -1546,6 +1546,8 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
  *  When FAILED is returned, view is left in an indeterminate state. */
 DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view)
 {
+
+    komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
     bool fClean = true;
 
     CBlockUndo blockUndo;
@@ -2004,6 +2006,8 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
 
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
+
+    komodo_connectblock(pindex,*(CBlock *)&block);
 
     return true;
 }
@@ -3190,8 +3194,11 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
             LogPrintf("ERROR: %s: forked chain older than last checkpoint (height %d)\n", __func__, nHeight);
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT, "bad-fork-prior-to-checkpoint");
         }
-        else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
+        //LogPrintf(">>>> komodo_checkpoint() = %d \n", komodo_checkpoint(&notarized_height, (int32_t)nHeight,hash));
+        //LogPrintf(">>>>>>>>> g_rpc_node->chainmain->ActiveChain().Height() = %d \n", g_rpc_node->chainman->ActiveChain().Height());
+        if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
         {
+            //LogPrintf(">>> condition HIT! less than zero! <<< \n");
             CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
             if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
                 return true;
