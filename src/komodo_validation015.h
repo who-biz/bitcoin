@@ -1295,12 +1295,11 @@ int32_t komodo_checkpoint(int32_t *notarized_heightp,int32_t nHeight,uint256 has
     int32_t notarized_height; uint256 zero,notarized_hash,notarized_desttxid; CBlockIndex *notary; CBlockIndex *pindex;
     memset(&zero,0,sizeof(zero));
     //komodo_notarized_update(0,0,zero,zero,zero,0);
-    //LogPrintf("ActiveChain.Tip() = %d \n", g_rpc_node->chainman->ActiveChain().Tip());
     if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) == 0 )
         return(-1);
     notarized_height = komodo_notarizeddata(pindex->nHeight,&notarized_hash,&notarized_desttxid);
     *notarized_heightp = notarized_height;
-    if ( notarized_height >= 0 && notarized_height <= pindex->nHeight && (notary= g_rpc_node->chainman->m_blockman.m_block_index[notarized_hash]) != 0 )
+    if ( notarized_height >= 0 && notarized_height <= pindex->nHeight && (notary= g_rpc_node->chainman->m_blockman.LookupBlockIndex(notarized_hash)) != 0 )
     {
         //printf("nHeight.%d -> (%d %s)\n",pindex->nHeight,notarized_height,notarized_hash.ToString().c_str());
         if ( notary->nHeight == notarized_height ) // if notarized_hash not in chain, reorg
