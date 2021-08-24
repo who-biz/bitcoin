@@ -1547,7 +1547,6 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
 DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view)
 {
 
-    komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
     bool fClean = true;
 
     CBlockUndo blockUndo;
@@ -1596,6 +1595,8 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
             // At this point, all of txundo.vprevout should have been moved out.
         }
     }
+
+    komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
