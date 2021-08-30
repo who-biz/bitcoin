@@ -2098,7 +2098,7 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
     return batch.EraseName(EncodeDestination(address));
 }
 
-size_t CWallet::KeypoolCountExternalKeys() const
+uint64_t CWallet::KeypoolCountExternalKeys() const
 {
     AssertLockHeld(cs_wallet);
 

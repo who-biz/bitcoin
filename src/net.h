@@ -898,7 +898,7 @@ public:
      */
     bool AddConnection(const std::string& address, ConnectionType conn_type);
 
-    size_t GetNodeCount(ConnectionDirection) const;
+    uint64_t GetNodeCount(ConnectionDirection) const;
     void GetNodeStats(std::vector<CNodeStats>& vstats) const;
     bool DisconnectNode(const std::string& node);
     bool DisconnectNode(const CSubNet& subnet);
