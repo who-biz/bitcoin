@@ -2486,7 +2486,7 @@ static RPCHelpMan getinfo()
 
     UniValue obj(UniValue::VOBJ);
 
-    size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
+    uint64_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     const auto bal = pwallet->GetBalance();
     int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
 
@@ -2583,7 +2583,7 @@ static RPCHelpMan getwalletinfo()
 
     UniValue obj(UniValue::VOBJ);
 
-    size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
+    uint64_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     const auto bal = pwallet->GetBalance();
     int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
     obj.pushKV("walletname", pwallet->GetName());

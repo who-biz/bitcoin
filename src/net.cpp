@@ -2791,7 +2791,7 @@ bool CConnman::RemoveAddedNode(const std::string& strNode)
     return false;
 }
 
-size_t CConnman::GetNodeCount(ConnectionDirection flags) const
+uint64_t CConnman::GetNodeCount(ConnectionDirection flags) const
 {
     LOCK(cs_vNodes);
     if (flags == ConnectionDirection::Both) // Shortcut if we want total
