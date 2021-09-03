@@ -1172,7 +1172,7 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
                 {
                     if ( NPOINTS[i].nHeight >= nHeight )
                     {
-                        //printf("flag.1 i.%d np->ht %d [%d].ht %d >= nHeight.%d, last.%d num.%d\n",i,np->nHeight,i,NPOINTS[i].nHeight,nHeight,last_NPOINTSi,NUM_NPOINTS);
+                        LogPrintf("flag.1 i.%d np->ht %d [%d].ht %d >= nHeight.%d, last.%d num.%d\n",i,np->nHeight,i,NPOINTS[i].nHeight,nHeight,last_NPOINTSi,NUM_NPOINTS);
                         flag = 1;
                         break;
                     }
@@ -1188,7 +1188,7 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
             {
                 if ( NPOINTS[i].nHeight >= nHeight )
                 {
-                    //printf("i.%d np->ht %d [%d].ht %d >= nHeight.%d\n",i,np->nHeight,i,NPOINTS[i].nHeight,nHeight);
+                    LogPrintf("i.%d np->ht %d [%d].ht %d >= nHeight.%d\n",i,np->nHeight,i,NPOINTS[i].nHeight,nHeight);
                     break;
                 }
                 np = &NPOINTS[i];
@@ -1199,7 +1199,7 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
     if ( np != 0 )
     {
         if ( np->nHeight >= nHeight || (i < NUM_NPOINTS && np[1].nHeight < nHeight) )
-            fprintf(stderr,"warning: flag.%d i.%d np->ht %d [1].ht %d >= nHeight.%d\n",flag,i,np->nHeight,np[1].nHeight,nHeight);
+            LogPrintf("warning: flag.%d i.%d np->ht %d [1].ht %d >= nHeight.%d\n",flag,i,np->nHeight,np[1].nHeight,nHeight);
         *notarized_hashp = np->notarized_hash;
         *notarized_desttxidp = np->notarized_desttxid;
         return(np->notarized_height);
@@ -1295,8 +1295,10 @@ int32_t komodo_checkpoint(int32_t *notarized_heightp,int32_t nHeight,uint256 has
     int32_t notarized_height; uint256 zero,notarized_hash,notarized_desttxid; CBlockIndex *notary; CBlockIndex *pindex;
     memset(&zero,0,sizeof(zero));
     //komodo_notarized_update(0,0,zero,zero,zero,0);
-    if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) == 0 )
+    if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) == 0 ) {
+        LogPrintf("in komodo_checkpoint --> ActiveChain().Tip() == 0, returning -1");
         return(-1);
+    }
     notarized_height = komodo_notarizeddata(pindex->nHeight,&notarized_hash,&notarized_desttxid);
     *notarized_heightp = notarized_height;
     if ( notarized_height >= 0 && notarized_height <= pindex->nHeight && (notary= g_rpc_node->chainman->m_blockman.m_block_index[notarized_hash]) != 0 )
@@ -1369,6 +1371,7 @@ void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scrip
                         //fprintf(stderr,"VALID %s MoM.%s [%d]\n",ASSETCHAINS_SYMBOL,MoM.ToString().c_str(),MoMdepth);
                     }
                 }
+                LogPrintf(">>>> prior to komodo_notarized_update -> height.(%d),notarizedheight(%d),hash.(%s)\n",height,*notarizedheightp,hash.ToString().c_str());
                 komodo_notarized_update(height,*notarizedheightp,hash,desttxid,MoM,MoMdepth);
                 fprintf(stderr,"%s ht.%d NOTARIZED.%d %s %sTXID.%s lens.(%d %d)\n",ASSETCHAINS_SYMBOL,height,*notarizedheightp,hash.ToString().c_str(),"KMD",desttxid.ToString().c_str(),opretlen,len);
             } //else fprintf(stderr,"notarized.%d ht %d vs prev %d vs height.%d\n",notarized,*notarizedheightp,NOTARIZED_HEIGHT,height);
@@ -1433,6 +1436,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 if ( len >= (int32_t)sizeof(uint32_t) && len <= (int32_t)sizeof(scriptbuf) )
                 {
                     memcpy(scriptbuf,block.vtx[i]->vout[j].scriptPubKey.data(),len);
+                    LogPrintf(">>>>>>>>>> prior to komodo_voutupdate, notarizedheight.(%d),notarized.(%d),height.(%d) \n",notarizedheight,notarized,height);
                     komodo_voutupdate(i,j,scriptbuf,len,height,&specialtx,&notarizedheight,(uint64_t)block.vtx[i]->vout[j].nValue,notarized,signedmask);
                 }
             }
