@@ -130,7 +130,7 @@ static bool AppInit(NodeContext& node, int argc, char* argv[])
             strUsage += args.GetHelpMessage();
         }
 
-        tfm::format(std::cout, "%s", strUsage);
+        fprintf(stdout, "%s", strUsage.c_str());
         return true;
     }
 
@@ -190,7 +190,7 @@ static bool AppInit(NodeContext& node, int argc, char* argv[])
         }
         if (args.GetBoolArg("-daemon", DEFAULT_DAEMON) || args.GetBoolArg("-daemonwait", DEFAULT_DAEMONWAIT)) {
 #if HAVE_DECL_FORK
-            tfm::format(std::cout, PACKAGE_NAME " starting\n");
+            fprintf(stdout, PACKAGE_NAME " starting\n");
 
             // Daemonize
             switch (fork_daemon(1, 0, daemon_ep)) { // don't chdir (1), do close FDs (0)
@@ -208,7 +208,7 @@ static bool AppInit(NodeContext& node, int argc, char* argv[])
                 if (token) { // Success
                     exit(EXIT_SUCCESS);
                 } else { // fRet = false or token read error (premature exit).
-                    tfm::format(std::cerr, "Error during initializaton - check debug.log for details\n");
+                    fprintf(stderr, "Error during initializaton - check debug.log for details\n");
                     exit(EXIT_FAILURE);
                 }
             }
