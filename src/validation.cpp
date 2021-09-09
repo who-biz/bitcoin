@@ -1642,6 +1642,40 @@ public:
 
 static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS] GUARDED_BY(cs_main);
 
+/*static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consensus::Params& consensusparams) {
+    AssertLockHeld(cs_main);
+
+    unsigned int flags = SCRIPT_VERIFY_NONE;
+
+    // Start enforcing P2SH (BIP16)
+    if (pindex->nHeight >= consensusparams.BIP16Height) {
+        flags |= SCRIPT_VERIFY_P2SH;
+    }
+
+    // Start enforcing the DERSIG (BIP66) rule
+    if (pindex->nHeight >= consensusparams.BIP66Height) {
+        flags |= SCRIPT_VERIFY_DERSIG;
+    }
+
+    // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule
+    if (pindex->nHeight >= consensusparams.BIP65Height) {
+        flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
+    }
+
+    // Start enforcing BIP68 (sequence locks) and BIP112 (CHECKSEQUENCEVERIFY) using versionbits logic.
+    if (g_versionbitscache.State(pindex->pprev, consensusparams, Consensus::DEPLOYMENT_CSV) == ThresholdState::ACTIVE) {
+        flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
+    }
+
+    // Start enforcing WITNESS rules using versionbits logic.
+    if (IsWitnessEnabled(pindex->pprev, consensusparams)) {
+        flags |= SCRIPT_VERIFY_WITNESS;
+        flags |= SCRIPT_VERIFY_NULLDUMMY;
+    }
+
+    return flags;
+}*/
+
 static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consensus::Params& consensusparams)
 {
     unsigned int flags = SCRIPT_VERIFY_NONE;
@@ -1690,9 +1724,8 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
     }
 
     return flags;
+
 }
-
-
 
 static int64_t nTimeCheck = 0;
 static int64_t nTimeForks = 0;
@@ -3185,26 +3218,19 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work");
 
     // Check against checkpoints
-    if (fCheckpointsEnabled) {
-        // Don't accept any forks from the main chain prior to last checkpoint.
-        // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in our
-        // BlockIndex().
-        CBlockIndex* pcheckpoint = blockman.GetLastCheckpoint(params.Checkpoints());
-        if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-            LogPrintf("ERROR: %s: forked chain older than last checkpoint (height %d)\n", __func__, nHeight);
-            return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT, "bad-fork-prior-to-checkpoint");
-        }
-        else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
-        {
-            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
-            if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
-                return true;
-            } else {
-                LogPrintf("ERROR: %s: forked chain %d older than last notarized (height %d) vs %d", __func__,nHeight, notarized_height);
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-fork-chain");
-            }
+    int32_t checkpoint_result;
+    if ( (checkpoint_result= komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash)) < 0 )
+    {
+        CBlockIndex *heightblock = blockman.LookupBlockIndex(hash);
+        if ( heightblock != 0 && heightblock->nHeight == nHeight ) {
+            LogPrintf(">>>>> heightblock = %s\n", heightblock->ToString());
+            return true;
+        } else {
+            LogPrintf("ERROR: ContextualCheckBlockHeader: forked chain older than last notarized (height %d) vs %d\n",nHeight, notarized_height);
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-fork-chain");
         }
     }
+    LogPrintf("in ContextualCheckBlockHeader >>>> komodo_checkpoint() = %d\n",checkpoint_result);
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())

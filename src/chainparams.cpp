@@ -54,7 +54,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "cointelegraph.com 09/Aug/2017 Bitcoin�s Present Bubble Might Actually be the Beginning of Mainstream Adoption";
+    const char* pszTimestamp = "cointelegraph.com 09/Aug/2017 Bitcoin’s Present Bubble Might Actually be the Beginning of Mainstream Adoption";
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -126,10 +126,31 @@ public:
         m_assumed_blockchain_size = 350;
         m_assumed_chain_state_size = 6;
 
-        genesis = realGenesisBlock();
-        consensus.hashGenesisBlock = genesis.GetHash();
+        int32_t z; uint32_t nonce; uint8_t *ptr = (uint8_t *)&consensus.hashGenesisBlock;
+        for (nonce=9250234; nonce<500000000; nonce++)
+        {
+            genesis = CreateGenesisBlock(1500000777, nonce, 0x1e007fff, 1, 50 * COIN);
+            consensus.hashGenesisBlock = genesis.GetHash();
+            if ( ptr[31] == 0 && ptr[30] == 0 && ptr[29] == 0 && (ptr[28] & 0x80) == 0)
+                break;
+            if ( (nonce % 1000000) == 999999 )
+                fprintf(stderr,"%d ",nonce);
+        }
+        printf("nonce.%u\n",nonce);
+        for (z=31; z>=0; z--)
+            printf("%02x",ptr[z]);
+        printf(" <- genesis\n");
+        ptr = (uint8_t *)&genesis.hashMerkleRoot;
+        for (z=31; z>=0; z--)
+            printf("%02x",ptr[z]);
+        printf(" <- merkle\n");
         assert(consensus.hashGenesisBlock == uint256S("0x0000006e75f6aa0efdbf7db03132aa4e4d0c84951537a6f5a7c39a0a9d30e1e7"));
         assert(genesis.hashMerkleRoot == uint256S("0x9bd1c477af8993947cdd9052c0e4c287fda95987b3cc8934b3769d7503852715"));
+
+        /*genesis = realGenesisBlock();
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x0000006e75f6aa0efdbf7db03132aa4e4d0c84951537a6f5a7c39a0a9d30e1e7"));
+        assert(genesis.hashMerkleRoot == uint256S("0x9bd1c477af8993947cdd9052c0e4c287fda95987b3cc8934b3769d7503852715"));*/
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.

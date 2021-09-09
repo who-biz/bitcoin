@@ -924,7 +924,10 @@ CBlockIndex *komodo_chainactive(int32_t height)
     if ( (tipindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
         if ( height <= tipindex->nHeight )
-            return(g_rpc_node->chainman->ActiveChain()[height]);
+        {
+            LogPrintf("komodo_chainactive (height <= tipindex->nHeight), prior to fetching pindex");
+            return(g_rpc_node->chainman->ActiveChainstate().m_chain[height]);
+        }
         // else fprintf(stderr,"komodo_chainactive height %d > active.%d\n",height,g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
     }
     //fprintf(stderr,"komodo_chainactive null g_rpc_node->chainman->ActiveChain().Tip() height %d\n",height);
@@ -1159,6 +1162,7 @@ int32_t komodo_MoMdata(int32_t *notarized_htp,uint256 *MoMp,uint256 *kmdtxidp,in
 
 int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *notarized_desttxidp)
 {
+    LogPrintf(">>>>> beginning of komodo_notarizeddata() <<<<<");
     struct notarized_checkpoint *np = 0; int32_t i=0,flag = 0;
     if ( NUM_NPOINTS > 0 )
     {
@@ -1222,7 +1226,7 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
 #else
         sprintf(fname,"%s/notarizations",gArgs.GetDataDirBase().string().c_str());
 #endif
-        printf("fname.(%s)\n",fname);
+        LogPrintf(">>>>>. fname.(%s)\n",fname);
         if ( (fp= fopen(fname,"rb+")) == 0 )
             fp = fopen(fname,"wb+");
         else
@@ -1373,7 +1377,7 @@ void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scrip
                 }
                 LogPrintf(">>>> prior to komodo_notarized_update -> height.(%d),notarizedheight(%d),hash.(%s)\n",height,*notarizedheightp,hash.ToString().c_str());
                 komodo_notarized_update(height,*notarizedheightp,hash,desttxid,MoM,MoMdepth);
-                fprintf(stderr,"%s ht.%d NOTARIZED.%d %s %sTXID.%s lens.(%d %d)\n",ASSETCHAINS_SYMBOL,height,*notarizedheightp,hash.ToString().c_str(),"KMD",desttxid.ToString().c_str(),opretlen,len);
+                LogPrintf("%s ht.%d NOTARIZED.%d %s %sTXID.%s lens.(%d %d)\n",ASSETCHAINS_SYMBOL,height,*notarizedheightp,hash.ToString().c_str(),"KMD",desttxid.ToString().c_str(),opretlen,len);
             } //else fprintf(stderr,"notarized.%d ht %d vs prev %d vs height.%d\n",notarized,*notarizedheightp,NOTARIZED_HEIGHT,height);
         }
     }
