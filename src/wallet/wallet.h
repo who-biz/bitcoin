@@ -66,7 +66,7 @@ std::unique_ptr<WalletDatabase> MakeWalletDatabase(const std::string& name, cons
 std::shared_ptr<CWallet> GetMainWallet();
 
 //! -paytxfee default
-constexpr CAmount DEFAULT_PAY_TX_FEE = 2500000;
+constexpr CAmount DEFAULT_PAY_TX_FEE = 10000;
 //! -fallbackfee default
 static const CAmount DEFAULT_FALLBACK_FEE = 0;
 //! -discardfee default
