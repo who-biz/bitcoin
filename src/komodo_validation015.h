@@ -925,7 +925,7 @@ CBlockIndex *komodo_chainactive(int32_t height)
     {
         if ( height <= tipindex->nHeight )
         {
-            LogPrintf("komodo_chainactive (height <= tipindex->nHeight), prior to fetching pindex");
+            LogPrintf("komodo_chainactive (height <= tipindex->nHeight), prior to fetching pindex\n");
             return(g_rpc_node->chainman->ActiveChainstate().m_chain[height]);
         }
         // else fprintf(stderr,"komodo_chainactive height %d > active.%d\n",height,g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
@@ -1162,7 +1162,7 @@ int32_t komodo_MoMdata(int32_t *notarized_htp,uint256 *MoMp,uint256 *kmdtxidp,in
 
 int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *notarized_desttxidp)
 {
-    LogPrintf(">>>>> beginning of komodo_notarizeddata(), NUM_NPOINTS.(%d)\n", NUM_NPOINTS);
+    LogPrintf(">>>>> beginning of komodo_notarizeddata(), NUM_NPOINTS.(%d), last_NPOINTSi.(%d)\n", NUM_NPOINTS, last_NPOINTSi);
     struct notarized_checkpoint *np = 0; int32_t i=0,flag = 0;
     if ( NUM_NPOINTS > 0 )
     {
@@ -1226,7 +1226,7 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
 #else
         sprintf(fname,"%s/notarizations",gArgs.GetDataDirBase().string().c_str());
 #endif
-        LogPrintf(">>>>>. fname.(%s)\n",fname);
+        LogPrintf("%s: Loading notarization file > fname.(%s)\n", __func__, fname);
         if ( (fp= fopen(fname,"rb+")) == 0 )
             fp = fopen(fname,"wb+");
         else
@@ -1247,14 +1247,14 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
                     NOTARIZED_DESTTXID = np->notarized_desttxid;
                     NOTARIZED_MOM = np->MoM;
                     NOTARIZED_MOMDEPTH = np->MoMdepth;
-                    fprintf(stdout,"%d ",np->notarized_height);
+                    LogPrintf("%s: np->notarized_height: %d \n", __func__, np->notarized_height);
                     fpos = ftell(fp);
                 } //else fprintf(stderr,"%s error with notarization ht.%d %s\n",ASSETCHAINS_SYMBOL,N.notarized_height,pindex->GetBlockHash().ToString().c_str());
             }
             if ( ftell(fp) !=  fpos )
                 fseek(fp,fpos,SEEK_SET);
         }
-        fprintf(stdout,"finished loading %s [%s]\n",fname,NOTARY_PUBKEY.c_str());
+        LogPrintf("%s: finished loading file %s [%s]\n",__func__,fname,NOTARY_PUBKEY.c_str());
         didinit = 1;
     }
     if ( notarized_height == 0 )
@@ -1300,7 +1300,7 @@ int32_t komodo_checkpoint(int32_t *notarized_heightp,int32_t nHeight,uint256 has
     memset(&zero,0,sizeof(zero));
     //komodo_notarized_update(0,0,zero,zero,zero,0);
     if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) == 0 ) {
-        LogPrintf("in komodo_checkpoint --> ActiveChain().Tip() == 0, returning -1");
+        LogPrintf("in komodo_checkpoint --> ActiveChain().Tip() == 0, returning -1\n");
         return(-1);
     }
     notarized_height = komodo_notarizeddata(pindex->nHeight,&notarized_hash,&notarized_desttxid);
