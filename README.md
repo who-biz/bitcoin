@@ -1,6 +1,6 @@
 MIL Core integration/staging tree
 =====================================
 
-**Important: This repository and default (master) branch currently doesn't contain final MIL code.**
+![MIL Logo](https://raw.githubusercontent.com/emc2foundation/mil/master/src/qt/res/icons/bitcoin.png)
 
-https://emc2.foundation
+https://emc2.foundation/mil
