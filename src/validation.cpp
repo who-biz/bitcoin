@@ -2277,7 +2277,7 @@ static void UpdateTip(CTxMemPool& mempool, const CBlockIndex* pindexNew, const C
             }
         }
     }
-    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%f tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)%s\n", __func__,
+     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%f tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)%s\n", __func__,
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight, pindexNew->nVersion,
       log(pindexNew->nChainWork.getdouble())/log(2.0), (unsigned long)pindexNew->nChainTx,
       FormatISO8601DateTime(pindexNew->GetBlockTime()),
@@ -3223,14 +3223,14 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
     {
         CBlockIndex *heightblock = blockman.LookupBlockIndex(hash);
         if ( heightblock != 0 && heightblock->nHeight == nHeight ) {
-            LogPrintf(">>>>> heightblock = %s\n", heightblock->ToString());
+            LogPrintf("%s: heightblock = %s\n",__func__,heightblock->ToString());
             return true;
         } else {
-            LogPrintf("ERROR: ContextualCheckBlockHeader: forked chain older than last notarized (height %d) vs %d\n",nHeight, notarized_height);
+            LogPrintf("ERROR: %s: forked chain older than last notarized (height %d) vs %d\n",__func__,nHeight,notarized_height);
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-fork-chain");
         }
     }
-    LogPrintf("in ContextualCheckBlockHeader >>>> komodo_checkpoint() = %d\n",checkpoint_result);
+    LogPrintf("%s: komodo_checkpoint() = %d\n",__func__,checkpoint_result);
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())

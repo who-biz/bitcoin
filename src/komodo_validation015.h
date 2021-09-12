@@ -475,6 +475,7 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
 
 int32_t komodo_importaddress(std::string addr)
 {
+    LogPrintf(">>> %s called, address: %s\n",__func__,addr.c_str());
     CTxDestination address; CWallet * const pwallet = GetMainWallet().get();
     if ( pwallet != 0 )
     {
@@ -490,12 +491,12 @@ int32_t komodo_importaddress(std::string addr)
             }
             else
             {
-                printf("komodo_importaddress %s\n",EncodeDestination(address).c_str());
+                LogPrintf("komodo_importaddress %s\n",EncodeDestination(address).c_str());
                 ImportAddress(pwallet, address, addr);
                 return(1);
             }
         }
-        printf("%s -> komodo_importaddress.(%s) failed valid.%d\n",addr.c_str(),EncodeDestination(address).c_str(),IsValidDestination(address));
+        LogPrintf("%s -> komodo_importaddress.(%s) failed valid.%d\n",addr.c_str(),EncodeDestination(address).c_str(),IsValidDestination(address));
     }
     return(-1);
 }
@@ -920,6 +921,7 @@ uint32_t komodo_chainactive_timestamp()
 
 CBlockIndex *komodo_chainactive(int32_t height)
 {
+    LogPrintf(">>> %s called, height.(%d)\n",__func__,height);
     CBlockIndex *tipindex;
     if ( (tipindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
@@ -930,12 +932,13 @@ CBlockIndex *komodo_chainactive(int32_t height)
         }
         // else fprintf(stderr,"komodo_chainactive height %d > active.%d\n",height,g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
     }
-    //fprintf(stderr,"komodo_chainactive null g_rpc_node->chainman->ActiveChain().Tip() height %d\n",height);
+    LogPrintf("%s null g_rpc_node->chainman->ActiveChain().Tip() height %d\n",__func__,height);
     return(0);
 }
 
 uint32_t komodo_heightstamp(int32_t height)
 {
+    LogPrintf(">>> %s called, height.(%d)\n",__func__,height);
     CBlockIndex *ptr;
     if ( height > 0 && (ptr= komodo_chainactive(height)) != 0 )
         return(ptr->nTime);
@@ -945,6 +948,7 @@ uint32_t komodo_heightstamp(int32_t height)
 
 bool Getscriptaddress(char *destaddr,const CScript &scriptPubKey)
 {
+    LogPrintf(">>> %s called, destaddr.(%s), scriptPubKey.(%s)\n",__func__,destaddr,HexStr(scriptPubKey));
     CTxDestination address;
     if ( ExtractDestination(scriptPubKey,address) != 0 )
     {
@@ -998,6 +1002,7 @@ void komodo_importpubkeys()
 
 int32_t komodo_init()
 {
+    LogPrintf(">>> %s called\n",__func__);
     NOTARY_PUBKEY = gArgs.GetArg("-pubkey", "");
     decode_hex(NOTARY_PUBKEY33,33,(char *)NOTARY_PUBKEY.c_str());
     if ( gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX) == 0 )
@@ -1034,6 +1039,7 @@ bits256 iguana_merkle(bits256 *tree,int32_t txn_count)
 
 uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 {
+    LogPrintf(">>> %s called, height.(%d), MoMdepth(%d)\n",__func__,height,MoMdepth);
     static uint256 zero; bits256 MoM,*tree; CBlockIndex *pindex; int32_t i;
     if ( MoMdepth >= height )
         return(zero);
@@ -1067,6 +1073,7 @@ int32_t getkmdseason(int32_t height)
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
+    LogPrintf(">>> %s called, height.(%d), timestamp.(%d)\n",__func__,height,timestamp);
     static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
     int32_t kmd_season,i;
     if ( (kmd_season= getkmdseason(height)) != 0 )
@@ -1097,6 +1104,7 @@ void komodo_clearstate()
 
 void komodo_disconnect(CBlockIndex *pindex,CBlock *block)
 {
+    LogPrintf(">>> %s called, pindex.(%s), blockhash.(%s)\n",__func__,pindex->ToString(),block->GetHash().GetHex().c_str());
     if ( (int32_t)pindex->nHeight <= NOTARIZED_HEIGHT )
     {
         fprintf(stdout,"komodo_disconnect unexpected reorg pindex->nHeight.%d vs %d\n",(int32_t)pindex->nHeight,NOTARIZED_HEIGHT);
@@ -1106,6 +1114,7 @@ void komodo_disconnect(CBlockIndex *pindex,CBlock *block)
 
 struct notarized_checkpoint *komodo_npptr(int32_t height)
 {
+    LogPrintf(">>> %s called, height.(%d)\n",__func__,height);
     int32_t i; struct notarized_checkpoint *np = 0;
     for (i=NUM_NPOINTS-1; i>=0; i--)
     {
@@ -1118,6 +1127,7 @@ struct notarized_checkpoint *komodo_npptr(int32_t height)
 
 int32_t komodo_prevMoMheight()
 {
+    LogPrintf(">>> %s called\n",__func__);
     static uint256 zero;
     int32_t i; struct notarized_checkpoint *np = 0;
     for (i=NUM_NPOINTS-1; i>=0; i--)
@@ -1132,6 +1142,7 @@ int32_t komodo_prevMoMheight()
 //struct komodo_state *komodo_stateptr(char *symbol,char *dest);
 int32_t komodo_notarized_height(int32_t *prevMoMheightp,uint256 *hashp,uint256 *txidp)
 {
+    LogPrintf(">>> %s called, prevMoMheightp.(%d), hashp.(%s), txidp.(%s)\n",__func__,prevMoMheightp, hashp->GetHex().c_str(), txidp->GetHex().c_str());
     *hashp = NOTARIZED_HASH;
     *txidp = NOTARIZED_DESTTXID;
     *prevMoMheightp = komodo_prevMoMheight();
@@ -1162,7 +1173,7 @@ int32_t komodo_MoMdata(int32_t *notarized_htp,uint256 *MoMp,uint256 *kmdtxidp,in
 
 int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *notarized_desttxidp)
 {
-    LogPrintf(">>>>> beginning of komodo_notarizeddata(), NUM_NPOINTS.(%d), last_NPOINTSi.(%d)\n", NUM_NPOINTS, last_NPOINTSi);
+    LogPrintf(">>>>> beginning of komodo_notarizeddata(), NUM_NPOINTS.(%d), last_NPOINTSi.(%d), nHeight(%d), notarized_hashp(%s), notarized_desttxidp.(%s)\n", NUM_NPOINTS, last_NPOINTSi, nHeight, notarized_hashp->GetHex().c_str(),notarized_desttxidp->GetHex().c_str());
     struct notarized_checkpoint *np = 0; int32_t i=0,flag = 0;
     if ( NUM_NPOINTS > 0 )
     {
@@ -1215,6 +1226,7 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
 
 void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 notarized_hash,uint256 notarized_desttxid,uint256 MoM,int32_t MoMdepth)
 {
+    LogPrintf(">>> %s called, nHeight.(%d), notarized_height.(%d), notarized_hash(%s)\n",__func__,nHeight,notarized_height,notarized_hash.GetHex().c_str());
     static int didinit; static uint256 zero; static FILE *fp; CBlockIndex *pindex; struct notarized_checkpoint *np,N; long fpos;
     if ( didinit == 0 )
     {
