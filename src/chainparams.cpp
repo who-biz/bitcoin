@@ -119,24 +119,8 @@ public:
         m_assumed_blockchain_size = 350;
         m_assumed_chain_state_size = 6;
 
-        int32_t z; uint32_t nonce; uint8_t *ptr = (uint8_t *)&consensus.hashGenesisBlock;
-        for (nonce=9250234; nonce<500000000; nonce++)
-        {
-            genesis = CreateGenesisBlock(1500000777, nonce, 0x1e007fff, 1, 50 * COIN);
-            consensus.hashGenesisBlock = genesis.GetHash();
-            if ( ptr[31] == 0 && ptr[30] == 0 && ptr[29] == 0 && (ptr[28] & 0x80) == 0)
-                break;
-            if ( (nonce % 1000000) == 999999 )
-                fprintf(stderr,"%d ",nonce);
-        }
-        printf("nonce.%u\n",nonce);
-        for (z=31; z>=0; z--)
-            printf("%02x",ptr[z]);
-        printf(" <- genesis\n");
-        ptr = (uint8_t *)&genesis.hashMerkleRoot;
-        for (z=31; z>=0; z--)
-            printf("%02x",ptr[z]);
-        printf(" <- merkle\n");
+        genesis = CreateGenesisBlock(1500000777, 9250234, 0x1e007fff, 1, 50 * COIN);
+        consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x0000006e75f6aa0efdbf7db03132aa4e4d0c84951537a6f5a7c39a0a9d30e1e7"));
         assert(genesis.hashMerkleRoot == uint256S("0x9bd1c477af8993947cdd9052c0e4c287fda95987b3cc8934b3769d7503852715"));
 
@@ -302,20 +286,13 @@ public:
         m_assumed_blockchain_size = 40;
         m_assumed_chain_state_size = 2;
 
-        uint32_t nNonce{0};
-        while (UintToArith256(genesis.GetHash()) > UintToArith256(consensus.powLimit)) {
-            printf("\r%08x", nNonce);
-            genesis = CreateGenesisBlock(1625357858, nNonce++, 0x1f00ffff, 1, 50 * COIN);
-        }
+        genesis = CreateGenesisBlock(1625357858, 16372, 0x1f00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x0000a1ec171e913ecbdfa280d525c92d75eefc4280c08fcc73425b4b4fb38471"));
+        assert(genesis.hashMerkleRoot == uint256S("0x9bd1c477af8993947cdd9052c0e4c287fda95987b3cc8934b3769d7503852715"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("testnet-seed.bitcoin.jonasschnelli.ch");
-        vSeeds.emplace_back("seed.tbtc.petertodd.org");
-        vSeeds.emplace_back("seed.testnet.bitcoin.sprovoost.nl");
-        vSeeds.emplace_back("testnet-seed.bluematt.me"); // Just a static list of stable node(s), only supports x9
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
