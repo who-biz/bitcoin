@@ -1177,6 +1177,11 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
     struct notarized_checkpoint *np = 0; int32_t i=0,flag = 0;
     if ( NUM_NPOINTS > 0 )
     {
+        if (last_NPOINTSi > 0)
+        {
+          np = &NPOINTS[0];
+          LogPrintf(">>> %s called: first notarized height = %d\n",__func__,np->nHeight);
+        }
         flag = 0;
         if ( last_NPOINTSi < NUM_NPOINTS && last_NPOINTSi > 0 )
         {
@@ -1452,7 +1457,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 if ( len >= (int32_t)sizeof(uint32_t) && len <= (int32_t)sizeof(scriptbuf) )
                 {
                     memcpy(scriptbuf,block.vtx[i]->vout[j].scriptPubKey.data(),len);
-                    LogPrintf(">>>>>>>>>> prior to komodo_voutupdate, notarizedheight.(%d),notarized.(%d),height.(%d) \n",notarizedheight,notarized,height);
+                    //LogPrintf(">>>>>>>>>> prior to komodo_voutupdate, notarizedheight.(%d),notarized.(%d),height.(%d) \n",notarizedheight,notarized,height);
                     komodo_voutupdate(i,j,scriptbuf,len,height,&specialtx,&notarizedheight,(uint64_t)block.vtx[i]->vout[j].nValue,notarized,signedmask);
                 }
             }
