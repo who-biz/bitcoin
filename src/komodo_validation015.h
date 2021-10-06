@@ -1228,8 +1228,16 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 } // else if ( block.vtx[i]->vin[j].prevout.hash != zero ) printf("%s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",ASSETCHAINS_SYMBOL,height,i,j);
             }
             numvalid = bitweight(signedmask);
-            if ( numvalid >= KOMODO_MINRATIFY )
-                notarized = 1;
+            if (testnet_enabled == true)
+            {
+                if ( numvalid >= TESTNET_MINRATIFY )
+                    notarized = 1;
+            }
+            else
+            {
+                if ( numvalid >= KOMODO_MINRATIFY )
+                    notarized = 1;
+            }
             //if ( NOTARY_PUBKEY33[0] != 0 )
             //    printf("(tx.%d: ",i);
             for (j=0; j<numvouts; j++)
