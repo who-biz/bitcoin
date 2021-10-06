@@ -81,6 +81,24 @@
 // to add 4th season, change NUM_KMD_SEASONS to 4, add height of activation for third season ending one spot before 999999999.
 #define NUM_KMD_SEASONS 1
 #define NUM_KMD_NOTARIES 64
+
+//for CHIPS testnet
+#define NUM_TESTNET_SEASONS   1
+#define NUM_TESTNET_NOTARIES  2
+#define TESTNET_MINRATIFY     2
+static const int32_t TESTNET_SEASON_HEIGHTS[NUM_TESTNET_SEASONS] = { 999999999 };
+
+static const char *notaries_elected_testnet[NUM_TESTNET_SEASONS][NUM_TESTNET_NOTARIES][2] =
+{
+  {
+        //TODO: change these to correct pubkeys for testnet notas
+        { "biz_testnet",      "030000000000000000000000000000000000000000000000000000000000000000" },
+        { "SHossain_testnet", "030000000000000000000000000000000000000000000000000000000000000000" }
+  }
+};
+
+static const bool testnet_enabled = (gArgs.GetBoolArg("-testnet",1) == 0);
+
 // first season had no third party coins, so it ends at block 0. 
 // second season ends at approx block 4,173,578, please check this!!!!! it should be as close as possible to July 15th 0:00 UTC. 
 // third season ending height is unknown so it set to very very far in future. 
@@ -710,19 +728,40 @@ portable_mutex_t komodo_mutex;
 void komodo_importpubkeys()
 {
     int32_t i,n,val,dispflag = 0; std::string addr;
-    for (n = 0; n < NUM_KMD_SEASONS; n++)
+    if (testnet_enabled == true)
     {
-        for (i=0; i<NUM_KMD_NOTARIES; i++) 
+        for (n = 0; n < NUM_TESTNET_SEASONS; n++)
         {
-            uint8_t pubkey[33]; char address[64];
-            decode_hex(pubkey,33,(char *)notaries_elected[n][i][1]);
-            pubkey2addr((char *)address,(uint8_t *)pubkey);
-            addr.clear();
-            addr.append(address);
-            if ( (val= komodo_importaddress(addr)) < 0 )
-                fprintf(stderr,"error importing (%s)\n",addr.c_str());
-            else if ( val != 0 )
-                dispflag++;
+            for (i=0; i<NUM_TESTNET_NOTARIES; i++) 
+            {
+                 uint8_t pubkey[33]; char address[64];
+                 decode_hex(pubkey,33,(char *)notaries_elected[n][i][1]);
+                 pubkey2addr((char *)address,(uint8_t *)pubkey);
+                 addr.clear();
+                 addr.append(address);
+                 if ( (val= komodo_importaddress(addr)) < 0 )
+                      fprintf(stderr,"error importing (%s)\n",addr.c_str());
+                 else if ( val != 0 )
+                     dispflag++;
+            }
+        }
+    }
+    else
+    {
+        for (n = 0; n < NUM_KMD_SEASONS; n++)
+        {
+            for (i=0; i<NUM_KMD_NOTARIES; i++) 
+            {
+                 uint8_t pubkey[33]; char address[64];
+                 decode_hex(pubkey,33,(char *)notaries_elected[n][i][1]);
+                 pubkey2addr((char *)address,(uint8_t *)pubkey);
+                 addr.clear();
+                 addr.append(address);
+                 if ( (val= komodo_importaddress(addr)) < 0 )
+                      fprintf(stderr,"error importing (%s)\n",addr.c_str());
+                 else if ( val != 0 )
+                     dispflag++;
+            }
         }
     }
     if ( dispflag != 0 )
@@ -788,30 +827,62 @@ uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 
 int32_t getkmdseason(int32_t height)
 {
-    if ( height <= KMD_SEASON_HEIGHTS[0] )
-        return(1);
-    for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+    if (testnet_enabled == true)
     {
-        if ( height <= KMD_SEASON_HEIGHTS[i] && height >= KMD_SEASON_HEIGHTS[i-1] )
-            return(i+1);
+        if ( height <= TESTNET_SEASON_HEIGHTS[0] )
+            return(1);
+        for (int32_t i = 1; i < NUM_TESTNET_SEASONS; i++)
+        {
+            if ( height <= TESTNET_SEASON_HEIGHTS[i] && height >= TESTNET_SEASON_HEIGHTS[i-1] )
+                return(i+1);
+        }
+    }
+    else
+    {
+        if ( height <= KMD_SEASON_HEIGHTS[0] )
+            return(1);
+        for (int32_t i = 1; i < NUM_KMD_SEASONS; i++)
+        {
+            if ( height <= KMD_SEASON_HEIGHTS[i] && height >= KMD_SEASON_HEIGHTS[i-1] )
+                return(i+1);
+        }
     }
     return(0);
 }
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
-    static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
-    int32_t kmd_season,i;
-    if ( (kmd_season= getkmdseason(height)) != 0 )
+    if (testnet_enabled == true)
     {
-        if ( didinit[kmd_season-1] == 0 )
+        static uint8_t kmd_pubkeys[NUM_TESTNET_SEASONS][64][33],didinit[NUM_TESTNET_SEASONS];
+        int32_t kmd_season,i;
+        if ( (kmd_season= getkmdseason(height)) != 0 )
         {
-            for (i=0; i<NUM_KMD_NOTARIES; i++) 
-                decode_hex(kmd_pubkeys[kmd_season-1][i],33,(char *)notaries_elected[kmd_season-1][i][1]);
-            didinit[kmd_season-1] = 1;
+            if ( didinit[kmd_season-1] == 0 )
+            {
+                for (i=0; i<NUM_TESTNET_NOTARIES; i++) 
+                    decode_hex(kmd_pubkeys[kmd_season-1][i],33,(char *)notaries_elected[kmd_season-1][i][1]);
+                didinit[kmd_season-1] = 1;
+            }
+            memcpy(pubkeys,kmd_pubkeys[kmd_season-1],NUM_TESTNET_NOTARIES * 33);
+            return(NUM_TESTNET_NOTARIES);
         }
-        memcpy(pubkeys,kmd_pubkeys[kmd_season-1],NUM_KMD_NOTARIES * 33);
-        return(NUM_KMD_NOTARIES);
+    }
+    else
+    {
+        static uint8_t kmd_pubkeys[NUM_KMD_SEASONS][64][33],didinit[NUM_KMD_SEASONS];
+        int32_t kmd_season,i;
+        if ( (kmd_season= getkmdseason(height)) != 0 )
+        {
+            if ( didinit[kmd_season-1] == 0 )
+            {
+                for (i=0; i<NUM_KMD_NOTARIES; i++) 
+                    decode_hex(kmd_pubkeys[kmd_season-1][i],33,(char *)notaries_elected[kmd_season-1][i][1]);
+                didinit[kmd_season-1] = 1;
+            }
+            memcpy(pubkeys,kmd_pubkeys[kmd_season-1],NUM_KMD_NOTARIES * 33);
+            return(NUM_KMD_NOTARIES);
+        }
     }
     return(-1);
 }
