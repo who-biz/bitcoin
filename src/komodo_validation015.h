@@ -994,6 +994,7 @@ void komodo_importpubkeys()
     int32_t i,n,val,dispflag = 0; std::string addr;
     if (testnet_enabled == true)
     {
+        LogPrintf(">>>> TESTNET ENABLED in %s <<< \n", __func__);
         for (n = 0; n < NUM_TESTNET_SEASONS; n++)
         {
             for (i=0; i<NUM_TESTNET_NOTARIES; i++) 
@@ -1012,6 +1013,7 @@ void komodo_importpubkeys()
     }
     else
     {
+        LogPrintf(">>>> TESTNET DISABLED, MAINNET in %s <<< \n", __func__);
         for (n = 0; n < NUM_KMD_SEASONS; n++)
         {
             for (i=0; i<NUM_KMD_NOTARIES; i++) 
