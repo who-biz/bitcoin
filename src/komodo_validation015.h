@@ -97,7 +97,7 @@ static const char *notaries_elected_testnet[NUM_TESTNET_SEASONS][NUM_TESTNET_NOT
   }
 };
 
-static const bool testnet_enabled = (gArgs.GetBoolArg("-testnet",1) == 0);
+static const bool testnet_enabled() { return (gArgs.GetChainName() == CBaseChainParams::TESTNET); };
 
 // first season had no third party coins, so it ends at block 0. 
 // second season ends at approx block 4,173,578, please check this!!!!! it should be as close as possible to July 15th 0:00 UTC. 
@@ -992,7 +992,7 @@ portable_mutex_t komodo_mutex;
 void komodo_importpubkeys()
 {
     int32_t i,n,val,dispflag = 0; std::string addr;
-    if (testnet_enabled == true)
+    if (testnet_enabled())
     {
         for (n = 0; n < NUM_TESTNET_SEASONS; n++)
         {
@@ -1035,6 +1035,9 @@ void komodo_importpubkeys()
 int32_t komodo_init()
 {
     NOTARY_PUBKEY = gArgs.GetArg("-pubkey", "");
+    LogPrintf(">>> %s called, supplied pubkey: %s\n",__func__,NOTARY_PUBKEY.c_str());
+    LogPrintf(">>> %s called, chain = %s\n",__func__,gArgs.GetChainName());
+    LogPrintf(">>> %s called, testnet_enabled = %d\n",__func__,testnet_enabled());
     decode_hex(NOTARY_PUBKEY33,33,(char *)NOTARY_PUBKEY.c_str());
     if ( gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX) == 0 )
     {
@@ -1091,7 +1094,7 @@ uint256 komodo_calcMoM(int32_t height,int32_t MoMdepth)
 
 int32_t getkmdseason(int32_t height)
 {
-    if (testnet_enabled == true)
+    if (testnet_enabled())
     {
         if ( height <= TESTNET_SEASON_HEIGHTS[0] )
             return(1);
@@ -1116,7 +1119,7 @@ int32_t getkmdseason(int32_t height)
 
 int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestamp)
 {
-    if (testnet_enabled == true)
+    if (testnet_enabled())
     {
         static uint8_t kmd_pubkeys[NUM_TESTNET_SEASONS][64][33],didinit[NUM_TESTNET_SEASONS];
         int32_t kmd_season,i;
@@ -1492,7 +1495,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 } // else if ( block.vtx[i]->vin[j].prevout.hash != zero ) printf("%s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",ASSETCHAINS_SYMBOL,height,i,j);
             }
             numvalid = bitweight(signedmask);
-            if (testnet_enabled == true)
+            if (testnet_enabled())
             {
                 if ( numvalid >= TESTNET_MINRATIFY )
                     notarized = 1;
