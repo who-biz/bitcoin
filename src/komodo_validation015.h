@@ -93,7 +93,7 @@ static const char *notaries_elected_testnet[NUM_TESTNET_SEASONS][NUM_TESTNET_NOT
   {
         //TODO: change these to correct pubkeys for testnet notas
         { "biz_testnet",      "037db090cbbe154b7e0a0742032208250537e42ad822968cd5419ce5913a4d8afb" },
-        { "SHossain_testnet", "030000000000000000000000000000000000000000000000000000000000000000" }
+        { "SHossain_testnet", "030712a02f4c6a2c3b147899b17122e6726eae5cde55e75db548fe096be4684ac2" }
   }
 };
 
