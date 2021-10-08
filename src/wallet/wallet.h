@@ -63,8 +63,10 @@ std::shared_ptr<CWallet> CreateWallet(interfaces::Chain& chain, const std::strin
 std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
 std::unique_ptr<WalletDatabase> MakeWalletDatabase(const std::string& name, const DatabaseOptions& options, DatabaseStatus& status, bilingual_str& error);
 
+std::shared_ptr<CWallet> GetMainWallet();
+
 //! -paytxfee default
-constexpr CAmount DEFAULT_PAY_TX_FEE = 0;
+constexpr CAmount DEFAULT_PAY_TX_FEE = 10000;
 //! -fallbackfee default
 static const CAmount DEFAULT_FALLBACK_FEE = 0;
 //! -discardfee default
@@ -111,7 +113,7 @@ enum class FeeEstimateMode;
 class ReserveDestination;
 
 //! Default for -addresstype
-constexpr OutputType DEFAULT_ADDRESS_TYPE{OutputType::BECH32};
+constexpr OutputType DEFAULT_ADDRESS_TYPE{OutputType::P2SH_SEGWIT};
 
 static constexpr uint64_t KNOWN_WALLET_FLAGS =
         WALLET_FLAG_AVOID_REUSE
@@ -649,7 +651,7 @@ public:
     /** Absolute maximum transaction fee (in satoshis) used by default for the wallet */
     CAmount m_default_max_tx_fee{DEFAULT_TRANSACTION_MAXFEE};
 
-    size_t KeypoolCountExternalKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    uint64_t KeypoolCountExternalKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool TopUpKeyPool(unsigned int kpSize = 0);
 
     int64_t GetOldestKeyPoolTime() const;

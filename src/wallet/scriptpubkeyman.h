@@ -383,7 +383,7 @@ public:
     void RewriteDB() override;
 
     int64_t GetOldestKeyPoolTime() const override;
-    size_t KeypoolCountExternalKeys() const;
+    uint64_t KeypoolCountExternalKeys() const;
     unsigned int GetKeyPoolSize() const override;
 
     int64_t GetTimeFirstKey() const override;

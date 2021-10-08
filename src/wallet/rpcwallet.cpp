@@ -7,12 +7,14 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
+#include <net.h>
 #include <node/context.h>
 #include <outputtype.h>
 #include <policy/feerate.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <rpc/blockchain.h>
 #include <rpc/rawtransaction_util.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
@@ -35,17 +37,31 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
+#include <validation.h>
+#include <warnings.h>
 
 #include <optional>
 #include <stdint.h>
 
 #include <univalue.h>
 
-
 using interfaces::FoundBlock;
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 static const std::string HELP_REQUIRING_PASSPHRASE{"\nRequires wallet passphrase to be set with walletpassphrase call if wallet is encrypted.\n"};
+
+int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
+
+int32_t komodo_blockheight(uint256 hash)
+{
+    BlockMap::const_iterator it; CBlockIndex *pindex = 0;
+    if ( (it = g_rpc_node->chainman->m_blockman.m_block_index.find(hash)) != g_rpc_node->chainman->m_blockman.m_block_index.end() )
+    {
+        if ( (pindex= it->second) != 0 )
+            return(pindex->nHeight);
+    }
+    return(0);
+}
 
 static inline bool GetAvoidReuseFlag(const CWallet& wallet, const UniValue& param) {
     bool can_avoid_reuse = wallet.IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
@@ -330,7 +346,6 @@ static RPCHelpMan getrawchangeaddress()
 },
     };
 }
-
 
 static RPCHelpMan setlabel()
 {
@@ -1036,10 +1051,15 @@ struct tallyitem
 {
     CAmount nAmount{0};
     int nConf{std::numeric_limits<int>::max()};
+    int nHeight{std::numeric_limits<int>::max()};
     std::vector<uint256> txids;
     bool fIsWatchonly{false};
     tallyitem()
     {
+        nAmount = 0;
+        nHeight = -1;
+        nConf = std::numeric_limits<int>::max();
+        fIsWatchonly = false;
     }
 };
 
@@ -1135,11 +1155,13 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
         CAmount nAmount = 0;
         int nConf = std::numeric_limits<int>::max();
         bool fIsWatchonly = false;
+        int nHeight;
         if (it != mapTally.end())
         {
             nAmount = (*it).second.nAmount;
             nConf = (*it).second.nConf;
             fIsWatchonly = (*it).second.fIsWatchonly;
+            nHeight = (*it).second.nHeight;
         }
 
         if (by_label)
@@ -1155,8 +1177,10 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
             if(fIsWatchonly)
                 obj.pushKV("involvesWatchonly", true);
             obj.pushKV("address",       EncodeDestination(address));
+            obj.pushKV("account",       label);
             obj.pushKV("amount",        ValueFromAmount(nAmount));
-            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("rawconfirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : komodo_dpowconfs(nHeight, nConf)));
             obj.pushKV("label", label);
             UniValue transactions(UniValue::VARR);
             if (it != mapTally.end())
@@ -1177,11 +1201,13 @@ static UniValue ListReceived(const CWallet& wallet, const UniValue& params, bool
         {
             CAmount nAmount = entry.second.nAmount;
             int nConf = entry.second.nConf;
+            int nHeight = entry.second.nHeight;
             UniValue obj(UniValue::VOBJ);
             if (entry.second.fIsWatchonly)
                 obj.pushKV("involvesWatchonly", true);
             obj.pushKV("amount",        ValueFromAmount(nAmount));
-            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("rawconfirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf));
+            obj.pushKV("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : komodo_dpowconfs(nHeight, nConf)));
             obj.pushKV("label",         entry.first);
             ret.push_back(obj);
         }
@@ -2407,6 +2433,106 @@ static RPCHelpMan getbalances()
     };
 }
 
+static RPCHelpMan getinfo()
+{
+    return RPCHelpMan{"getinfo",
+                "Returns an object containing various wallet/blockchain state info.\n",
+                {},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {
+                        {RPCResult::Type::NUM, "version", "the server version"},
+                        {RPCResult::Type::NUM, "protocolversion", "the protocol version"},
+                        {RPCResult::Type::NUM, "walletversion", "the wallet version"},
+                        {RPCResult::Type::NUM, "balance", "the total chips balance of the wallet"},
+                        {RPCResult::Type::NUM, "blocks", "the current number of blocks processed in the server"},
+                        {RPCResult::Type::STR, "bestblockhash", "the hash of the currently best block"},
+                        {RPCResult::Type::STR, "notarizedhash", "the hash of the currently best notarized block"},
+                        {RPCResult::Type::STR, "notarizedtxid", "notarizedtxid"},
+                        {RPCResult::Type::NUM, "prevMoMheight", "prevMoMheight"},
+                        {RPCResult::Type::NUM, "notarized_MoMdepth", "notarized_MoMdepth"},
+                        {RPCResult::Type::STR, "notarized_MoM", "notarized_MoM"},
+                        {RPCResult::Type::NUM, "notarized", "the height of the currently best notarized block"},
+                        {RPCResult::Type::NUM, "timeoffset", "the time offset"},
+                        {RPCResult::Type::NUM, "connections", "the number of connections"},
+                        {RPCResult::Type::STR, "proxy", "the proxy used by the server"},
+                        {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
+                        {RPCResult::Type::STR, "chain", "current network name as defined in BIP70 (main, test, regtest"},
+                        {RPCResult::Type::BOOL,"testnet", "if the server is using testnet or not"},
+                        {RPCResult::Type::NUM, "keypoololdest", "the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool"},
+                        {RPCResult::Type::NUM, "keypoolsize", "how many new keys are pre-generated"},
+                        {RPCResult::Type::NUM, "unlocked_until", "the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked"},
+                        {RPCResult::Type::NUM, "paytxfee", "the transaction fee set in CHIPS/kB"},
+                        {RPCResult::Type::NUM, "relayfee", "minimum relay fee for transactions in CHIPS/kB"},
+                        {RPCResult::Type::STR, "errors", "any error messages"}
+                    }},
+                },
+                RPCExamples{
+                    HelpExampleCli("getinfo", "")
+            + HelpExampleRpc("getinfo", "")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    std::shared_ptr<CWallet> const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!pwallet) return NullUniValue;
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    LOCK(pwallet->cs_wallet);
+
+    UniValue obj(UniValue::VOBJ);
+
+    uint64_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
+    const auto bal = pwallet->GetBalance();
+    int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
+
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+
+    obj.pushKV("version", CLIENT_VERSION);
+    obj.pushKV("protocolversion", PROTOCOL_VERSION);
+    obj.pushKV("walletversion", pwallet->GetVersion());
+    obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
+    obj.pushKV("balance", ValueFromAmount(bal.m_mine_trusted));
+    obj.pushKV("chain", Params().NetworkIDString());
+    obj.pushKV("blocks",                (int)g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
+    obj.pushKV("timeoffset",    0);
+    // timeoffset = 0, in KMD RPC
+    obj.pushKV("bestblockhash", g_rpc_node->chainman->ActiveChain().Tip()->GetBlockHash().GetHex());
+    obj.pushKV("connections", g_rpc_node->connman->GetNodeCount(ConnectionDirection::Both));
+
+    {
+        int32_t komodo_prevMoMheight();
+        extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
+        extern int32_t NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH;
+        obj.pushKV("notarizedhash",         NOTARIZED_HASH.GetHex());
+        obj.pushKV("notarizedtxid",         NOTARIZED_DESTTXID.GetHex());
+        obj.pushKV("notarized",                (int)NOTARIZED_HEIGHT);
+        obj.pushKV("prevMoMheight",                (int)komodo_prevMoMheight());
+        obj.pushKV("notarized_MoMdepth",                (int)NOTARIZED_MOMDEPTH);
+        obj.pushKV("notarized_MoM",         NOTARIZED_MOM.GetHex());
+    }
+
+    obj.pushKV("difficulty",    (double)GetDifficulty(g_rpc_node->chainman->ActiveChain().Tip()));
+    obj.pushKV("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET);
+    obj.pushKV("keypoololdest", kp_oldest);
+    obj.pushKV("keypoolsize", kpExternalSize);
+    obj.pushKV("txcount",       (int)pwallet->mapWallet.size());
+    if (pwallet->IsCrypted()) {
+        obj.pushKV("unlocked_until", pwallet->nRelockTime);
+    }
+    obj.pushKV("paytxfee",      ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
+    obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
+    obj.pushKV("errors",        GetWarnings("statusbar").original);
+    return obj;
+},
+    };
+}
+
+
 static RPCHelpMan getwalletinfo()
 {
     return RPCHelpMan{"getwalletinfo",
@@ -2456,7 +2582,7 @@ static RPCHelpMan getwalletinfo()
 
     UniValue obj(UniValue::VOBJ);
 
-    size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
+    uint64_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     const auto bal = pwallet->GetBalance();
     int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
     obj.pushKV("walletname", pwallet->GetName());
@@ -3043,9 +3169,14 @@ static RPCHelpMan listunspent()
             }
         }
 
+        int32_t txheight = -1;
+        if (g_rpc_node->chainman->ActiveChain().Tip())
+             txheight = (g_rpc_node->chainman->ActiveChain().Tip()->nHeight - out.nDepth - 1);
+
         entry.pushKV("scriptPubKey", HexStr(scriptPubKey));
         entry.pushKV("amount", ValueFromAmount(out.tx->tx->vout[out.i].nValue));
-        entry.pushKV("confirmations", out.nDepth);
+        entry.pushKV("rawconfirmations",out.nDepth);
+        entry.pushKV("confirmations",komodo_dpowconfs(txheight,out.nDepth));
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
@@ -3771,6 +3902,68 @@ static UniValue AddressBookDataToJSON(const CAddressBookData& data, const bool v
     ret.pushKV("purpose", data.purpose);
     return ret;
 }
+
+static RPCHelpMan validateaddress()
+{
+    return RPCHelpMan{"validateaddress",
+                "\nReturn information about the given bitcoin address.\n",
+                {
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The bitcoin address to validate"},
+                },
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::BOOL, "isvalid", "If the address is valid or not"},
+                        {RPCResult::Type::STR, "address", "The bitcoin address validated"},
+                        {RPCResult::Type::STR_HEX, "scriptPubKey", "The hex-encoded scriptPubKey generated by the address"},
+                        {RPCResult::Type::BOOL, "ismine", "If the given address is yours"},
+                        {RPCResult::Type::BOOL, "isscript", "If the key is a script"},
+                        {RPCResult::Type::BOOL, "iswitness", "If the address is a witness address"},
+                        {RPCResult::Type::STR_HEX, "pubkey", "The hex value of the raw pubkey"},
+                        {RPCResult::Type::NUM, "witness_version", /* optional */ true, "The version number of the witness program"},
+                        {RPCResult::Type::STR_HEX, "witness_program", /* optional */ true, "The hex value of the witness program"},
+                        {RPCResult::Type::STR, "error", /* optional */ true, "Error message, if any"},
+                    }
+                }, 
+                RPCExamples{
+                    HelpExampleCli("validateaddress", "\"" + EXAMPLE_ADDRESS[0] + "\"") +
+                    HelpExampleRpc("validateaddress", "\"" + EXAMPLE_ADDRESS[0] + "\"")
+                }, 
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    std::shared_ptr<CWallet> const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!pwallet) return NullUniValue;
+
+    LOCK(pwallet->cs_wallet);
+
+    std::string error_msg;
+    CTxDestination dest = DecodeDestination(request.params[0].get_str(), error_msg);
+    const bool isValid = IsValidDestination(dest);
+    CHECK_NONFATAL(isValid == error_msg.empty());
+
+    UniValue ret(UniValue::VOBJ);
+    ret.pushKV("isvalid", isValid);
+    if (isValid) { 
+        std::string currentAddress = EncodeDestination(dest);
+        ret.pushKV("address", currentAddress);
+
+        CScript scriptPubKey = GetScriptForDestination(dest);
+        ret.pushKV("scriptPubKey", HexStr(scriptPubKey));
+
+        isminetype mine = pwallet->IsMine(dest);
+        ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
+
+        UniValue detail = DescribeWalletAddress(*pwallet,dest);
+        ret.pushKVs(detail);
+    } else {
+        ret.pushKV("error", error_msg);
+    }
+
+    return ret;
+},
+    };
+}
+
 
 RPCHelpMan getaddressinfo()
 {
@@ -4649,6 +4842,7 @@ static const CRPCCommand commands[] =
     { "wallet",             &gettransaction,                 },
     { "wallet",             &getunconfirmedbalance,          },
     { "wallet",             &getbalances,                    },
+    { "wallet",             &getinfo,                        },
     { "wallet",             &getwalletinfo,                  },
     { "wallet",             &importaddress,                  },
     { "wallet",             &importdescriptors,              },
@@ -4684,6 +4878,7 @@ static const CRPCCommand commands[] =
     { "wallet",             &signrawtransactionwithwallet,   },
     { "wallet",             &unloadwallet,                   },
     { "wallet",             &upgradewallet,                  },
+    { "wallet",             &validateaddress,                },
     { "wallet",             &walletcreatefundedpsbt,         },
 #ifdef ENABLE_EXTERNAL_SIGNER
     { "wallet",             &walletdisplayaddress,           },

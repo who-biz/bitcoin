@@ -219,6 +219,43 @@ RPCHelpMan abortrescan()
     };
 }
 
+void ImportAddress(CWallet*, const CTxDestination& dest, const std::string& strLabel);
+void ImportScript(CWallet* const pwallet, const CScript& script, const std::string& strLabel, bool isRedeemScript)
+{
+    if (!isRedeemScript && pwallet->IsMine(script) == ISMINE_SPENDABLE) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already contains the private key for this address or script");
+    }
+
+    pwallet->MarkDirty();
+
+    auto spk_man = pwallet->GetLegacyScriptPubKeyMan();
+
+    if (!spk_man->HaveWatchOnly(script) && !spk_man->AddWatchOnly(script, 0 /* nCreateTime */)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error adding address to wallet");
+    }
+
+    if (isRedeemScript) {
+        if (!spk_man->HaveCScript(CScriptID(script)) && !spk_man->AddCScript(script)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding p2sh redeemScript to wallet");
+        }
+        ImportAddress(pwallet, ScriptHash(script), strLabel);
+    } else {
+        CTxDestination destination;
+        if (ExtractDestination(script, destination)) {
+            pwallet->SetAddressBook(destination, strLabel, "receive");
+        }
+    }
+}
+
+void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, const std::string& strLabel)
+{
+    CScript script = GetScriptForDestination(dest);
+    ImportScript(pwallet, script, strLabel, false);
+    // add to address book or update label
+    if (IsValidDestination(dest))
+        pwallet->SetAddressBook(dest, strLabel, "receive");
+}
+
 RPCHelpMan importaddress()
 {
     return RPCHelpMan{"importaddress",

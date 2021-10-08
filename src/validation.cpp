@@ -33,6 +33,7 @@
 #include <random.h>
 #include <reverse_iterator.h>
 #include <script/script.h>
+#include <script/standard.h>
 #include <script/sigcache.h>
 #include <shutdown.h>
 #include <signet.h>
@@ -54,12 +55,17 @@
 
 #include <numeric>
 #include <optional>
+
+#include <komodo_validation015.h>
+
 #include <string>
 
 #include <boost/algorithm/string/replace.hpp>
 
 #define MICRO 0.000001
 #define MILLI 0.001
+
+char ASSETCHAINS_SYMBOL[65] = { "CHIPS" };
 
 /**
  * An extra transaction can be added to a package, as long as it only has one
@@ -684,8 +690,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     }
 
     // Check for non-standard pay-to-script-hash in inputs
-    const bool taproot_active = DeploymentActiveAfter(m_active_chainstate.m_chain.Tip(), args.m_chainparams.GetConsensus(), Consensus::DEPLOYMENT_TAPROOT);
-    if (fRequireStandard && !AreInputsStandard(tx, m_view, taproot_active)) {
+    const auto& params = args.m_chainparams.GetConsensus();
+    auto taproot_state = pindexBestHeader->nHeight >= params.nManualTaprootHeight ? ThresholdState::ACTIVE : ThresholdState::DEFINED;
+    if (fRequireStandard && !AreInputsStandard(tx, m_view, taproot_state == ThresholdState::ACTIVE)) {
         return state.Invalid(TxValidationResult::TX_INPUTS_NOT_STANDARD, "bad-txns-nonstandard-inputs");
     }
 
@@ -1588,6 +1595,8 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         }
     }
 
+    komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
+
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
 
@@ -1670,8 +1679,8 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
-    // Enforce Taproot (BIP340-BIP342)
-    if (DeploymentActiveAt(*pindex, consensusparams, Consensus::DEPLOYMENT_TAPROOT)) {
+    // Start enforcing Taproot using versionbits logic.
+    if (pindexBestHeader->nHeight >= consensusparams.nManualTaprootHeight) {
         flags |= SCRIPT_VERIFY_TAPROOT;
     }
 
@@ -1998,6 +2007,8 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
 
+    komodo_connectblock(pindex,*(CBlock *)&block);
+
     return true;
 }
 
@@ -2261,9 +2272,17 @@ bool CChainState::DisconnectTip(BlockValidationState& state, DisconnectedBlockTr
     // Read block from disk.
     std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
     CBlock& block = *pblock;
-    if (!ReadBlockFromDisk(block, pindexDelete, m_params.GetConsensus())) {
+    if (!ReadBlockFromDisk(block, pindexDelete, m_params.GetConsensus()))
         return error("DisconnectTip(): Failed to read block");
+
+    int32_t prevMoMheight; uint256 notarizedhash,txid;
+    komodo_notarized_height(&prevMoMheight,&notarizedhash,&txid);
+    if ( block.GetHash() == notarizedhash )
+    {
+        LogPrintf("DisconnectTip trying to disconnect notarized block at ht.%d\n",(int32_t)pindexDelete->nHeight);
+        return(false);
     }
+
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -3005,6 +3024,12 @@ static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& st
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
+    if (g_rpc_node->chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
+        if (block.GetBlockTime() > GetAdjustedTime() + 4) {
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "block-from-future", "CheckBlockHeader block from future");
+        }
+    }
+
     return true;
 }
 
@@ -3151,6 +3176,8 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
 {
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
+    uint256 hash = block.GetHash();
+    int32_t notarized_height;
 
     // Check proof of work
     const Consensus::Params& consensusParams = params.GetConsensus();
@@ -3166,6 +3193,16 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrintf("ERROR: %s: forked chain older than last checkpoint (height %d)\n", __func__, nHeight);
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT, "bad-fork-prior-to-checkpoint");
+        }
+        else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
+        {
+            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
+            if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
+                return true;
+            } else {
+                LogPrintf("ERROR: %s: forked chain %d older than last notarized (height %d) vs %d", __func__,nHeight, notarized_height);
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-fork-chain");
+            }
         }
     }
 
@@ -3254,14 +3291,14 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
         }
     }
 
-    // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
-    if (!fHaveWitness) {
-      for (const auto& tx : block.vtx) {
-            if (tx->HasWitness()) {
-                return state.Invalid(BlockValidationResult::BLOCK_MUTATED, "unexpected-witness", strprintf("%s : unexpected witness data found", __func__));
-            }
-        }
-    }
+//  // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
+//  if (!fHaveWitness) {
+//    for (const auto& tx : block.vtx) {
+//          if (tx->HasWitness()) {
+//              return state.Invalid(BlockValidationResult::BLOCK_MUTATED, "unexpected-witness", strprintf("%s : unexpected witness data found", __func__));
+//          }
+//    }
+//  }
 
     // After the coinbase witness reserved value and commitment are verified,
     // we can check if the block weight passes (before we've checked the

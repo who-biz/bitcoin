@@ -105,6 +105,17 @@ struct Params {
     uint256 nMinimumChainWork;
     /** By default assume that the signatures in ancestors of this block are valid */
     uint256 defaultAssumeValid;
+    int nManualTaprootHeight;
+
+    /** Retarget based parameters */
+    int nAdaptivePoWActivationThreshold;
+    int64_t nPowAveragingWindow;
+    int64_t nPowMaxAdjustDown;
+    int64_t nPowMaxAdjustUp;
+    int64_t nLwmaAdjustedWeight;
+    int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
+    int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp  )) / 100; }
+    int64_t MaxActualTimespan() const { return (AveragingWindowTimespan() * (100 + nPowMaxAdjustDown)) / 100; }
 
     /**
      * If true, witness commitments contain a payload equal to a Bitcoin Script solution
