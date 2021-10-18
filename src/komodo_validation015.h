@@ -459,7 +459,7 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
 
         if (tx = GetTransaction(pindex, nullptr, txid, Params().GetConsensus(), hashBlock))
         {
-            //fprintf(stderr,"ht.%d couldnt get txid.%s\n",height,txid.GetHex().c_str());
+            LogPrintf(">>> %s: ht.%d couldnt get txid.%s\n",__func__,height,txid.GetHex().c_str());
             return(-1);
         }
     }
@@ -1358,7 +1358,7 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
     {
         if ( fwrite(np,1,sizeof(*np),fp) == sizeof(*np) )
             fflush(fp);
-        else printf("error writing notarization to %d\n",(int32_t)ftell(fp));
+        else LogPrintf(">>> %s: error writing notarization to %d\n",__func__,(int32_t)ftell(fp));
     }
     // add to stored notarizations
     portable_mutex_unlock(&komodo_mutex);
@@ -1414,7 +1414,7 @@ void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scrip
             opretlen = scriptbuf[len++];
             opretlen += (scriptbuf[len++] << 8);
         }
-        //printf("opretlen.%d vout.%d [%s].(%s)\n",opretlen,vout,(char *)&scriptbuf[len+32*2+4],ASSETCHAINS_SYMBOL);
+        LogPrintf(">>> %s: opretlen.%d vout.%d [%s].(%s)\n",__func__,opretlen,vout,(char *)&scriptbuf[len+32*2+4],ASSETCHAINS_SYMBOL);
         if ( vout == 1 && opretlen-3 >= 32*2+4 && strcmp(ASSETCHAINS_SYMBOL,(char *)&scriptbuf[len+32*2+4]) == 0 )
         {
             len += iguana_rwbignum(0,&scriptbuf[len],32,(uint8_t *)&hash);
@@ -1462,12 +1462,13 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
     memset(&zero,0,sizeof(zero));
     komodo_notarized_update(0,0,zero,zero,zero,0);
     numnotaries = komodo_notaries(pubkeys,pindex->nHeight,pindex->GetBlockTime());
+    LogPrintf(">>> %s: numnotaries(%d) \n",__func__,numnotaries);
     if ( pindex->nHeight > hwmheight )
         hwmheight = pindex->nHeight;
     else
     {
         if ( pindex->nHeight != hwmheight )
-            printf("%s hwmheight.%d vs pindex->nHeight.%d t.%u reorg.%d\n",ASSETCHAINS_SYMBOL,hwmheight,pindex->nHeight,(uint32_t)pindex->nTime,hwmheight-pindex->nHeight);
+            LogPrintf("%s hwmheight.%d vs pindex->nHeight.%d t.%u reorg.%d\n",ASSETCHAINS_SYMBOL,hwmheight,pindex->nHeight,(uint32_t)pindex->nTime,hwmheight-pindex->nHeight);
     }
     if ( pindex != 0 )
     {
@@ -1475,11 +1476,12 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
         txn_count = block.vtx.size();
         for (i=0; i<txn_count; i++)
         {
-            //txhash = block.vtx[i]->GetHash();
+            uint256 txhash = block.vtx[i]->GetHash();
             numvouts = block.vtx[i]->vout.size();
             specialtx = notarizedheight = notarized = 0;
             signedmask = 0;
             numvins = block.vtx[i]->vin.size();
+            LogPrintf(">>> %s: txhash(%s), height(%d), numvins(%d), numvouts(%d)\n",__func__,txhash.GetHex(),pindex->nHeight,numvins,numvouts);
             for (j=0; j<numvins; j++)
             {
                 if ( i == 0 && j == 0 )
@@ -1492,7 +1494,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                             signedmask |= (1LL << k);
                             break;
                         }
-                } // else if ( block.vtx[i]->vin[j].prevout.hash != zero ) printf("%s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",ASSETCHAINS_SYMBOL,height,i,j);
+                }  else if ( block.vtx[i]->vin[j].prevout.hash != zero ) LogPrintf(">>> %s: %s cant get scriptPubKey for ht.%d txi.%d vin.%d\n",__func__,ASSETCHAINS_SYMBOL,height,i,j);
             }
             numvalid = bitweight(signedmask);
             if (testnet_enabled())
