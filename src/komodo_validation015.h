@@ -483,11 +483,11 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
         m = tx->vout[n].scriptPubKey.size();
         for (i=0; i<maxsize&&i<m; i++)
             scriptPubKey[i] = ptr[i];
-        //fprintf(stderr,"got scriptPubKey[%d] via rawtransaction ht.%d %s\n",m,height,txid.GetHex().c_str());
+        LogPrintf(">>> %s: i.scriptPubKey(%d), got scriptPubKey[%d] via rawtransaction ht.%d %s\n",__func__,i,m,height,txid.GetHex().c_str());
         return(i);
     }
     else if ( tx != 0 )
-        fprintf(stderr,"gettxout_scriptPubKey ht.%d n.%d > voutsize.%d\n",height,n,(int32_t)tx->vout.size());
+        LogPrintf(">>> %s: ht.%d n.%d > voutsize.%d\n",__func__,height,n,(int32_t)tx->vout.size());
     return(-1);
 }
 
