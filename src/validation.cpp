@@ -1166,25 +1166,37 @@ CTransactionRef GetTransaction(const CBlockIndex* const block_index, const CTxMe
 {
     LOCK(cs_main);
 
+    LogPrintf(">>> %s called, for tx.hash(%s)\n",__func__,hash.GetHex());
+
     if (block_index) {
         CBlock block;
+        LogPrintf(">>> %s called bp.1\n",__func__);
         if (ReadBlockFromDisk(block, block_index, consensusParams)) {
-            for (const auto& tx : block.vtx) {
+           LogPrintf(">>> %s called bp.1.a\n",__func__);
+            for (const auto& tx: block.vtx) {
                 if (tx->GetHash() == hash) {
-                    hashBlock = block_index->GetBlockHash();
+                    LogPrintf(">>> %s called bp.1.b\n",__func__);
+                    //hashBlock = block_index->GetBlockHash();
                     return tx;
                 }
             }
         }
-        return nullptr;
+        //return nullptr;
     }
     if (mempool) {
         CTransactionRef ptx = mempool->get(hash);
+        LogPrintf(">>> %s called bp.2\n",__func__);
+
         if (ptx) return ptx;
     }
     if (g_txindex) {
         CTransactionRef tx;
-        if (g_txindex->FindTx(hash, hashBlock, tx)) return tx;
+        LogPrintf(">>> %s called bp.3\n",__func__);
+        if (g_txindex->FindTx(hash, hashBlock, tx))
+        {
+            LogPrintf(">>> %s called bp.3.a\n",__func__);
+            return tx;
+        }
     }
     return nullptr;
 }

@@ -453,11 +453,13 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
 {
     static uint256 zero; int32_t i,m; uint8_t *ptr; CTransactionRef tx=0; uint256 hashBlock;
     LOCK(cs_main);
+    LogPrintf(">>> %s called, first breakpoint\n",__func__);
     if ( KOMODO_TXINDEX != 0 )
     {
+        LogPrintf(">>> %s called, bp.2.a\n",__func__);
         CBlockIndex *pindex = g_rpc_node->chainman->ActiveChain().Tip();
 
-        if (tx = GetTransaction(pindex, nullptr, txid, Params().GetConsensus(), hashBlock))
+        if (tx = GetTransaction(pindex, g_rpc_node->mempool.get(), txid, Params().GetConsensus(), hashBlock))
         {
             LogPrintf(">>> %s: ht.%d couldnt get txid.%s\n",__func__,height,txid.GetHex().c_str());
             return(-1);
@@ -465,6 +467,7 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
     }
     else
     {
+        LogPrintf(">>> %s called, bp.2.b\n",__func__);
         CWallet * const pwallet = GetMainWallet().get();
         if ( pwallet != 0 )
         {
@@ -477,8 +480,11 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
             }
         }
     }
+
+    LogPrintf(">>> %s: tx->vout.size() = %d\n",__func__,tx->vout.size());
     if ( tx != 0 && n >= 0 && n <= (int32_t)tx->vout.size() ) // vout.size() seems off by 1
     {
+        LogPrintf(">>> %s called, bp.3.a\n",__func__);
         ptr = (uint8_t *)tx->vout[n].scriptPubKey.data();
         m = tx->vout[n].scriptPubKey.size();
         for (i=0; i<maxsize&&i<m; i++)
@@ -487,7 +493,10 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
         return(i);
     }
     else if ( tx != 0 )
+    {
+        LogPrintf(">>> %s called, bp.3.b\n",__func__);
         LogPrintf(">>> %s: ht.%d n.%d > voutsize.%d\n",__func__,height,n,(int32_t)tx->vout.size());
+    }
     return(-1);
 }
 
