@@ -437,9 +437,7 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
     LOCK(cs_main);
     if ( KOMODO_TXINDEX != 0 )
     {
-        CBlockIndex *pindex = g_rpc_node->chainman->ActiveChain().Tip();
-
-        if (tx = GetTransaction(pindex, nullptr, txid, Params().GetConsensus(), hashBlock))
+        if ( GetTransaction(txid,tx,Params().GetConsensus(),hashBlock,false) == 0 )
         {
             //fprintf(stderr,"ht.%d couldnt get txid.%s\n",height,txid.GetHex().c_str());
             return(-1);
@@ -470,6 +468,7 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
     }
     else if ( tx != 0 )
         fprintf(stderr,"gettxout_scriptPubKey ht.%d n.%d > voutsize.%d\n",height,n,(int32_t)tx->vout.size());
+
     return(-1);
 }
 
