@@ -512,17 +512,17 @@ int32_t komodo_importaddress(std::string addr)
             isminetype mine = pwallet->IsMine(address);
             if ( (mine & ISMINE_SPENDABLE) != 0 || (mine & ISMINE_WATCH_ONLY) != 0 )
             {
-                //printf("komodo_importaddress %s already there\n",EncodeDestination(address).c_str());
+                LogPrintf(">>> %s: bp.1.a %s already there\n",__func__,EncodeDestination(address).c_str());
                 return(0);
             }
             else
             {
-                printf("komodo_importaddress %s\n",EncodeDestination(address).c_str());
+                LogPrintf(">>> %s: bp.1.b %s\n",__func__,EncodeDestination(address).c_str());
                 ImportAddress(pwallet, address, addr);
                 return(1);
             }
         }
-        printf("%s -> komodo_importaddress.(%s) failed valid.%d\n",addr.c_str(),EncodeDestination(address).c_str(),IsValidDestination(address));
+        LogPrintf(">>> %s: %s -> (%s) failed valid.%d\n",__func__,addr.c_str(),EncodeDestination(address).c_str(),IsValidDestination(address));
     }
     return(-1);
 }
@@ -940,8 +940,10 @@ int32_t init_hexbytes_noT(char *hexbytes,unsigned char *message,long len)
 
 uint32_t komodo_chainactive_timestamp()
 {
-    if ( g_rpc_node->chainman->ActiveChain().Tip() != 0 )
+    if ( g_rpc_node->chainman->ActiveChain().Tip() != 0 ) {
+        LogPrintf(">>> %s: g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime() = %d\n",__func__,((uint32_t)g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime()));
         return((uint32_t)g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime());
+    }
     else return(0);
 }
 
@@ -950,8 +952,10 @@ CBlockIndex *komodo_chainactive(int32_t height)
     CBlockIndex *tipindex;
     if ( (tipindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
-        if ( height <= tipindex->nHeight )
+        if ( height <= tipindex->nHeight ) {
+            LogPrintf(">>> %s: g_rpc_node->chainman->ActiveChain()[height = %d] = %d\n",__func__,height,tipindex->ToString());
             return(g_rpc_node->chainman->ActiveChain()[height]);
+        }
         // else fprintf(stderr,"komodo_chainactive height %d > active.%d\n",height,g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
     }
     //fprintf(stderr,"komodo_chainactive null g_rpc_node->chainman->ActiveChain().Tip() height %d\n",height);
