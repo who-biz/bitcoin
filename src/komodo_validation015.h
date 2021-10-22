@@ -1457,6 +1457,7 @@ void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scrip
                         LogPrintf(">>> %s: VALID %s MoM.%s [%d]\n",__func__,ASSETCHAINS_SYMBOL,MoM.ToString().c_str(),MoMdepth);
                     }
                 }
+                LogPrintf(">>> %s: prior to komodo_notarized_update(), [notarized != 0] condition met!\n",__func__);
                 komodo_notarized_update(height,*notarizedheightp,hash,desttxid,MoM,MoMdepth);
                 LogPrintf("%s ht.%d NOTARIZED.%d %s %sTXID.%s lens.(%d %d)\n",ASSETCHAINS_SYMBOL,height,*notarizedheightp,hash.ToString().c_str(),"KMD",desttxid.ToString().c_str(),opretlen,len);
             } //else fprintf(stderr,"notarized.%d ht %d vs prev %d vs height.%d\n",notarized,*notarizedheightp,NOTARIZED_HEIGHT,height);
