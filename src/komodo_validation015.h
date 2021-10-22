@@ -1430,10 +1430,10 @@ void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scrip
         LogPrintf(">>> %s: opretlen.%d vout.%d [%s].(%s)\n",__func__,opretlen,vout,(char *)&scriptbuf[len+32*2+4],ASSETCHAINS_SYMBOL);
         if ( vout == 1 && opretlen-3 >= 32*2+4 && strcmp(ASSETCHAINS_SYMBOL,(char *)&scriptbuf[len+32*2+4]) == 0 )
         {
-            LogPrintf(">>> %s: hash(%s), notarizedheightp(%d), desttxid(%s)\n",__func__,hash.GetHex(),notarizedheightp,desttxid.GetHex());
             len += iguana_rwbignum(0,&scriptbuf[len],32,(uint8_t *)&hash);
             len += iguana_rwnum(0,&scriptbuf[len],sizeof(*notarizedheightp),(uint8_t *)notarizedheightp);
             len += iguana_rwbignum(0,&scriptbuf[len],32,(uint8_t *)&desttxid);
+            LogPrintf(">>> %s: hash(%s), notarizedheightp(%d), desttxid(%s)\n",__func__,hash.GetHex(),*notarizedheightp,desttxid.GetHex());
             if ( notarized != 0 && *notarizedheightp > NOTARIZED_HEIGHT && *notarizedheightp < height )
             {
                 int32_t nameoffset = (int32_t)strlen(ASSETCHAINS_SYMBOL) + 1;
@@ -1532,6 +1532,7 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 if ( len >= (int32_t)sizeof(uint32_t) && len <= (int32_t)sizeof(scriptbuf) )
                 {
                     memcpy(scriptbuf,block.vtx[i]->vout[j].scriptPubKey.data(),len);
+                    LogPrintf(">>> %s: prior to komodo_voutupdate: i.(%d), j.(%d), scriptbuf.size().(%d), notarizedheight.(%d), notarized.(%d), signedmask.(%d)\n",__func__,i,j,sizeof(scriptbuf),&notarizedheight,notarized,signedmask);
                     komodo_voutupdate(i,j,scriptbuf,len,height,&specialtx,&notarizedheight,(uint64_t)block.vtx[i]->vout[j].nValue,notarized,signedmask);
                 } else LogPrintf(">>> %s: something went wrong with scriptbuf, in vout processing\n",__func__);
             }
