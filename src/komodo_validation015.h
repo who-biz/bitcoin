@@ -940,6 +940,7 @@ int32_t init_hexbytes_noT(char *hexbytes,unsigned char *message,long len)
 
 uint32_t komodo_chainactive_timestamp()
 {
+    LogPrintf(">>> %s called \n",__func__);
     if ( g_rpc_node->chainman->ActiveChain().Tip() != 0 ) {
         LogPrintf(">>> %s: g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime() = %d\n",__func__,((uint32_t)g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime()));
         return((uint32_t)g_rpc_node->chainman->ActiveChain().Tip()->GetBlockTime());
@@ -949,6 +950,7 @@ uint32_t komodo_chainactive_timestamp()
 
 CBlockIndex *komodo_chainactive(int32_t height)
 {
+    LogPrintf(">>> %s called \n",__func__);
     CBlockIndex *tipindex;
     if ( (tipindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
@@ -964,6 +966,7 @@ CBlockIndex *komodo_chainactive(int32_t height)
 
 uint32_t komodo_heightstamp(int32_t height)
 {
+    LogPrintf(">>> %s called \n",__func__);
     CBlockIndex *ptr;
     if ( height > 0 && (ptr= komodo_chainactive(height)) != 0 )
         return(ptr->nTime);
@@ -973,18 +976,20 @@ uint32_t komodo_heightstamp(int32_t height)
 
 bool Getscriptaddress(char *destaddr,const CScript &scriptPubKey)
 {
+    LogPrintf(">>> %s called \n",__func__);
     CTxDestination address;
     if ( ExtractDestination(scriptPubKey,address) != 0 )
     {
         strcpy(destaddr,(char *)EncodeDestination(address).c_str());
         return(true);
     }
-    //fprintf(stderr,"ExtractDestination failed\n");
+    LogPrintf(">>> %s: ExtractDestination failed\n",__func__);
     return(false);
 }
 
 bool pubkey2addr(char *destaddr,uint8_t *pubkey33)
 {
+    LogPrintf(">>> %s called \n",__func__);
     std::vector<uint8_t>pk; int32_t i;
     for (i=0; i<33; i++)
         pk.push_back(pubkey33[i]);
@@ -1190,6 +1195,7 @@ void komodo_disconnect(CBlockIndex *pindex,CBlock *block)
 
 struct notarized_checkpoint *komodo_npptr(int32_t height)
 {
+    LogPrintf(">>> %s called \n",__func__);
     int32_t i; struct notarized_checkpoint *np = 0;
     for (i=NUM_NPOINTS-1; i>=0; i--)
     {
@@ -1216,6 +1222,7 @@ int32_t komodo_prevMoMheight()
 //struct komodo_state *komodo_stateptr(char *symbol,char *dest);
 int32_t komodo_notarized_height(int32_t *prevMoMheightp,uint256 *hashp,uint256 *txidp)
 {
+    LogPrintf(">>> %s called \n",__func__);
     *hashp = NOTARIZED_HASH;
     *txidp = NOTARIZED_DESTTXID;
     *prevMoMheightp = komodo_prevMoMheight();
@@ -1246,6 +1253,7 @@ int32_t komodo_MoMdata(int32_t *notarized_htp,uint256 *MoMp,uint256 *kmdtxidp,in
 
 int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *notarized_desttxidp)
 {
+    //LogPrintf(">>> %s called \n",__func__);
     struct notarized_checkpoint *np = 0; int32_t i=0,flag = 0;
     if ( NUM_NPOINTS > 0 )
     {
@@ -1298,6 +1306,7 @@ int32_t komodo_notarizeddata(int32_t nHeight,uint256 *notarized_hashp,uint256 *n
 
 void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 notarized_hash,uint256 notarized_desttxid,uint256 MoM,int32_t MoMdepth)
 {
+    LogPrintf(">>> %s called \n",__func__);
     static int didinit; static uint256 zero; static FILE *fp; CBlockIndex *pindex; struct notarized_checkpoint *np,N; long fpos;
     if ( didinit == 0 )
     {
@@ -1379,6 +1388,7 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
 
 int32_t komodo_checkpoint(int32_t *notarized_heightp,int32_t nHeight,uint256 hash)
 {
+    //LogPrintf(">>> %s called \n",__func__);
     int32_t notarized_height; uint256 zero,notarized_hash,notarized_desttxid; CBlockIndex *notary; CBlockIndex *pindex;
     memset(&zero,0,sizeof(zero));
     //komodo_notarized_update(0,0,zero,zero,zero,0);
