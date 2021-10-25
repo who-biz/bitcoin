@@ -1543,8 +1543,8 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
                 if ( len >= (int32_t)sizeof(uint32_t) && len <= (int32_t)sizeof(scriptbuf) )
                 {
                     memcpy(scriptbuf,block.vtx[i]->vout[j].scriptPubKey.data(),len);
-                    LogPrintf(">>> %s: prior to komodo_voutupdate: i.(%d), j.(%d), scriptbuf.size().(%d), notarizedheight.(%d), notarized.(%d), signedmask.(%d)\n",__func__,i,j,sizeof(scriptbuf),&notarizedheight,notarized,signedmask);
                     komodo_voutupdate(i,j,scriptbuf,len,height,&specialtx,&notarizedheight,(uint64_t)block.vtx[i]->vout[j].nValue,notarized,signedmask);
+                    LogPrintf(">>> %s: after komodo_voutupdate: i.(%d), j.(%d), scriptbuf.size().(%d), notarizedheight.(%d), notarized.(%d), signedmask.(%d)\n",__func__,i,j,sizeof(scriptbuf),notarizedheight,notarized,signedmask);
                 } else LogPrintf(">>> %s: something went wrong with scriptbuf, in vout processing\n",__func__);
             }
             //if ( NOTARY_PUBKEY33[0] != 0 )
