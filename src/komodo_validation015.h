@@ -953,7 +953,7 @@ CBlockIndex *komodo_chainactive(int32_t height)
     if ( (tipindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
         if ( height <= tipindex->nHeight ) {
-            LogPrintf(">>> %s: g_rpc_node->chainman->ActiveChain()[height = %d] = %d\n",__func__,height,tipindex->ToString());
+            LogPrintf(">>> %s: g_rpc_node->chainman->ActiveChain()[height = %d] = %s\n",__func__,height,tipindex->ToString());
             return(g_rpc_node->chainman->ActiveChain()[height]);
         }
         // else fprintf(stderr,"komodo_chainactive height %d > active.%d\n",height,g_rpc_node->chainman->ActiveChain().Tip()->nHeight);
