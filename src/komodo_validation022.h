@@ -29,7 +29,7 @@
 // { "blockchain",         "height_MoM",             &height_MoM,             {"height"}  },
 
 // in validation.cpp
-// at end of ConnectBlock: komodo_connectblock(pindex,*(CBlock *)&block);
+// at end of ConnectTip: komodo_connectblock(pindexNew,*(CBlock *)&blockconnecting);
 // at beginning DisconnectBlock: komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
 /* add to ContextualCheckBlockHeader
     uint256 hash = block.GetHash();
