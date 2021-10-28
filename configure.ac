@@ -274,6 +274,12 @@ AC_ARG_ENABLE([zmq],
   [use_zmq=$enableval],
   [use_zmq=yes])
 
+AC_ARG_ENABLE([backward],
+  [AS_HELP_STRING([--enable-backward],
+  [enable backward-cpp for stack traces])],
+  [use_backward=$enableval],
+  [use_backward=yes])
+
 AC_ARG_WITH([libmultiprocess],
   [AS_HELP_STRING([--with-libmultiprocess=yes|no|auto],
   [Build with libmultiprocess library. (default: auto, i.e. detect with pkg-config)])],
@@ -1497,6 +1503,17 @@ if test "x$use_zmq" = xyes; then
       ZMQ_CFLAGS="$ZMQ_CFLAGS -DZMQ_STATIC"
     ;;
   esac
+
+dnl backward-cpp for stack traces
+
+if test "x$use_backward" = xyes; then
+  PKG_CHECK_MODULES([BFD], [libbfd >= 1.0],
+    AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
+    [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+    AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
+    use_backward=no])
+else
+  AC_DEFINE_UNQUOTED([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
 fi
 
 dnl univalue check
@@ -1726,6 +1743,8 @@ fi
 
 AM_CONDITIONAL([ENABLE_ZMQ], [test "x$use_zmq" = "xyes"])
 
+AM_CONDITIONAL([ENABLE_BACKWARD], [test "x$use_backward" = "xyes"])
+
 AC_MSG_CHECKING([whether to build test_bitcoin])
 if test x$use_tests = xyes; then
   if test "x$enable_fuzz" = "xyes"; then
@@ -1892,7 +1911,7 @@ if test x$need_bundled_univalue = xyes; then
   AC_CONFIG_SUBDIRS([src/univalue])
 fi
 
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --enable-benchmark=no --enable-module-recovery --enable-module-schnorrsig --enable-experimental"
+ac_configure_args="${ac_configure_args} --disable-shared --with-pic --enable-benchmark=no --with-bignum=no --enable-module-recovery --enable-module-schnorrsig --enable-experimental"
 AC_CONFIG_SUBDIRS([src/secp256k1 src/test-komodo/googletest/googletest])
 
 AC_OUTPUT
@@ -1920,6 +1939,7 @@ if test x$bitcoin_enable_qt != xno; then
     echo "    with qr       = $use_qr"
 fi
 echo "  with zmq        = $use_zmq"
+echo "  with BACKWARD   = $use_backward"
 if test x$enable_fuzz == xno; then
     echo "  with test       = $use_tests"
 else

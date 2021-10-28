@@ -37,6 +37,10 @@ LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
+if ENABLE_BACKWARD
+LIBBACKWARD=libbackward.a
+endif
+
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
 endif
@@ -68,6 +72,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
 EXTRA_LIBRARIES += \
+  $(LIBBACKWARD) \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_COMMON) \
@@ -120,6 +125,7 @@ BITCOIN_CORE_H = \
   attributes.h \
   banman.h \
   base58.h \
+  backward.hpp \
   bech32.h \
   blockencodings.h \
   blockfilter.h \
@@ -568,6 +574,12 @@ libbitcoin_common_a_SOURCES = \
   warnings.cpp \
   $(BITCOIN_CORE_H)
 
+libbackward_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbackward_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libbackward_a_SOURCES = \
+  backward.cpp \
+  $(BITCOIN_CORE_H)
+
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
 # backward-compatibility objects and their sanity checks are linked.
@@ -575,6 +587,7 @@ libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_util_a_SOURCES = \
   support/lockedpool.cpp \
+  backward.cpp \
   chainparamsbase.cpp \
   clientversion.cpp \
   compat/glibcxx_sanity.cpp \
