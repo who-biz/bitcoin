@@ -18,6 +18,19 @@
 #include <validation.h>
 #include <wallet/wallet.h>
 
+// API endpoints required for dPoW:
+//   - validateaddress
+//   - getinfo
+//   - getblockchaininfo
+//   - listunspent
+//   - calc_MoM
+//   - getblockhash
+//   - getblock
+//   - getbestblockhash
+//   - sendrawtransaction
+//   - signrawtransaction
+//   - decoderawtransaction
+
 // in init.cpp at top of AppInitParameterInteraction()
 // int32_t komodo_init();
 // komodo_init();
@@ -28,35 +41,53 @@
 // { "blockchain",         "calc_MoM",               &calc_MoM,             {"height", "MoMdepth"}  },
 // { "blockchain",         "height_MoM",             &height_MoM,             {"height"}  },
 
+// Due to the new wallet mechanics in v0.21.0 in Bitcoin code, the following must be added to
+// both 'getinfo' and 'getblockchaininfo' methods. In the event a wallet is not loaded, 'getinfo'
+// will fail. dPoW checks 'getblockchaininfo' as well, which not fail, regardless of wallet
+
+/* add to 'getblockchaininfo' & 'getinfo' methods:
+                        {RPCResult::Type::STR, "bestblockhash", "the hash of the currently best block"},
+                        {RPCResult::Type::STR, "notarizedhash", "the hash of the currently best notarized block"},
+                        {RPCResult::Type::STR, "notarizedtxid", "notarizedtxid"},
+                        {RPCResult::Type::NUM, "prevMoMheight", "prevMoMheight"},
+                        {RPCResult::Type::NUM, "notarized_MoMdepth", "notarized_MoMdepth"},
+                        {RPCResult::Type::STR, "notarized_MoM", "notarized_MoM"},
+                        {RPCResult::Type::NUM, "notarized", "the height of the currently best notarized block"},
+
+//   and add below to body of function:
+    {
+        int32_t komodo_prevMoMheight();
+        extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
+        extern int32_t NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH;
+        obj.pushKV("notarizedhash",         NOTARIZED_HASH.GetHex());
+        obj.pushKV("notarizedtxid",         NOTARIZED_DESTTXID.GetHex());
+        obj.pushKV("notarized",                (int)NOTARIZED_HEIGHT);
+        obj.pushKV("prevMoMheight",                (int)komodo_prevMoMheight());
+        obj.pushKV("notarized_MoMdepth",                (int)NOTARIZED_MOMDEPTH);
+        obj.pushKV("notarized_MoM",         NOTARIZED_MOM.GetHex());
+    }
+*/
+
 // in validation.cpp
 // at end of ConnectTip: komodo_connectblock(pindexNew,*(CBlock *)&blockconnecting);
+// TODO: Investigate DisconnectBlock()/komodo_disconnect() placement
 // at beginning DisconnectBlock: komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
 /* add to ContextualCheckBlockHeader
     uint256 hash = block.GetHash();
     int32_t notarized_height;
     ....
-    else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
-    {
-        CBlockIndex *heightblock = chainActive[nHeight];
-        if ( heightblock != 0 && heightblock->GetBlockHash() == hash )
+        else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
         {
-            //fprintf(stderr,"got a pre notarization block that matches height.%d\n",(int32_t)nHeight);
-            return true;
-        } else return state.DoS(100, error("%s: forked chain %d older than last notarized (height %d) vs %d", __func__,nHeight, notarized_height));
+            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
+            if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
+                return true;
+            } else {
+                LogPrintf("ERROR: %s: forked chain %d older than last notarized (height %d) vs %d", __func__,nHeight, notarized_height);
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-fork-chain");
+            }
+        }
     }
 */
-/* add to getinfo
-{
-    int32_t komodo_prevMoMheight();
-    extern uint256 NOTARIZED_HASH,NOTARIZED_DESTTXID,NOTARIZED_MOM;
-    extern int32_t NOTARIZED_HEIGHT,NOTARIZED_MOMDEPTH;
-    obj.pushKV("notarizedhash",         NOTARIZED_HASH.GetHex());
-    obj.pushKV("notarizedtxid",         NOTARIZED_DESTTXID.GetHex());
-    obj.pushKV("notarized",                (int)NOTARIZED_HEIGHT);
-    obj.pushKV("prevMoMheight",                (int)komodo_prevMoMheight());
-    obj.pushKV("notarized_MoMdepth",                (int)NOTARIZED_MOMDEPTH);
-    obj.pushKV("notarized_MoM",         NOTARIZED_MOM.GetHex());
-}*/
 
 #include <wallet/wallet.h>
 #include <key_io.h>
