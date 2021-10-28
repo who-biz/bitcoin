@@ -29,7 +29,7 @@
 // { "blockchain",         "height_MoM",             &height_MoM,             {"height"}  },
 
 // in validation.cpp
-// at end of ConnectBlock: komodo_connectblock(pindex,*(CBlock *)&block);
+// at end of ConnectTip: komodo_connectblock(pindexNew,*(CBlock *)&blockconnecting);
 // at beginning DisconnectBlock: komodo_disconnect((CBlockIndex *)pindex,(CBlock *)&block);
 /* add to ContextualCheckBlockHeader
     uint256 hash = block.GetHash();
@@ -469,7 +469,11 @@ int32_t gettxout_scriptPubKey(int32_t height,uint8_t *scriptPubKey,int32_t maxsi
     else if ( tx != 0 )
     {
         fprintf(stderr,"gettxout_scriptPubKey ht.%d n.%d > voutsize.%d\n",height,n,(int32_t)tx->vout.size());
+<<<<<<< HEAD:src/komodo_validation015.h
     }
+=======
+
+>>>>>>> 3fdbec2ff2a6377fa069bf3b74b6414c0813ad0b:src/komodo_validation022.h
     return(-1);
 }
 

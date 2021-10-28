@@ -57,7 +57,7 @@
 #include <numeric>
 #include <optional>
 
-#include <komodo_validation015.h>
+#include <komodo_validation022.h>
 
 #include <string>
 
@@ -1225,6 +1225,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
 
 CTransactionRef GetTransaction(const CBlockIndex* const block_index, const CTxMemPool* const mempool, const uint256& hash, const Consensus::Params& consensusParams, uint256& hashBlock)
 {
+    // TODO: at least partially broken, use bool function above instead
     LOCK(cs_main);
 
     LogPrintf(">>> %s called, for tx.hash(%s)\n",__func__,hash.GetHex());
@@ -2080,8 +2081,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
 
-    komodo_connectblock(pindex,*(CBlock *)&block);
-
     return true;
 }
 
@@ -2504,6 +2503,10 @@ bool CChainState::ConnectTip(BlockValidationState& state, CBlockIndex* pindexNew
     LogPrint(BCLog::BENCH, "- Connect block: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime6 - nTime1) * MILLI, nTimeTotal * MICRO, nTimeTotal * MILLI / nBlocksTotal);
 
     connectTrace.BlockConnected(pindexNew, std::move(pthisBlock));
+
+    // komodo_connectblock call must happen here in v22, rather than in ConnectBlock()
+    komodo_connectblock(pindexNew,*(CBlock *)&blockConnecting);
+
     return true;
 }
 
