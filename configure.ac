@@ -1509,7 +1509,7 @@ dnl backward-cpp for stack traces
 
 if test "x$enable_debug" = xyes; then
   if test "x$use_backward" = xyes; then
-    PKG_CHECK_MODULES([BFD], [libbfd >= 1.0],
+    PKG_CHECK_MODULES([UNWIND], [libunwind >= 1.0],
       AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
       [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
       AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
@@ -1519,7 +1519,7 @@ if test "x$enable_debug" = xyes; then
   fi
 
   if test "x$use_backward" = xyes; then
-    PKG_CHECK_MODULES([UNWIND], [libunwind >= 1.0],
+    PKG_CHECK_MODULES([BFD], [libbfd >= 1.0],
       AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
       [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
       AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
