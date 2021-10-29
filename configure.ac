@@ -1503,17 +1503,32 @@ if test "x$use_zmq" = xyes; then
       ZMQ_CFLAGS="$ZMQ_CFLAGS -DZMQ_STATIC"
     ;;
   esac
+fi
 
 dnl backward-cpp for stack traces
 
-if test "x$use_backward" = xyes; then
-  PKG_CHECK_MODULES([BFD], [libbfd >= 1.0],
-    AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
-    [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
-    AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
-    use_backward=no])
-else
-  AC_DEFINE_UNQUOTED([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+if test "x$enable_debug" = xyes; then
+  if test "x$use_backward" = xyes; then
+    PKG_CHECK_MODULES([BFD], [libbfd >= 1.0],
+      AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
+      [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+      AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
+      use_backward=no])
+  else
+    AC_DEFINE_UNQUOTED([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+  fi
+
+  if test "x$use_backward" = xyes; then
+    PKG_CHECK_MODULES([UNWIND], [libunwind >= 1.0],
+      AC_DEFINE([ENABLE_BACKWARD], [1], [Define to 1 to enable backward-cppfor stack traces]),
+      [AC_DEFINE([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+      AC_MSG_WARN([something when wrong when configuring BACKWARD, disabling])
+      use_backward=no])
+  else
+    AC_DEFINE_UNQUOTED([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
+  fi
+
+  BACKWARD_LIBS="$BFD_LIBS $UNWIND_LIBS"
 fi
 
 dnl univalue check
@@ -1861,6 +1876,9 @@ AC_SUBST(NATPMP_LIBS)
 AC_SUBST(EVENT_LIBS)
 AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
+AC_SUBST(BFD_LIBS)
+AC_SUBST(UNWIND_LIBS)
+AC_SUBST(BACKWARD_LIBS)
 AC_SUBST(QR_LIBS)
 AC_SUBST(HAVE_GMTIME_R)
 AC_SUBST(HAVE_FDATASYNC)
