@@ -1,13 +1,13 @@
 package=binutils
-$(package)_version=2.22
+$(package)_version=2.30
 $(package)_download_path=https://mirrors.nav.ro/gnu/binutils/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=12c26349fc7bb738f84b9826c61e103203187ca2d46f08b82e61e21fcbc6e3e6
+$(package)_sha256_hash=8c3850195d1c093d290a716e20ebcaa72eda32abf5e3d8611154b39cff79e9ea
 
 define $(package)_config_cmds
   cp -f $(BASEDIR)/config.guess config/config.guess &&\
   cp -f $(BASEDIR)/config.sub config/config.sub &&\
-  $($(package)_autoconf) --disable-shared --enable-static
+  $($(package)_autoconf) --enable-static
 endef
 
 define $(package)_build_cmds
