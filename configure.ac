@@ -1519,7 +1519,19 @@ if test "x$enable_debug" = xyes; then
     AC_DEFINE_UNQUOTED([ENABLE_BACKWARD], [0], [Define to 1 to enable backward-cppfor stack traces])
   fi
 
-  BACKWARD_LIBS="$UNWIND_LIBS"
+  dnl if test "x$use_backward" = xyes; then
+  dnl  AC_CHECK_HEADERS([bfd.h],
+  dnl                 [AC_CHECK_LIB([bfd], [bfd_openr], [BFD_LIBS=-lbfd DL_LIBS=-ldl], [have_bfd=no])],
+  dnl                 [have_bfd=no])
+  dnl fi
+
+  if test "x$use_backward" = xyes; then
+    AC_CHECK_HEADERS([elfutils/libdw.h elfutils/libdwfl.h dwarf.h],
+                   [AC_CHECK_LIB([dw], [dwarf_child], [DW_LIBS=-ldw], [have_dw=no])],
+                  [have_dw=no])
+  fi
+
+  BACKWARD_LIBS="$DW_LIBS $UNWIND_LIBS"
 fi
 
 dnl univalue check
@@ -1868,6 +1880,8 @@ AC_SUBST(EVENT_LIBS)
 AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
 AC_SUBST(UNWIND_LIBS)
+AC_SUBST(DW_LIBS)
+AC_SUBST(DL_LIBS)
 AC_SUBST(BACKWARD_LIBS)
 AC_SUBST(QR_LIBS)
 AC_SUBST(HAVE_GMTIME_R)

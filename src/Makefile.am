@@ -578,7 +578,7 @@ libbackward_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbackward_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbackward_a_SOURCES = \
   backward.cpp \
-  $(BITCOIN_CORE_H)
+  backward.hpp
 
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
@@ -649,7 +649,7 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind & bitcoin-node binaries #
-chips_daemon_sources = bitcoind.cpp
+chips_daemon_sources = bitcoind.cpp backward.hpp
 chips_bin_cppflags = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 chips_bin_cxxflags = $(AM_CXXFLAGS) $(PIE_FLAGS)
 chips_bin_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
@@ -670,9 +670,11 @@ chips_bin_ldadd = \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
-  $(LIBCRYPTOCONDITIONS)
+  $(LIBCRYPTOCONDITIONS) \
+  $(LIBBACKWARD) \
+  $(BACKWARD_LIBS)
 
-chips_bin_ldadd += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(NATPMP_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(SQLITE_LIBS)
+chips_bin_ldadd += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(NATPMP_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(SQLITE_LIBS) $(BACKWARD_LIBS) $(LIBBACKWARD)
 
 chipsd_SOURCES = $(chips_daemon_sources) init/bitcoind.cpp
 chipsd_CPPFLAGS = $(chips_bin_cppflags)
@@ -702,7 +704,7 @@ chips_cli_LDADD = \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-chips_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS)
+chips_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS) $(BACKWARD_LIBS) $(LIBBACKWARD)
 #
 
 # bitcoin-tx binary #
@@ -724,7 +726,7 @@ chips_tx_LDADD = \
   $(LIBSECP256K1) \
   $(LIBCRYPTOCONDITIONS)
 
-chips_tx_LDADD += $(BOOST_LIBS)
+chips_tx_LDADD += $(BOOST_LIBS) $(BACKWARD_LIBS) $(LIBBACKWARD)
 #
 
 # bitcoin-wallet binary #
@@ -757,7 +759,7 @@ chips_util_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
-chips_util_LDADD += $(BOOST_LIBS)
+chips_util_LDADD += $(BOOST_LIBS) $(BACKWARD_LIBS) $(LIBBACKWARD)
 #
 
 # bitcoinconsensus library #

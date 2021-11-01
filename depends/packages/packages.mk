@@ -1,4 +1,4 @@
-packages:=boost libevent unwind
+packages:=boost libevent unwind elfutils
 
 qrencode_packages = qrencode
 
