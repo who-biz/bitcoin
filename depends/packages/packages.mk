@@ -1,4 +1,4 @@
-packages:=boost libevent unwind binutils
+packages:=boost libevent unwind
 
 qrencode_packages = qrencode
 
