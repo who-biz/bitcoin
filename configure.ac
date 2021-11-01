@@ -1503,6 +1503,7 @@ if test "x$use_zmq" = xyes; then
       ZMQ_CFLAGS="$ZMQ_CFLAGS -DZMQ_STATIC"
     ;;
   esac
+fi
 
 dnl backward-cpp for stack traces
 
