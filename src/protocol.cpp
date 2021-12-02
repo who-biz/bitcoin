@@ -9,6 +9,8 @@
 
 static std::atomic<bool> g_initial_block_download_completed(false);
 
+extern const bool DEFAULT_NSPV_PROCESSING;
+
 namespace NetMsgType {
 const char *VERSION="version";
 const char *VERACK="verack";
@@ -193,6 +195,7 @@ static std::string serviceFlagToStr(size_t bit)
     case NODE_NONE: abort();  // impossible
     case NODE_NETWORK:         return "NETWORK";
     case NODE_BLOOM:           return "BLOOM";
+    case NODE_NSPV:            return "NSPV";
     case NODE_WITNESS:         return "WITNESS";
     case NODE_COMPACT_FILTERS: return "COMPACT_FILTERS";
     case NODE_NETWORK_LIMITED: return "NETWORK_LIMITED";

@@ -279,6 +279,8 @@ enum ServiceFlags : uint64_t {
     // Bitcoin Core nodes used to support this by default, without advertising this bit,
     // but no longer do as of protocol version 70011 (= NO_BLOOM_VERSION)
     NODE_BLOOM = (1 << 2),
+    // NODE_NSPV indicates that a node supports nspv messages
+    NODE_NSPV = (1 << 30),
     // NODE_WITNESS indicates that a node can be asked for blocks and transactions including
     // witness data.
     NODE_WITNESS = (1 << 3),

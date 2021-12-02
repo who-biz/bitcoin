@@ -61,6 +61,9 @@ struct AssumeutxoData;
 
 extern char ASSETCHAINS_SYMBOL[65];
 
+/** Default NSPV support enabled */
+extern const bool DEFAULT_NSPV_PROCESSING;
+
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = 1000;
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
