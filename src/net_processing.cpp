@@ -2423,6 +2423,12 @@ void PeerManagerImpl::ProcessBlock(CNode& node, const std::shared_ptr<const CBlo
     }
 }
 
+#include "komodo_nSPV_defs.h"
+#include "komodo_nSPV.h"            // shared defines, structs, serdes, purge functions
+#include "komodo_nSPV_fullnode.h"   // nSPV fullnode handling of the getnSPV request messages
+#include "komodo_nSPV_superlite.h"  // nSPV superlite client, issuing requests and handling nSPV responses
+#include "komodo_nSPV_wallet.h"     // nSPV_send and support functions, really all the rest is to support this
+
 void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, CDataStream& vRecv,
                                      const std::chrono::microseconds time_received,
                                      const std::atomic<bool>& interruptMsgProc)
