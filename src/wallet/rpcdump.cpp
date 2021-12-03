@@ -256,6 +256,125 @@ void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, const std
         pwallet->SetAddressBook(dest, strLabel, "receive");
 }
 
+/*
+extern int32_t KOMODO_NSPV;
+#ifndef KOMODO_NSPV_FULLNODE
+#define KOMODO_NSPV_FULLNODE (KOMODO_NSPV <= 0)
+#endif // !KOMODO_NSPV_FULLNODE
+#ifndef KOMODO_NSPV_SUPERLITE
+#define KOMODO_NSPV_SUPERLITE (KOMODO_NSPV > 0)
+#endif // !KOMODO_NSPV_SUPERLITE
+uint256 zeroid;
+UniValue NSPV_getinfo_req(int32_t reqht);
+UniValue NSPV_login(char *wifstr);
+UniValue NSPV_logout();
+UniValue NSPV_addresstxids(char *coinaddr,int32_t CCflag,int32_t skipcount,int32_t filter);
+UniValue NSPV_addressutxos(char *coinaddr,int32_t CCflag,int32_t skipcount,int32_t filter);
+UniValue NSPV_mempooltxids(char *coinaddr,int32_t CCflag,uint8_t funcid,uint256 txid,int32_t vout);
+UniValue NSPV_broadcast(char *hex);
+UniValue NSPV_spend(char *srcaddr,char *destaddr,int64_t satoshis);
+UniValue NSPV_spentinfo(uint256 txid,int32_t vout);
+UniValue NSPV_notarizations(int32_t height);
+UniValue NSPV_hdrsproof(int32_t prevheight,int32_t nextheight);
+UniValue NSPV_txproof(int32_t vout,uint256 txid,int32_t height);
+*/
+
+RPCHelpMan nspv_getinfo()
+{
+    return RPCHelpMan{"nspv_getinfo","" ,
+                {
+                    {"hdrheight", RPCArg::Type::NUM, RPCArg::Default{0}, "Specified height for getinfo request"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV getinfo with optionally specified height\n"
+            + HelpExampleCli("nspv_getinfo", "[hdrheight]")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_logout()
+{
+    return RPCHelpMan{"nspv_logout", "",
+                {
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV logout\n"
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_login()
+{
+    return RPCHelpMan{"nspv_login", "" ,
+                {
+                    {"wif", RPCArg::Type::STR, RPCArg::Optional::NO, "wif for login to nspv"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV login with specified wif\n"
+            + HelpExampleCli("nspv_login", "wif")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_listunspent()
+{
+    return RPCHelpMan{"nspv_listunspent","" ,
+                {
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Specified address for nspv_listunspent request"},
+                    {"skipcount", RPCArg::Type::NUM, RPCArg::Default{0}, "Specified skipcount for nspv_listunspent request"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV listunspent with specified address\n"
+            + HelpExampleCli("nspv_listunspent", "\"address\"") +
+            "\nNSPV listunspent with specified address and skipcount\n"
+            + HelpExampleCli("nspv_listunspent", "\"address\" [skipcount]")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_mempool()
+{
+    return RPCHelpMan{"nspv_mempool","" ,
+                {
+                    {"funcid", RPCArg::Type::NUM, RPCArg::Default{0}, "func(0 all, 1 address recv, 2 txid/vout)"},
+                    {"address", RPCArg::Type::STR, RPCArg::Default{""}, "Specified address for mempool request"},
+                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Default{""}, "Optionally specified txid"},
+                    {"vout", RPCArg::Type::NUM, RPCArg::Default{0}, "Optionally specified vout number"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV mempool with funcid + address parameters\n"
+            + HelpExampleCli("nspv_mempool", "funcid \"address\"") +
+            "\nNSPV mempool with all parameters\n"
+            + HelpExampleCli("nspv_mempool", "funcid \"address\" [txid vout]")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
 RPCHelpMan importaddress()
 {
     return RPCHelpMan{"importaddress",
