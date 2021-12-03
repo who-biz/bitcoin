@@ -339,3 +339,15 @@ bool IsOpSuccess(const opcodetype& opcode)
            (opcode >= 141 && opcode <= 142) || (opcode >= 149 && opcode <= 153) ||
            (opcode >= 187 && opcode <= 254);
 }
+
+bool GetOpReturnData(const CScript &sig, std::vector<unsigned char> &data)
+{
+    auto pc = sig.begin();
+    opcodetype opcode;
+    if (sig.GetOp(pc, opcode))
+        if (opcode == OP_RETURN)
+            if (sig.GetOp(pc, opcode, data))
+                return opcode > OP_0 && opcode <= OP_PUSHDATA4;
+    return false;
+}
+

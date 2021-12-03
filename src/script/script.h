@@ -572,4 +572,7 @@ struct CScriptWitness
 /** Test for OP_SUCCESSx opcodes as defined by BIP342. */
 bool IsOpSuccess(const opcodetype& opcode);
 
+bool GetOpReturnData(const CScript &sig, std::vector<unsigned char> &data);
+
+
 #endif // BITCOIN_SCRIPT_SCRIPT_H
