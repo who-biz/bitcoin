@@ -375,6 +375,118 @@ RPCHelpMan nspv_mempool()
     };
 }
 
+RPCHelpMan nspv_listtransactions()
+{
+    return RPCHelpMan{"nspv_mempool", "",
+                {
+                    {"address", RPCArg::Type::STR, RPCArg::Default{""}, "Specified address for transactions"},
+                    {"skipcount", RPCArg::Type::NUM, RPCArg::Default{0}, "Optionally specified skipcount"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV listtransactions\n"
+            + HelpExampleCli("nspv_listtransactions", "[address [skipcount]]")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_spentinfo()
+{
+    return RPCHelpMan{"nspv_spentinfo", "",
+                {
+                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "txid to check for spentinfo"},
+                    {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "vout number"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV spentinfo\n"
+            + HelpExampleCli("nspv_spentinfo", "txid vout")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_notarizations()
+{
+    return RPCHelpMan{"nspv_notarizations", "",
+                {
+                    {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified height for notarizations request"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV notarizations\n"
+            + HelpExampleCli("nspv_notarizations", "height")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_hdrsproof()
+{
+    return RPCHelpMan{"nspv_hdrsproof", "",
+                {
+                    {"prevheight", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified prevheight"},
+                    {"nextheight", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified nextheight"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV hdrsproof\n"
+            + HelpExampleCli("nspv_hdrsproof", "prevheight nextheight")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_spend()
+{
+    return RPCHelpMan{"nspv_spend", "",
+                {
+                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "specified txid"},
+                    {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified height"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV spend\n"
+            + HelpExampleCli("nspv_spend", "txid height")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
+RPCHelpMan nspv_broadcast()
+{
+    return RPCHelpMan{"nspv_broadcast", "",
+                {
+                    {"hex", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "specified txid"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV broadcast\n"
+            + HelpExampleCli("nspv_broadcast", "hex")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    return NullUniValue;
+},
+    };
+}
+
 RPCHelpMan importaddress()
 {
     return RPCHelpMan{"importaddress",
