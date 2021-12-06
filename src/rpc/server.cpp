@@ -267,6 +267,14 @@ CRPCTable::CRPCTable()
     }
 }
 
+const CRPCCommand *CRPCTable::operator[](const std::string &name) const
+{
+    map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
+    if (it == mapCommands.end())
+        return NULL;
+    return (*it).second;
+}
+
 void CRPCTable::appendCommand(const std::string& name, const CRPCCommand* pcmd)
 {
     CHECK_NONFATAL(!IsRPCRunning()); // Only add commands before rpc is running
