@@ -391,7 +391,10 @@ int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
             if (!mypk.IsValid())
                 throw JSONRPCError(RPC_PARSE_ERROR, "Not valid pubkey passed in remote rpc call");
         }
-        if ((result = cmd->actor(jreq,false,mypk)).isObject() || result.isArray())
+        bool success = false;
+        //TODO: ensure we are calling cmd->actor correctly
+        cmd->actor(jreq,result,success);
+        if (success && (result.isObject() || result.isArray()))
         {
             rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id);
             response=rpc_result.write();
@@ -406,7 +409,7 @@ int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
         rpc_result = JSONRPCReplyObj(NullUniValue, objError, jreq.id);
         response=rpc_result.write();
     }
-    catch (const runtime_error& e)
+    catch (const std::runtime_error& e)
     {
         rpc_result = JSONRPCReplyObj(NullUniValue,JSONRPCError(RPC_PARSE_ERROR, e.what()), jreq.id);
         response=rpc_result.write();
@@ -431,7 +434,7 @@ uint8_t *NSPV_getrawtx(CTransactionRef &tx,uint256 &hashBlock,int32_t *txlenp,ui
             //fprintf(stderr,"error getting transaction %s\n",txid.GetHex().c_str());
             return(0);
         }
-        std::string strHex = EncodeHexTx(tx);
+        std::string strHex = EncodeHexTx(*tx);
         *txlenp = (int32_t)strHex.size() >> 1;
         if ( *txlenp > 0 )
         {
@@ -442,7 +445,7 @@ uint8_t *NSPV_getrawtx(CTransactionRef &tx,uint256 &hashBlock,int32_t *txlenp,ui
     return(rawtx);
 }
 
-int32_t NSPV_sendrawtransaction(struct NSPV_broadcastresp *ptr,uint8_t *data,int32_t n)
+/*int32_t NSPV_sendrawtransaction(struct NSPV_broadcastresp *ptr,uint8_t *data,int32_t n)
 {
     CTransactionRef tx;
     ptr->retcode = 0;
@@ -554,7 +557,7 @@ int32_t NSPV_getntzsproofresp(struct NSPV_ntzsproofresp *ptr,uint256 prevntztxid
     }
     //fprintf(stderr,"sizeof ptr %ld, common.%ld lens.%d %d\n",sizeof(*ptr),sizeof(ptr->common),ptr->prevtxlen,ptr->nexttxlen);
     return(sizeof(*ptr) + sizeof(*ptr->common.hdrs)*ptr->common.numhdrs - sizeof(ptr->common.hdrs) - sizeof(ptr->prevntz) - sizeof(ptr->nextntz) + ptr->prevtxlen + ptr->nexttxlen);
-}
+}*/
 
 int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
 {

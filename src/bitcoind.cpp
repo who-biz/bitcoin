@@ -29,6 +29,8 @@
 #include <functional>
 #include <optional>
 
+extern int32_t KOMODO_NSPV;
+
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 UrlDecodeFn* const URL_DECODE = urlDecode;
 
@@ -145,6 +147,7 @@ static bool AppInit(NodeContext& node, int argc, char* argv[])
     std::any context{&node};
     try
     {
+        KOMODO_NSPV = args.GetArg("-nSPV",0);
         if (!CheckDataDirOption()) {
             return InitError(Untranslated(strprintf("Specified data directory \"%s\" does not exist.\n", args.GetArg("-datadir", ""))));
         }
