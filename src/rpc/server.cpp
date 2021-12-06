@@ -269,10 +269,12 @@ CRPCTable::CRPCTable()
 
 const CRPCCommand *CRPCTable::operator[](const std::string &name) const
 {
-    map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
+    auto const it = mapCommands.find(name);
     if (it == mapCommands.end())
         return NULL;
-    return (*it).second;
+    const CRPCCommand* ret = (*it).second[0];
+    //TODO: Add loggin to above, make sure we are taking correct entry in vector for ret value
+    return ret;
 }
 
 void CRPCTable::appendCommand(const std::string& name, const CRPCCommand* pcmd)

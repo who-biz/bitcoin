@@ -22,6 +22,13 @@
 #include "rpc/server.h"
 #include "notarisationdb.h"
 
+CPubKey pubkey2pk(std::vector<uint8_t> vpubkey)
+{
+    CPubKey pk;
+    pk.Set(vpubkey.begin(), vpubkey.end());
+    return(pk);
+}
+
 static std::map<std::string,bool> nspv_remote_commands =  {{"channelsopen", true},{"channelspayment", true},{"channelsclose", true},{"channelsrefund", true},
 {"channelslist", true},{"channelsinfo", true},{"oraclescreate", true},{"oraclesfund", true},{"oraclesregister", true},{"oraclessubscribe", true}, 
 {"oraclesdata", true},{"oraclesinfo", false},{"oracleslist", false},{"gatewaysbind", true},{"gatewaysdeposit", true},{"gatewaysclaim", true},{"gatewayswithdraw", true},
@@ -267,7 +274,7 @@ int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
         free(ptr->txids);
     memset(ptr,0,sizeof(*ptr));
     return(0);
-}*/
+}
 
 int32_t NSPV_mempoolfuncs(bits256 *satoshisp,int32_t *vindexp,std::vector<uint256> &txids,char *coinaddr,uint8_t funcid,uint256 txid,int32_t vout)
 {
@@ -357,11 +364,11 @@ int32_t NSPV_mempooltxids(struct NSPV_mempoolresp *ptr,char *coinaddr,uint8_t fu
     memset(ptr,0,sizeof(*ptr));
     return(0);
 }
-
+*/
 int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
 {
     std::vector<uint256> txids; int32_t i,len = 0; UniValue result; std::string response;
-    UniValue request(UniValue::VOBJ),rpc_result(UniValue::VOBJ); JSONRequest jreq; CPubKey mypk;
+    UniValue request(UniValue::VOBJ),rpc_result(UniValue::VOBJ); JSONRPCRequest jreq; CPubKey mypk;
 
     try
     {
@@ -384,7 +391,7 @@ int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
             if (!mypk.IsValid())
                 throw JSONRPCError(RPC_PARSE_ERROR, "Not valid pubkey passed in remote rpc call");
         }
-        if ((result = cmd->actor(jreq.params,false,mypk)).isObject() || result.isArray())
+        if ((result = cmd->actor(jreq,false,mypk)).isObject() || result.isArray())
         {
             rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id);
             response=rpc_result.write();
