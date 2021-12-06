@@ -17,6 +17,9 @@
 #ifndef KOMODO_NSPVSUPERLITE_H
 #define KOMODO_NSPVSUPERLITE_H
 
+#include <boost/foreach.hpp>
+//#include <komodo_nSPV.h>
+
 // nSPV client. VERY simplistic "single threaded" networking model. for production GUI best to multithread, etc.
 // no caching, no optimizations, no reducing the number of ntzsproofs needed by detecting overlaps, etc.
 // advantage is that it is simpler to implement and understand to create a design for a more performant version
@@ -151,7 +154,9 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
                 }
                 else if ( NSPV_inforesult.height > I.height )
                 {
-                    NSPV_lastinfo = timestamp - ASSETCHAINS_BLOCKTIME/4;
+                    // TODO: Ensure this lines up with CHIPS blocktime
+                    //NSPV_lastinfo = timestamp - ASSETCHAINS_BLOCKTIME/4;
+                    NSPV_lastinfo = timestamp - 15;
                     // need to validate new header to make sure it is valid mainchain
                     if ( NSPV_inforesult.height == NSPV_inforesult.hdrheight )
                         NSPV_tiptime = NSPV_inforesult.H.nTime;
@@ -212,7 +217,7 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
 
 // superlite message issuing
 
-CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
+/*CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
 {
     int32_t n,flag = 0; CNode *pnodes[64]; uint32_t timestamp = (uint32_t)time(NULL);
     if ( KOMODO_NSPV_FULLNODE )
@@ -252,14 +257,14 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
     } else fprintf(stderr,"no pnodes\n");
     return(0);
 }
-
+*/
 UniValue NSPV_logout()
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
+    result.pushKV("result","success");
     if ( NSPV_logintime != 0 )
         fprintf(stderr,"scrub wif and privkey from NSPV memory\n");
-    else result.push_back(Pair("status","wasnt logged in"));
+    else result.pushKV("status","wasnt logged in");
     memset(NSPV_ntzsproofresp_cache,0,sizeof(NSPV_ntzsproofresp_cache));
     memset(NSPV_txproof_cache,0,sizeof(NSPV_txproof_cache));
     memset(NSPV_ntzsresp_cache,0,sizeof(NSPV_ntzsresp_cache));
@@ -271,7 +276,7 @@ UniValue NSPV_logout()
 
 // komodo_nSPV from main polling loop (really this belongs in its own file, but it is so small, it ended up here)
 
-void komodo_nSPV(CNode *pto) // polling loop from SendMessages
+/*void komodo_nSPV(CNode *pto) // polling loop from SendMessages
 {
     uint8_t msg[256]; int32_t i,len=0; uint32_t timestamp = (uint32_t)time(NULL);
     if ( NSPV_logintime != 0 && timestamp > NSPV_logintime+NSPV_AUTOLOGOUT )
@@ -294,53 +299,54 @@ void komodo_nSPV(CNode *pto) // polling loop from SendMessages
         }
     }
 }
+*/
 
 UniValue NSPV_txproof_json(struct NSPV_txproof *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("txid",ptr->txid.GetHex()));
-    result.push_back(Pair("height",(int64_t)ptr->height));
-    result.push_back(Pair("txlen",(int64_t)ptr->txlen));
-    result.push_back(Pair("txprooflen",(int64_t)ptr->txprooflen));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("txid",ptr->txid.GetHex());
+    result.pushKV("height",(int64_t)ptr->height);
+    result.pushKV("txlen",(int64_t)ptr->txlen);
+    result.pushKV("txprooflen",(int64_t)ptr->txprooflen);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
 UniValue NSPV_spentinfo_json(struct NSPV_spentinfo *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("txid",ptr->txid.GetHex()));
-    result.push_back(Pair("vout",(int64_t)ptr->vout));
-    result.push_back(Pair("spentheight",(int64_t)ptr->spent.height));
-    result.push_back(Pair("spenttxid",ptr->spent.txid.GetHex()));
-    result.push_back(Pair("spentvini",(int64_t)ptr->spentvini));
-    result.push_back(Pair("spenttxlen",(int64_t)ptr->spent.txlen));
-    result.push_back(Pair("spenttxprooflen",(int64_t)ptr->spent.txprooflen));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","success");
+    result.pushKV("txid",ptr->txid.GetHex());
+    result.pushKV("vout",(int64_t)ptr->vout);
+    result.pushKV("spentheight",(int64_t)ptr->spent.height);
+    result.pushKV("spenttxid",ptr->spent.txid.GetHex());
+    result.pushKV("spentvini",(int64_t)ptr->spentvini);
+    result.pushKV("spenttxlen",(int64_t)ptr->spent.txlen);
+    result.pushKV("spenttxprooflen",(int64_t)ptr->spent.txprooflen);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
 UniValue NSPV_ntz_json(struct NSPV_ntz *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("notarized_height",(int64_t)ptr->height));
-    result.push_back(Pair("notarized_blockhash",ptr->blockhash.GetHex()));
-    result.push_back(Pair("notarization_txid",ptr->txid.GetHex()));
-    result.push_back(Pair("notarization_txidheight",(int64_t)ptr->txidheight));
-    result.push_back(Pair("notarization_desttxid",ptr->othertxid.GetHex()));
+    result.pushKV("notarized_height",(int64_t)ptr->height);
+    result.pushKV("notarized_blockhash",ptr->blockhash.GetHex());
+    result.pushKV("notarization_txid",ptr->txid.GetHex());
+    result.pushKV("notarization_txidheight",(int64_t)ptr->txidheight);
+    result.pushKV("notarization_desttxid",ptr->othertxid.GetHex());
     return(result);
 }
 
 UniValue NSPV_header_json(struct NSPV_equihdr *hdr,int32_t height)
 {
     UniValue item(UniValue::VOBJ);
-    item.push_back(Pair("height",(int64_t)height));
-    item.push_back(Pair("blockhash",NSPV_hdrhash(hdr).GetHex()));
-    item.push_back(Pair("hashPrevBlock",hdr->hashPrevBlock.GetHex()));
-    item.push_back(Pair("hashMerkleRoot",hdr->hashMerkleRoot.GetHex()));
-    item.push_back(Pair("nTime",(int64_t)hdr->nTime));
-    item.push_back(Pair("nBits",(int64_t)hdr->nBits));
+    item.pushKV("height",(int64_t)height);
+    item.pushKV("blockhash",NSPV_hdrhash(hdr).GetHex());
+    item.pushKV("hashPrevBlock",hdr->hashPrevBlock.GetHex());
+    item.pushKV("hashMerkleRoot",hdr->hashMerkleRoot.GetHex());
+    item.pushKV("nTime",(int64_t)hdr->nTime);
+    item.pushKV("nBits",(int64_t)hdr->nBits);
     return(item);
 }
 
@@ -355,24 +361,24 @@ UniValue NSPV_headers_json(struct NSPV_equihdr *hdrs,int32_t numhdrs,int32_t hei
 UniValue NSPV_getinfo_json(struct NSPV_inforesp *ptr)
 {
     UniValue result(UniValue::VOBJ); int32_t expiration; uint32_t timestamp = (uint32_t)time(NULL);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("nSPV",KOMODO_NSPV==-1?"disabled":(KOMODO_NSPV_SUPERLITE?"superlite":"fullnode")));
+    result.pushKV("result","success");
+    result.pushKV("nSPV",KOMODO_NSPV==-1?"disabled":(KOMODO_NSPV_SUPERLITE?"superlite":"fullnode"));
     if ( NSPV_address.size() != 0 )
     {
-        result.push_back(Pair("address",NSPV_address));
-        result.push_back(Pair("pubkey",NSPV_pubkeystr));
+        result.pushKV("address",NSPV_address);
+        result.pushKV("pubkey",NSPV_pubkeystr);
     }
     if ( NSPV_logintime != 0 )
     {
         expiration = (NSPV_logintime + NSPV_AUTOLOGOUT - timestamp);
-        result.push_back(Pair("wifexpires",expiration));
+        result.pushKV("wifexpires",expiration);
     }
-    result.push_back(Pair("height",(int64_t)ptr->height));
-    result.push_back(Pair("chaintip",ptr->blockhash.GetHex()));
-    result.push_back(Pair("notarization",NSPV_ntz_json(&ptr->notarization)));
-    result.push_back(Pair("header",NSPV_header_json(&ptr->H,ptr->hdrheight)));
-    result.push_back(Pair("protocolversion",(int64_t)ptr->version));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("height",(int64_t)ptr->height);
+    result.pushKV("chaintip",ptr->blockhash.GetHex());
+    result.pushKV("notarization",NSPV_ntz_json(&ptr->notarization));
+    result.pushKV("header",NSPV_header_json(&ptr->H,ptr->hdrheight));
+    result.pushKV("protocolversion",(int64_t)ptr->version);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -382,12 +388,12 @@ UniValue NSPV_utxoresp_json(struct NSPV_utxoresp *utxos,int32_t numutxos)
     for (i=0; i<numutxos; i++)
     {
         UniValue item(UniValue::VOBJ);
-        item.push_back(Pair("height",(int64_t)utxos[i].height));
-        item.push_back(Pair("txid",utxos[i].txid.GetHex()));
-        item.push_back(Pair("vout",(int64_t)utxos[i].vout));
-        item.push_back(Pair("value",(double)utxos[i].satoshis/COIN));
+        item.pushKV("height",(int64_t)utxos[i].height);
+        item.pushKV("txid",utxos[i].txid.GetHex());
+        item.pushKV("vout",(int64_t)utxos[i].vout);
+        item.pushKV("value",(double)utxos[i].satoshis/COIN);
         if ( ASSETCHAINS_SYMBOL[0] == 0 )
-            item.push_back(Pair("interest",(double)utxos[i].extradata/COIN));
+            item.pushKV("interest",(double)utxos[i].extradata/COIN);
         array.push_back(item);
     }
     return(array);
@@ -396,16 +402,16 @@ UniValue NSPV_utxoresp_json(struct NSPV_utxoresp *utxos,int32_t numutxos)
 UniValue NSPV_utxosresp_json(struct NSPV_utxosresp *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("utxos",NSPV_utxoresp_json(ptr->utxos,ptr->numutxos)));
-    result.push_back(Pair("address",ptr->coinaddr));
-    result.push_back(Pair("height",(int64_t)ptr->nodeheight));
-    result.push_back(Pair("numutxos",(int64_t)ptr->numutxos));
-    result.push_back(Pair("balance",(double)ptr->total/COIN));
+    result.pushKV("result","success");
+    result.pushKV("utxos",NSPV_utxoresp_json(ptr->utxos,ptr->numutxos));
+    result.pushKV("address",ptr->coinaddr);
+    result.pushKV("height",(int64_t)ptr->nodeheight);
+    result.pushKV("numutxos",(int64_t)ptr->numutxos);
+    result.pushKV("balance",(double)ptr->total/COIN);
     if ( ASSETCHAINS_SYMBOL[0] == 0 )
-        result.push_back(Pair("interest",(double)ptr->interest/COIN));
-    result.push_back(Pair("filter",(int64_t)ptr->filter));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+        result.pushKV("interest",(double)ptr->interest/COIN);
+    result.pushKV("filter",(int64_t)ptr->filter);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -415,12 +421,12 @@ UniValue NSPV_txidresp_json(struct NSPV_txidresp *utxos,int32_t numutxos)
     for (i=0; i<numutxos; i++)
     {
         UniValue item(UniValue::VOBJ);
-        item.push_back(Pair("height",(int64_t)utxos[i].height));
-        item.push_back(Pair("txid",utxos[i].txid.GetHex()));
-        item.push_back(Pair("value",(double)utxos[i].satoshis/COIN));
+        item.pushKV("height",(int64_t)utxos[i].height);
+        item.pushKV("txid",utxos[i].txid.GetHex());
+        item.pushKV("value",(double)utxos[i].satoshis/COIN);
         if ( utxos[i].satoshis > 0 )
-            item.push_back(Pair("vout",(int64_t)utxos[i].vout));
-        else item.push_back(Pair("vin",(int64_t)utxos[i].vout));
+            item.pushKV("vout",(int64_t)utxos[i].vout);
+        else item.pushKV("vin",(int64_t)utxos[i].vout);
         array.push_back(item);
     }
     return(array);
@@ -429,58 +435,58 @@ UniValue NSPV_txidresp_json(struct NSPV_txidresp *utxos,int32_t numutxos)
 UniValue NSPV_txidsresp_json(struct NSPV_txidsresp *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("txids",NSPV_txidresp_json(ptr->txids,ptr->numtxids)));
-    result.push_back(Pair("address",ptr->coinaddr));
-    result.push_back(Pair("height",(int64_t)ptr->nodeheight));
-    result.push_back(Pair("numtxids",(int64_t)ptr->numtxids));
-    result.push_back(Pair("filter",(int64_t)ptr->filter));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","success");
+    result.pushKV("txids",NSPV_txidresp_json(ptr->txids,ptr->numtxids));
+    result.pushKV("address",ptr->coinaddr);
+    result.pushKV("height",(int64_t)ptr->nodeheight);
+    result.pushKV("numtxids",(int64_t)ptr->numtxids);
+    result.pushKV("filter",(int64_t)ptr->filter);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
 UniValue NSPV_mempoolresp_json(struct NSPV_mempoolresp *ptr)
 {
     UniValue result(UniValue::VOBJ),array(UniValue::VARR); int32_t i;
-    result.push_back(Pair("result","success"));
+    result.pushKV("result","success");
     for (i=0; i<ptr->numtxids; i++)
         array.push_back(ptr->txids[i].GetHex().c_str());
-    result.push_back(Pair("txids",array));
-    result.push_back(Pair("address",ptr->coinaddr));
-    result.push_back(Pair("height",(int64_t)ptr->nodeheight));
-    result.push_back(Pair("numtxids",(int64_t)ptr->numtxids));
-    result.push_back(Pair("txid",ptr->txid.GetHex().c_str()));
-    result.push_back(Pair("vout",(int64_t)ptr->vout));
-    result.push_back(Pair("funcid",(int64_t)ptr->funcid));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("txids",array);
+    result.pushKV("address",ptr->coinaddr);
+    result.pushKV("height",(int64_t)ptr->nodeheight);
+    result.pushKV("numtxids",(int64_t)ptr->numtxids);
+    result.pushKV("txid",ptr->txid.GetHex().c_str());
+    result.pushKV("vout",(int64_t)ptr->vout);
+    result.pushKV("funcid",(int64_t)ptr->funcid);
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
 UniValue NSPV_ntzsresp_json(struct NSPV_ntzsresp *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("prev",NSPV_ntz_json(&ptr->prevntz)));
-    result.push_back(Pair("next",NSPV_ntz_json(&ptr->nextntz)));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","success");
+    result.pushKV("prev",NSPV_ntz_json(&ptr->prevntz));
+    result.pushKV("next",NSPV_ntz_json(&ptr->nextntz));
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
 UniValue NSPV_ntzsproof_json(struct NSPV_ntzsproofresp *ptr)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("prevht",(int64_t)ptr->common.prevht));
-    result.push_back(Pair("nextht",(int64_t)ptr->common.nextht));
-    result.push_back(Pair("prevtxid",ptr->prevtxid.GetHex()));
-    result.push_back(Pair("prevtxidht",(int64_t)ptr->prevtxidht));
-    result.push_back(Pair("prevtxlen",(int64_t)ptr->prevtxlen));
-    result.push_back(Pair("nexttxid",ptr->nexttxid.GetHex()));
-    result.push_back(Pair("nexttxidht",(int64_t)ptr->nexttxidht));
-    result.push_back(Pair("nexttxlen",(int64_t)ptr->nexttxlen));
-    result.push_back(Pair("numhdrs",(int64_t)ptr->common.numhdrs));
-    result.push_back(Pair("headers",NSPV_headers_json(ptr->common.hdrs,ptr->common.numhdrs,ptr->common.prevht)));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","success");
+    result.pushKV("prevht",(int64_t)ptr->common.prevht);
+    result.pushKV("nextht",(int64_t)ptr->common.nextht);
+    result.pushKV("prevtxid",ptr->prevtxid.GetHex());
+    result.pushKV("prevtxidht",(int64_t)ptr->prevtxidht);
+    result.pushKV("prevtxlen",(int64_t)ptr->prevtxlen);
+    result.pushKV("nexttxid",ptr->nexttxid.GetHex());
+    result.pushKV("nexttxidht",(int64_t)ptr->nexttxidht);
+    result.pushKV("nexttxlen",(int64_t)ptr->nexttxlen);
+    result.pushKV("numhdrs",(int64_t)ptr->common.numhdrs);
+    result.pushKV("headers",NSPV_headers_json(ptr->common.hdrs,ptr->common.numhdrs,ptr->common.prevht));
+    result.pushKV("lastpeer",NSPV_lastpeer);
     //fprintf(stderr,"ntzs_proof %s %d, %s %d\n",ptr->prevtxid.GetHex().c_str(),ptr->common.prevht,ptr->nexttxid.GetHex().c_str(),ptr->common.nextht);
     return(result);
 }
@@ -488,20 +494,20 @@ UniValue NSPV_ntzsproof_json(struct NSPV_ntzsproofresp *ptr)
 UniValue NSPV_broadcast_json(struct NSPV_broadcastresp *ptr,uint256 txid)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("expected",txid.GetHex()));
-    result.push_back(Pair("broadcast",ptr->txid.GetHex()));
-    result.push_back(Pair("retcode",(int64_t)ptr->retcode));
+    result.pushKV("result","success");
+    result.pushKV("expected",txid.GetHex());
+    result.pushKV("broadcast",ptr->txid.GetHex());
+    result.pushKV("retcode",(int64_t)ptr->retcode);
     switch ( ptr->retcode )
     {
-        case 1: result.push_back(Pair("type","broadcast and mempool")); break;
-        case 0: result.push_back(Pair("type","broadcast")); break;
-        case -1: result.push_back(Pair("type","decode error")); break;
-        case -2: result.push_back(Pair("type","timeout")); break;
-        case -3: result.push_back(Pair("type","error adding to mempool")); break;
-        default: result.push_back(Pair("type","unknown")); break;
+        case 1: result.pushKV("type","broadcast and mempool"); break;
+        case 0: result.pushKV("type","broadcast"); break;
+        case -1: result.pushKV("type","decode error"); break;
+        case -2: result.pushKV("type","timeout"); break;
+        case -3: result.pushKV("type","error adding to mempool"); break;
+        default: result.pushKV("type","unknown"); break;
     }
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -514,10 +520,10 @@ UniValue NSPV_login(char *wifstr)
         valid = 1;
     if ( valid == 0 || data[0] != 188 )
     {
-        result.push_back(Pair("result","error"));
-        result.push_back(Pair("error","invalid wif"));
-        result.push_back(Pair("len",(int64_t)len));
-        result.push_back(Pair("prefix",(int64_t)data[0]));
+        result.pushKV("result","error");
+        result.pushKV("error","invalid wif");
+        result.pushKV("len",(int64_t)len);
+        result.pushKV("prefix",(int64_t)data[0]);
         return(result);
     }
     memset(NSPV_wifstr,0,sizeof(NSPV_wifstr));
@@ -527,23 +533,23 @@ UniValue NSPV_login(char *wifstr)
         strncpy(NSPV_wifstr,wifstr,sizeof(NSPV_wifstr)-1);
         NSPV_key = DecodeSecret(wifstr);
     }
-    result.push_back(Pair("result","success"));
-    result.push_back(Pair("status","wif will expire in 777 seconds"));
+    result.pushKV("result","success");
+    result.pushKV("status","wif will expire in 777 seconds");
     CPubKey pubkey = NSPV_key.GetPubKey();
     CKeyID vchAddress = pubkey.GetID();
-    NSPV_address = EncodeDestination(vchAddress);
-    result.push_back(Pair("address",NSPV_address));
-    result.push_back(Pair("pubkey",HexStr(pubkey)));
+    NSPV_address = EncodeDestination(PKHash(vchAddress));
+    result.pushKV("address",NSPV_address);
+    result.pushKV("pubkey",HexStr(pubkey));
     strcpy(NSPV_pubkeystr,HexStr(pubkey).c_str());
     if ( KOMODO_NSPV_SUPERLITE )
         decode_hex(NOTARY_PUBKEY33,33,NSPV_pubkeystr);
-    result.push_back(Pair("wifprefix",(int64_t)data[0]));
-    result.push_back(Pair("compressed",(int64_t)(data[len-5] == 1)));
+    result.pushKV("wifprefix",(int64_t)data[0]);
+    result.pushKV("compressed",(int64_t)(data[len-5] == 1));
     memset(data,0,sizeof(data));
     return(result);
 }
 
-UniValue NSPV_getinfo_req(int32_t reqht)
+/*UniValue NSPV_getinfo_req(int32_t reqht)
 {
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_inforesp I;
     NSPV_inforesp_purge(&NSPV_inforesult);
@@ -592,8 +598,8 @@ UniValue NSPV_addressutxos(char *coinaddr,int32_t skipcount,int32_t filter)
     NSPV_utxosresp_purge(&NSPV_utxosresult);
     if ( bitcoin_base58decode(msg,coinaddr) != 25 )
     {
-        result.push_back(Pair("result","error"));
-        result.push_back(Pair("error","invalid address"));
+        result.pushKV("result","error");
+        result.pushKV("error","invalid address");
         return(result);
     }
     slen = (int32_t)strlen(coinaddr);
@@ -612,9 +618,9 @@ UniValue NSPV_addressutxos(char *coinaddr,int32_t skipcount,int32_t filter)
                 return(NSPV_utxosresp_json(&NSPV_utxosresult));
         }
     } else sleep(1);
-    result.push_back(Pair("result","error"));
-    result.push_back(Pair("error","no utxos result"));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","error");
+    result.pushKV("error","no utxos result");
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -628,8 +634,8 @@ UniValue NSPV_addresstxids(char *coinaddr,int32_t skipcount,int32_t filter)
     NSPV_txidsresp_purge(&NSPV_txidsresult);
     if ( bitcoin_base58decode(msg,coinaddr) != 25 )
     {
-        result.push_back(Pair("result","error"));
-        result.push_back(Pair("error","invalid address"));
+        result.pushKV("result","error");
+        result.pushKV("error","invalid address");
         return(result);
     }
     slen = (int32_t)strlen(coinaddr);
@@ -649,9 +655,9 @@ UniValue NSPV_addresstxids(char *coinaddr,int32_t skipcount,int32_t filter)
                 return(NSPV_txidsresp_json(&NSPV_txidsresult));
         }
     } else sleep(1);
-    result.push_back(Pair("result","error"));
-    result.push_back(Pair("error","no txid result"));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","error");
+    result.pushKV("error","no txid result");
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -664,8 +670,8 @@ UniValue NSPV_mempooltxids(char *coinaddr,uint8_t funcid,uint256 txid,int32_t vo
         coinaddr = zeroes;
     if ( coinaddr[0] != 0 && bitcoin_base58decode(msg,coinaddr) != 25 )
     {
-        result.push_back(Pair("result","error"));
-        result.push_back(Pair("error","invalid address"));
+        result.pushKV("result","error");
+        result.pushKV("error","invalid address");
         return(result);
     }
     msg[len++] = NSPV_MEMPOOL;
@@ -686,9 +692,9 @@ UniValue NSPV_mempooltxids(char *coinaddr,uint8_t funcid,uint256 txid,int32_t vo
                 return(NSPV_mempoolresp_json(&NSPV_mempoolresult));
         }
     } else sleep(1);
-    result.push_back(Pair("result","error"));
-    result.push_back(Pair("error","no txid result"));
-    result.push_back(Pair("lastpeer",NSPV_lastpeer));
+    result.pushKV("result","error");
+    result.pushKV("error","no txid result");
+    result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
 
@@ -880,5 +886,5 @@ UniValue NSPV_broadcast(char *hex)
     B.retcode = -2;
     return(NSPV_broadcast_json(&B,txid));
 }
-
+*/
 #endif // KOMODO_NSPVSUPERLITE_H

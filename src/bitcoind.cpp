@@ -10,6 +10,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <compat.h>
+#include <komodo_globals.h>
 #include <init.h>
 #include <interfaces/chain.h>
 #include <interfaces/init.h>
@@ -28,8 +29,6 @@
 #include <any>
 #include <functional>
 #include <optional>
-
-extern int32_t KOMODO_NSPV;
 
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 UrlDecodeFn* const URL_DECODE = urlDecode;

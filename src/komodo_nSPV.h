@@ -45,7 +45,6 @@ int32_t NSPV_rwequihdr(int32_t rwflag,uint8_t *serialized,struct NSPV_equihdr *p
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->nTime),&ptr->nTime);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->nBits),&ptr->nBits);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->nNonce),(uint8_t *)&ptr->nNonce);
-    len += iguana_rwbuf(rwflag,&serialized[len],sizeof(ptr->nSolution),ptr->nSolution);
     return(len);
 }
 
@@ -454,7 +453,7 @@ uint256 NSPV_doublesha256(uint8_t *data,int32_t datalen)
     return(hash);
 }
 
-/*uint256 NSPV_hdrhash(struct NSPV_equihdr *hdr)
+uint256 NSPV_hdrhash(struct NSPV_equihdr *hdr)
 {
     CBlockHeader block;
     block.nVersion = hdr->nVersion;
@@ -463,10 +462,8 @@ uint256 NSPV_doublesha256(uint8_t *data,int32_t datalen)
     block.nTime = hdr->nTime;
     block.nBits = hdr->nBits;
     block.nNonce = hdr->nNonce;
-    block.nSolution.resize(sizeof(hdr->nSolution));
-    memcpy(&block.nSolution[0],hdr->nSolution,sizeof(hdr->nSolution));
     return(block.GetHash());
-}*/
+}
 
 int32_t NSPV_txextract(CMutableTransaction &tx,uint8_t *data,int32_t datalen)
 {

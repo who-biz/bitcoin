@@ -64,8 +64,7 @@ struct NSPV_equihdr
     uint256 hashFinalSaplingRoot;
     uint32_t nTime;
     uint32_t nBits;
-    uint256 nNonce;
-    uint8_t nSolution[1344];
+    uint32_t nNonce;
 };
 
 struct NSPV_utxoresp
