@@ -18,7 +18,7 @@
 #define KOMODO_NSPVSUPERLITE_H
 
 #include <boost/foreach.hpp>
-//#include <komodo_nSPV.h>
+#include <net.h>
 
 // nSPV client. VERY simplistic "single threaded" networking model. for production GUI best to multithread, etc.
 // no caching, no optimizations, no reducing the number of ntzsproofs needed by detecting overlaps, etc.
@@ -155,8 +155,7 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
                 else if ( NSPV_inforesult.height > I.height )
                 {
                     // TODO: Ensure this lines up with CHIPS blocktime
-                    //NSPV_lastinfo = timestamp - ASSETCHAINS_BLOCKTIME/4;
-                    NSPV_lastinfo = timestamp - 15;
+                    NSPV_lastinfo = timestamp - ASSETCHAINS_BLOCKTIME/4;
                     // need to validate new header to make sure it is valid mainchain
                     if ( NSPV_inforesult.height == NSPV_inforesult.hdrheight )
                         NSPV_tiptime = NSPV_inforesult.H.nTime;
@@ -217,7 +216,7 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
 
 // superlite message issuing
 
-/*CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
+CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
 {
     int32_t n,flag = 0; CNode *pnodes[64]; uint32_t timestamp = (uint32_t)time(NULL);
     if ( KOMODO_NSPV_FULLNODE )
@@ -257,7 +256,7 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
     } else fprintf(stderr,"no pnodes\n");
     return(0);
 }
-*/
+
 UniValue NSPV_logout()
 {
     UniValue result(UniValue::VOBJ);
