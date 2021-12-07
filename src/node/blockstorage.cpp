@@ -24,6 +24,7 @@ std::atomic_bool fReindex(false);
 bool fHavePruned = false;
 bool fPruneMode = false;
 uint64_t nPruneTarget = 0;
+bool fAddressIndex = false;
 
 // TODO make namespace {
 RecursiveMutex cs_LastBlockFile;

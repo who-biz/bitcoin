@@ -28,6 +28,7 @@
 #include <init/common.h>
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
+#include <komodo_defs.h>
 #include <mapport.h>
 #include <miner.h>
 #include <net.h>
@@ -93,6 +94,8 @@
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
+static const bool DEFAULT_ADDRESSINDEX = false;
+static const bool DEFAULT_SPENTINDEX = false;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -1601,6 +1604,16 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
             }
         }
     }
+
+    if ( KOMODO_NSPV == 0 )
+    {
+        if ( args.GetArg("-addressindex", DEFAULT_ADDRESSINDEX) != 0 )
+            nLocalServices = ServiceFlags(nLocalServices | NODE_ADDRINDEX);
+        if ( args.GetArg("-spentindex", DEFAULT_SPENTINDEX) != 0 )
+            nLocalServices = ServiceFlags(nLocalServices | NODE_SPENTINDEX);
+        fprintf(stderr,"nLocalServices %llx %ld, %ld\n",(long long)nLocalServices,args.GetArg("-addressindex", DEFAULT_ADDRESSINDEX),args.GetArg("-spentindex", DEFAULT_SPENTINDEX));
+    }
+
 
     if (DeploymentEnabled(chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT)) {
         // Advertise witness capabilities.
