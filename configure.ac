@@ -1408,12 +1408,13 @@ if test x$use_boost = xyes; then
   fi
   AX_BOOST_SYSTEM
   AX_BOOST_FILESYSTEM
+  AX_BOOST_THREAD
 
   if test x$suppress_external_warnings != xno; then
     BOOST_CPPFLAGS=SUPPRESS_WARNINGS($BOOST_CPPFLAGS)
   fi
 
-  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB"
+  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_THREAD_LIB"
 fi
 
 if test "x$use_external_signer" != xno; then
