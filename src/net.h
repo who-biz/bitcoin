@@ -426,6 +426,9 @@ public:
     //! Unix epoch time at peer connection, in seconds.
     const int64_t nTimeConnected;
     std::atomic<int64_t> nTimeOffset{0};
+
+    uint32_t prevtimes[16]; // for nSPV
+
     // Address of this peer
     const CAddress addr;
     // Bind address of our side of the connection

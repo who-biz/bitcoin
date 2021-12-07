@@ -275,7 +275,7 @@ UniValue NSPV_logout()
 
 // komodo_nSPV from main polling loop (really this belongs in its own file, but it is so small, it ended up here)
 
-/*void komodo_nSPV(CNode *pto) // polling loop from SendMessages
+void komodo_nSPV(CNode *pto) // polling loop from SendMessages
 {
     uint8_t msg[256]; int32_t i,len=0; uint32_t timestamp = (uint32_t)time(NULL);
     if ( NSPV_logintime != 0 && timestamp > NSPV_logintime+NSPV_AUTOLOGOUT )
@@ -298,7 +298,7 @@ UniValue NSPV_logout()
         }
     }
 }
-*/
+
 
 UniValue NSPV_txproof_json(struct NSPV_txproof *ptr)
 {
