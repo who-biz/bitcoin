@@ -356,7 +356,7 @@ RPCHelpMan nspv_listunspent()
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
     int32_t skipcount = 0;
-    if ( request.params.size() > 3 )
+    if ( request.params.size() > 2 )
         throw std::runtime_error("nspv_listunspent [address [skipcount]]\n");
     if ( KOMODO_NSPV_FULLNODE )
         throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
@@ -368,7 +368,7 @@ RPCHelpMan nspv_listunspent()
     }
     if ( request.params.size() >= 1 )
     {
-        if ( request.params.size() >= 2 )
+        if ( request.params.size() == 2 )
             skipcount = atoi((char *)request.params[2].get_str().c_str());
         return(NSPV_addressutxos((char *)request.params[0].get_str().c_str(),skipcount,0));
     }
