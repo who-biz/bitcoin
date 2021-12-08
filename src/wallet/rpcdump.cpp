@@ -569,7 +569,19 @@ RPCHelpMan nspv_spend()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    uint64_t satoshis;
+    if ( request.params.size() != 2 )
+        throw std::runtime_error("nspv_spend address amount\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    if ( NSPV_address.size() == 0 )
+        throw std::runtime_error("to nspv_send you need an active nspv_login\n");
+    satoshis = atof(request.params[1].get_str().c_str())*COIN + 0.0000000049;
+    //fprintf(stderr,"satoshis.%lld from %.8f\n",(long long)satoshis,atof(params[1].get_str().c_str()));
+    if ( satoshis < 1000 )
+        throw std::runtime_error("amount too small\n");
+    // TODO: uncomment below once komodo_nSPV_wallet.h functions are rewritten
+    //return(NSPV_spend((char *)NSPV_address.c_str(),(char *)request.params[0].get_str().c_str(),satoshis));
 },
     };
 }
@@ -587,7 +599,11 @@ RPCHelpMan nspv_broadcast()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    if ( request.params.size() != 1 )
+        throw std::runtime_error("nspv_broadcast hex\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    return(NSPV_broadcast((char *)request.params[0].get_str().c_str()));
 },
     };
 }
