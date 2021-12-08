@@ -258,6 +258,7 @@ void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, const std
 }
 
 extern std::string NSPV_address;
+uint256 Parseuint256(const char* hexstr);
 UniValue NSPV_getinfo_req(int32_t reqht);
 UniValue NSPV_login(char *wifstr);
 UniValue NSPV_logout();
@@ -395,7 +396,22 @@ RPCHelpMan nspv_mempool()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t vout = 0; uint256 txid; uint8_t funcid; char *coinaddr;
+    memset(&txid,0,sizeof(txid));
+    if ( request.params.size() > 4 )
+        throw std::runtime_error("nspv_mempool func(0 all, 1 address recv, 2 txid/vout spent, 3 txid inmempool) address isCC [txid vout]]]\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    funcid = atoi((char *)request.params[0].get_str().c_str());
+    coinaddr = (char *)request.params[1].get_str().c_str();
+    if ( request.params.size() > 2 )
+    {
+        if ( request.params.size() != 4 )
+            throw std::runtime_error("nspv_mempool func(0 all, 1 address recv, 2 txid/vout spent, 3 txid inmempool) address isCC [txid vout]]]\n");
+        txid = Parseuint256((char *)request.params[2].get_str().c_str());
+        vout = atoi((char *)request.params[3].get_str().c_str());
+    }
+    return(NSPV_mempooltxids(coinaddr,funcid,txid,vout));
 },
     };
 }

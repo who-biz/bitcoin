@@ -26,6 +26,18 @@
 
 extern NodeContext* g_rpc_node;
 
+uint256 Parseuint256(const char *hexstr)
+{
+    uint256 txid; int32_t i; std::vector<unsigned char> txidbytes(ParseHex(hexstr));
+    memset(&txid,0,sizeof(txid));
+    if ( strlen(hexstr) == 64 )
+    {
+        for (i=31; i>=0; i--)
+            ((uint8_t *)&txid)[31-i] = ((uint8_t *)txidbytes.data())[i];
+    }
+    return(txid);
+}
+
 CPubKey pubkey2pk(std::vector<uint8_t> vpubkey)
 {
     CPubKey pk;
