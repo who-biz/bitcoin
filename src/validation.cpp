@@ -58,11 +58,6 @@
 #include <optional>
 
 #include <komodo_validation021.h>
-#include "komodo_nSPV_defs.h"
-#include "komodo_nSPV.h"            // shared defines, structs, serdes, purge functions
-#include "komodo_nSPV_fullnode.h"   // nSPV fullnode handling of the getnSPV request messages
-#include "komodo_nSPV_superlite.h"  // nSPV superlite client, issuing requests and handling nSPV responses
-#include "komodo_nSPV_wallet.h"     // nSPV_send and support functions, really all the rest is to support this
 
 #include <string>
 
@@ -75,6 +70,8 @@ char ASSETCHAINS_SYMBOL[65] = { "CHIPS" };
 
 /** Default NSPV support enabled */
 const bool DEFAULT_NSPV_PROCESSING = false;
+
+ChainstateManager* chainman;
 
 /**
  * An extra transaction can be added to a package, as long as it only has one
@@ -1211,7 +1208,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
 
         if (fAllowSlow) { // use coin database to locate block that contains transaction, and scan it
             const Coin& coin = AccessByTxid(*pcoinsTip, hash);
-            if (!coin.IsSpent()) pindexSlow = g_rpc_node->chainman->ActiveChain()[coin.nHeight];
+            if (!coin.IsSpent()) pindexSlow = chainman->ActiveChain()[coin.nHeight];
         }
     }
 
@@ -3096,7 +3093,7 @@ static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& st
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
-    if (g_rpc_node->chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
+    if (chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
         if (block.GetBlockTime() > GetAdjustedTime() + 4) {
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "block-from-future", "CheckBlockHeader block from future");
         }
@@ -3268,7 +3265,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         }
         else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
         {
-            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
+            CBlockIndex *heightblock = chainman->ActiveChain()[nHeight];
             if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
                 return true;
             } else {
