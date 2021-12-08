@@ -2970,7 +2970,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn, const
       id(idIn),
       nLocalHostNonce(nLocalHostNonceIn),
       m_conn_type(conn_type_in),
-      nLocalServices(nLocalServicesIn)
+      nLocalServices(nLocalServicesIn),
+      ssSend(SER_NETWORK,INIT_PROTO_VERSION)
 {
     if (inbound_onion) assert(conn_type_in == ConnectionType::INBOUND);
     hSocket = hSocketIn;

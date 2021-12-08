@@ -117,6 +117,7 @@ endif
 BITCOIN_CORE_H = \
   addrdb.h \
   addrman.h \
+  addressindex.h \
   attributes.h \
   banman.h \
   base58.h \
@@ -170,11 +171,6 @@ BITCOIN_CORE_H = \
   interfaces/wallet.h \
   key.h \
   key_io.h \
-  komodo_nSPV.h \
-  komodo_nSPV_defs.h \
-  komodo_nSPV_fullnode.h \
-  komodo_nSPV_superlite.h \
-  komodo_nSPV_wallet.h \
   logging.h \
   logging/timer.h \
   mapport.h \

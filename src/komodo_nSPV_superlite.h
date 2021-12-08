@@ -18,7 +18,8 @@
 #define KOMODO_NSPVSUPERLITE_H
 
 #include <boost/foreach.hpp>
-#include <net.h>
+#include <mini-gmp.c>
+#include <netmessagemaker.h>
 
 // nSPV client. VERY simplistic "single threaded" networking model. for production GUI best to multithread, etc.
 // no caching, no optimizations, no reducing the number of ntzsproofs needed by detecting overlaps, etc.
@@ -28,6 +29,7 @@
 CAmount AmountFromValue(const UniValue& value);
 int32_t bitcoin_base58decode(uint8_t *data,char *coinaddr);
 
+uint256 zeroid;
 uint32_t NSPV_lastinfo,NSPV_logintime,NSPV_tiptime;
 CKey NSPV_key;
 char NSPV_wifstr[64],NSPV_pubkeystr[67],NSPV_lastpeer[128];
@@ -226,7 +228,7 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         memset(pnodes,0,sizeof(pnodes));
         //LOCK(cs_vNodes);
         n = 0;
-        BOOST_FOREACH(CNode *ptr,vNodes)
+        BOOST_FOREACH(CNode *ptr,g_rpc_node->connman->vNodes)
         {
             if ( ptr->prevtimes[ind] > timestamp )
                 ptr->prevtimes[ind] = 0;
@@ -250,7 +252,9 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         memcpy(&request[0],msg,len);
         if ( (0) && KOMODO_NSPV_SUPERLITE )
             fprintf(stderr,"pushmessage [%d] len.%d\n",msg[0],len);
-        pnode->PushMessage("getnSPV",request);
+        //CSerializedNetMsg CNetMsgMaker(pnode->GetCommonVersion()).Make(request);
+        //msg.Make("nSPV",request);
+        g_rpc_node->connman->PushMessage(pnode,CNetMsgMaker(pnode->GetCommonVersion()).Make("nSPV",request));
         pnode->prevtimes[ind] = timestamp;
         return(pnode);
     } else fprintf(stderr,"no pnodes\n");
@@ -548,7 +552,7 @@ UniValue NSPV_login(char *wifstr)
     return(result);
 }
 
-/*UniValue NSPV_getinfo_req(int32_t reqht)
+UniValue NSPV_getinfo_req(int32_t reqht)
 {
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_inforesp I;
     NSPV_inforesp_purge(&NSPV_inforesult);
@@ -702,14 +706,14 @@ int32_t NSPV_coinaddr_inmempool(char const *logcategory,char *coinaddr)
     NSPV_mempooltxids(coinaddr,NSPV_MEMPOOL_ADDRESS,zeroid,-1);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids >= 1 && strcmp(NSPV_mempoolresult.coinaddr,coinaddr) == 0 )
     {
-        LogPrint(logcategory,"found (%s) vout in mempool\n",coinaddr);
+        LogPrintf("found (%s) vout in mempool\n",coinaddr);
         return(true);
     } else return(false);
 }
 
 bool NSPV_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int32_t vout)
 {
-    NSPV_mempooltxids((char *)"",0,NSPV_MEMPOOL_ISSPENT,txid,vout);
+    NSPV_mempooltxids((char *)"",NSPV_MEMPOOL_ISSPENT,txid,vout);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids == 1 && NSPV_mempoolresult.txid == txid )
     {
         spenttxid = NSPV_mempoolresult.txids[0];
@@ -720,7 +724,7 @@ bool NSPV_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int3
 
 bool NSPV_inmempool(uint256 txid)
 {
-    NSPV_mempooltxids((char *)"",0,NSPV_MEMPOOL_INMEMPOOL,txid,0);
+    NSPV_mempooltxids((char *)"",NSPV_MEMPOOL_INMEMPOOL,txid,0);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids == 1 && NSPV_mempoolresult.txids[0] == txid )
         return(true);
     else return(false);
@@ -885,5 +889,5 @@ UniValue NSPV_broadcast(char *hex)
     B.retcode = -2;
     return(NSPV_broadcast_json(&B,txid));
 }
-*/
+
 #endif // KOMODO_NSPVSUPERLITE_H

@@ -397,6 +397,7 @@ class CNode
     friend struct ConnmanTestMsg;
 
 public:
+    CDataStream ssSend;
     std::unique_ptr<TransportDeserializer> m_deserializer;
     std::unique_ptr<TransportSerializer> m_serializer;
 
@@ -672,6 +673,48 @@ public:
         m_last_ping_time = ping_time;
         m_min_ping_time = std::min(m_min_ping_time.load(), ping_time);
     }
+
+    // TODO: Document the postcondition of this function.  Is cs_vSend locked?
+    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend);
+
+    // TODO: Document the precondition of this function.  Is cs_vSend locked?
+    void AbortMessage() UNLOCK_FUNCTION(cs_vSend);
+
+    // TODO: Document the precondition of this function.  Is cs_vSend locked?
+    void EndMessage() UNLOCK_FUNCTION(cs_vSend);
+
+    void PushMessage(const char* pszCommand)
+    {
+        //fprintf(stderr,"push.(%s)\n",pszCommand);
+        try
+        {
+            BeginMessage(pszCommand);
+            EndMessage();
+        }
+        catch (...)
+        {
+            AbortMessage();
+            throw;
+        }
+    }
+
+    template<typename T1>
+    void PushMessage(const char* pszCommand, const T1& a1)
+    {
+        //fprintf(stderr,"push.(%s)\n",pszCommand);
+        try
+        {
+            BeginMessage(pszCommand);
+            ssSend << a1;
+            EndMessage();
+        }
+        catch (...)
+        {
+            AbortMessage();
+            throw;
+        }
+    }
+
 
 private:
     const NodeId id;
@@ -953,6 +996,8 @@ public:
     /** Return true if we should disconnect the peer for failing an inactivity check. */
     bool ShouldRunInactivityChecks(const CNode& node, std::optional<int64_t> now=std::nullopt) const;
 
+    std::vector<CNode*> vNodes GUARDED_BY(cs_vNodes);
+
 private:
     struct ListenSocket {
     public:
@@ -1066,7 +1111,6 @@ private:
     RecursiveMutex m_addr_fetches_mutex;
     std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);
     mutable RecursiveMutex cs_vAddedNodes;
-    std::vector<CNode*> vNodes GUARDED_BY(cs_vNodes);
     std::list<CNode*> vNodesDisconnected;
     mutable RecursiveMutex cs_vNodes;
     std::atomic<NodeId> nLastNodeId{0};

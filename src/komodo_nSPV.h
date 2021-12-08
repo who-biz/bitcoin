@@ -26,7 +26,7 @@
 #ifndef KOMODO_NSPV_H
 #define KOMODO_NSPV_H
 
-#include "komodo_validation021.h"
+//#include "komodo_validation021.h"
 
 int32_t iguana_rwbuf(int32_t rwflag,uint8_t *serialized,int32_t len,uint8_t *buf)
 {

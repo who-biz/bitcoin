@@ -65,6 +65,8 @@ ChainstateManager& EnsureAnyChainman(const std::any& context);
 CBlockPolicyEstimator& EnsureFeeEstimator(const NodeContext& node);
 CBlockPolicyEstimator& EnsureAnyFeeEstimator(const std::any& context);
 
+bool myIsutxo_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int32_t vout);
+
 /**
  * Helper to create UTXO snapshots given a chainstate and a file handle.
  * @return a UniValue map containing metadata about the snapshot.

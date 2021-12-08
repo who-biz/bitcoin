@@ -13,10 +13,13 @@
  *                                                                            *
  ******************************************************************************/
 
+#include <komodo_defs.h>
 #include <node/context.h>
 #include <rpc/blockchain.h>
 #include <validation.h>
 #include <wallet/wallet.h>
+
+#pragma once
 
 // API endpoints required for dPoW:
 //   - validateaddress
@@ -453,9 +456,6 @@ static const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] =
 	{"dragonhound_DEV", "02b3c168ed4acd96594288cee3114c77de51b6afe1ab6a866887a13a96ee80f33c"}
    }
 };
-
-union _bits256 { uint8_t bytes[32]; uint16_t ushorts[16]; uint32_t uints[8]; uint64_t ulongs[4]; uint64_t txid; };
-typedef union _bits256 bits256;
 
 struct sha256_vstate { uint64_t length; uint32_t state[8],curlen; uint8_t buf[64]; };
 struct rmd160_vstate { uint64_t length; uint8_t buf[64]; uint32_t curlen, state[5]; };

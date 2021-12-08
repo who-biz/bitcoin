@@ -17,8 +17,14 @@
 #define KOMODO_DEFS_H
 
 extern int32_t KOMODO_NSPV;
+static uint256 ignoretxid;
+static int32_t ignorevin;
+
+union _bits256 { uint8_t bytes[32]; uint16_t ushorts[16]; uint32_t uints[8]; uint64_t ulongs[4]; uint64_t txid; };
+typedef union _bits256 bits256;
 
 #define ASSETCHAINS_BLOCKTIME 60
+#define DEFAULT_BLOCK_MAX_SIZE 2000000
 
 #ifndef KOMODO_NSPV_FULLNODE
 #define KOMODO_NSPV_FULLNODE (KOMODO_NSPV <= 0)

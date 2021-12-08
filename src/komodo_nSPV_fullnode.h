@@ -19,8 +19,12 @@
 
 // NSPV_get... functions need to return the exact serialized length, which is the size of the structure minus size of pointers, plus size of allocated data
 
+#include "addressindex.h"
+//#include "notarisationdb.h"
 #include "rpc/server.h"
-#include "notarisationdb.h"
+#include "komodo_defs.h"
+
+extern NodeContext* g_rpc_node;
 
 CPubKey pubkey2pk(std::vector<uint8_t> vpubkey)
 {
@@ -54,7 +58,7 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
     return(desttxid);
 }
 
-int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
+/*int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
     int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; Notarisation nota; char *symbol; std::vector<uint8_t> opret;
     symbol = (ASSETCHAINS_SYMBOL[0] == 0) ? (char *)"KMD" : ASSETCHAINS_SYMBOL;
@@ -128,7 +132,7 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
     }
     return(sizeof(*ptr));
 }
-
+*/
 int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 {
     CBlockIndex *pindex;
@@ -141,9 +145,7 @@ int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
         hdr->hashMerkleRoot = pindex->hashMerkleRoot;
         hdr->nTime = pindex->nTime;
         hdr->nBits = pindex->nBits;
-//TODO: Resolve nonce type mismatch
-//        hdr->nNonce = pindex->nNonce;
-//        memcpy(hdr->nSolution,&pindex->nSolution[0],sizeof(hdr->nSolution));
+        hdr->nNonce = pindex->nNonce;
         return(sizeof(*hdr));
     }
     return(-1);
@@ -157,9 +159,10 @@ int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
         ptr->height = pindex->nHeight;
         ptr->blockhash = pindex->GetBlockHash();
         memset(&pair,0,sizeof(pair));
-        if ( NSPV_getntzsresp(&pair,ptr->height-1) < 0 )
-            return(-1);
-        ptr->notarization = pair.prevntz;
+        //TODO: figure out solution for NotarisationDB headache
+        //if ( NSPV_getntzsresp(&pair,ptr->height-1) < 0 )
+        //    return(-1);
+        //ptr->notarization = pair.prevntz;
         if ( (pindex2= komodo_chainactive(ptr->notarization.txidheight)) != 0 )
             ptr->notarization.timestamp = pindex->nTime;
         //fprintf(stderr, "timestamp.%i\n", ptr->notarization.timestamp );
@@ -173,11 +176,11 @@ int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
     } else return(-1);
 }
 
-/*int32_t NSPV_getaddressutxos(struct NSPV_utxosresp *ptr,char *coinaddr,int32_t skipcount,uint32_t filter)
+int32_t NSPV_getaddressutxos(struct NSPV_utxosresp *ptr,char *coinaddr,int32_t skipcount,uint32_t filter)
 {
     int64_t total = 0,interest=0; uint32_t locktime; int32_t ind=0,tipheight,maxlen,txheight,n = 0,len = 0;
     std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > unspentOutputs;
-    maxlen = MAX_BLOCK_SIZE(tipheight) - 512;
+    maxlen = DEFAULT_BLOCK_MAX_SIZE - 512;
     maxlen /= sizeof(*ptr->utxos);
     strncpy(ptr->coinaddr,coinaddr,sizeof(ptr->coinaddr)-1);
     ptr->filter = filter;
@@ -203,11 +206,11 @@ int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
                         ptr->utxos[ind].vout = (int32_t)it->first.index;
                         ptr->utxos[ind].satoshis = it->second.satoshis;
                         ptr->utxos[ind].height = it->second.blockHeight;
-                        if ( ASSETCHAINS_SYMBOL[0] == 0 && it->second.satoshis >= 10*COIN )
-                        {
-                            ptr->utxos[n].extradata = komodo_accrued_interest(&txheight,&locktime,ptr->utxos[ind].txid,ptr->utxos[ind].vout,ptr->utxos[ind].height,ptr->utxos[ind].satoshis,tipheight);
-                            interest += ptr->utxos[ind].extradata;
-                        }
+//                        if ( ASSETCHAINS_SYMBOL[0] == 0 && it->second.satoshis >= 10*COIN )
+//                        {
+//                            ptr->utxos[n].extradata = komodo_accrued_interest(&txheight,&locktime,ptr->utxos[ind].txid,ptr->utxos[ind].vout,ptr->utxos[ind].height,ptr->utxos[ind].satoshis,tipheight);
+//                            interest += ptr->utxos[ind].extradata;
+//                        }
                         ind++;
                         total += it->second.satoshis;
                     }
@@ -229,7 +232,7 @@ int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
         free(ptr->utxos);
     memset(ptr,0,sizeof(*ptr));
     return(0);
-}*/
+}
 
 /*int32_t NSPV_getaddresstxids(struct NSPV_txidsresp *ptr,char *coinaddr,int32_t skipcount,uint32_t filter)
 {

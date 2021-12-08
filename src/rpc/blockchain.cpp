@@ -20,6 +20,8 @@
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>
 #include <node/blockstorage.h>
+#include <komodo_defs.h>
+//#include <komodo_nSPV_superlite.h>
 #include <komodo_rpcblockchain.h>
 #include <node/coinstats.h>
 #include <node/context.h>
@@ -472,6 +474,38 @@ static RPCHelpMan getdifficulty()
     return GetDifficulty(chainman.ActiveChain().Tip());
 },
     };
+}
+
+bool NSPV_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int32_t vout);
+bool NSPV_inmempool(uint256 txid);
+
+bool myIsutxo_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int32_t vout)
+{
+    JSONRPCRequest request;
+    const CTxMemPool& mempool = EnsureAnyMemPool(request.context);
+    LOCK(mempool.cs);
+
+    int32_t vini = 0;
+    if ( KOMODO_NSPV_SUPERLITE )
+        return(NSPV_spentinmempool(spenttxid,spentvini,txid,vout));
+    BOOST_FOREACH(const CTxMemPoolEntry &e,mempool.mapTx)
+    {
+        const CTransaction &tx = e.GetTx();
+        const uint256 &hash = tx.GetHash();
+        BOOST_FOREACH(const CTxIn &txin,tx.vin)
+        {
+            //fprintf(stderr,"%s/v%d ",uint256_str(str,txin.prevout.hash),txin.prevout.n);
+            if ( txin.prevout.n == vout && txin.prevout.hash == txid )
+            {
+                spenttxid = hash;
+                spentvini = vini;
+                return(true);
+            }
+            vini++;
+        }
+        //fprintf(stderr,"are vins for %s\n",uint256_str(str,hash));
+    }
+    return(false);
 }
 
 static std::vector<RPCResult> MempoolEntryDescription() { return {
