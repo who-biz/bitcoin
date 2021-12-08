@@ -430,7 +430,25 @@ RPCHelpMan nspv_listtransactions()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t skipcount = 0;
+    if ( request.params.size() > 2 )
+        throw std::runtime_error("nspv_listtransactions [address [skipcount]]\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    if ( request.params.size() == 0 )
+    {
+        if ( NSPV_address.size() != 0 )
+            return(NSPV_addresstxids((char *)NSPV_address.c_str(),0,0));
+        else throw std::runtime_error("nspv_listtransactions [address [skipcount]]\n");
+    }
+    if ( request.params.size() >= 1 )
+    {
+        if ( request.params.size() >= 2 )
+            skipcount = atoi((char *)request.params[1].get_str().c_str());
+        //fprintf(stderr,"call txids cc.%d skip.%d\n",CCflag,skipcount);
+        return(NSPV_addresstxids((char *)request.params[0].get_str().c_str(),skipcount,0));
+    }
+    else throw std::runtime_error("nspv_listtransactions [address [isCC [skipcount]]]\n");
 },
     };
 }
