@@ -257,13 +257,13 @@ void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, const std
         pwallet->SetAddressBook(dest, strLabel, "receive");
 }
 
-
+extern std::string NSPV_address;
 UniValue NSPV_getinfo_req(int32_t reqht);
 UniValue NSPV_login(char *wifstr);
 UniValue NSPV_logout();
-UniValue NSPV_addresstxids(char *coinaddr,int32_t CCflag,int32_t skipcount,int32_t filter);
-UniValue NSPV_addressutxos(char *coinaddr,int32_t CCflag,int32_t skipcount,int32_t filter);
-UniValue NSPV_mempooltxids(char *coinaddr,int32_t CCflag,uint8_t funcid,uint256 txid,int32_t vout);
+UniValue NSPV_addresstxids(char *coinaddr,int32_t skipcount,int32_t filter);
+UniValue NSPV_addressutxos(char *coinaddr,int32_t skipcount,int32_t filter);
+UniValue NSPV_mempooltxids(char *coinaddr,uint8_t funcid,uint256 txid,int32_t vout);
 UniValue NSPV_broadcast(char *hex);
 UniValue NSPV_spend(char *srcaddr,char *destaddr,int64_t satoshis);
 UniValue NSPV_spentinfo(uint256 txid,int32_t vout);
@@ -355,7 +355,24 @@ RPCHelpMan nspv_listunspent()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t skipcount = 0;
+    if ( request.params.size() > 3 )
+        throw std::runtime_error("nspv_listunspent [address [skipcount]]\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    if ( request.params.size() == 0 )
+    {
+        if ( NSPV_address.size() != 0 )
+            return(NSPV_addressutxos((char *)NSPV_address.c_str(),0,0));
+        else throw std::runtime_error("nspv_listunspent [address [skipcount]]\n");
+    }
+    if ( request.params.size() >= 1 )
+    {
+        if ( request.params.size() >= 2 )
+            skipcount = atoi((char *)request.params[2].get_str().c_str());
+        return(NSPV_addressutxos((char *)request.params[0].get_str().c_str(),skipcount,0));
+    }
+    else throw std::runtime_error("nspv_listunspent [address [isCC [skipcount]]]\n");
 },
     };
 }
