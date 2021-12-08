@@ -341,6 +341,7 @@ libbitcoin_server_a_SOURCES = \
   index/coinstatsindex.cpp \
   index/txindex.cpp \
   init.cpp \
+  komodo_validation021.cpp \
   mapport.cpp \
   miner.cpp \
   net.cpp \
