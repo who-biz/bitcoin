@@ -308,7 +308,11 @@ RPCHelpMan nspv_logout()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    if ( request.params.size() != 0 )
+        throw std::runtime_error("nspv_logout\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    return(NSPV_logout());
 },
     };
 }
@@ -326,7 +330,11 @@ RPCHelpMan nspv_login()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    if ( request.params.size() != 1 )
+        throw std::runtime_error("nspv_login wif\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    return(NSPV_login((char *)request.params[0].get_str().c_str()));
 },
     };
 }
