@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * Copyright © 2014-2019 The SuperNET Developers.                             *
  *                                                                            *
@@ -584,8 +583,9 @@ int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
     return(len);
 }
 
-/*void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a request
+void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a request
 {
+    const CNetMsgMaker msgMaker(pfrom->GetCommonVersion());
     int32_t len,slen,ind,reqheight,n; std::vector<uint8_t> response; uint32_t timestamp = (uint32_t)time(NULL);
     if ( (len= request.size()) > 0 )
     {
@@ -612,14 +612,14 @@ int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
                     if ( NSPV_rwinforesp(1,&response[1],&I) == slen )
                     {
                         //fprintf(stderr,"send info resp to id %d\n",(int32_t)pfrom->id);
-                        pfrom->PushMessage("nSPV",response);
+                        g_rpc_node->connman->PushMessage(pfrom,msgMaker.Make(NetMsgType::NSPV,response));
                         pfrom->prevtimes[ind] = timestamp;
                     }
                     NSPV_inforesp_purge(&I);
                 }
             }
         }
-        else if ( request[0] == NSPV_UTXOS )
+/*        else if ( request[0] == NSPV_UTXOS )
         {
             //fprintf(stderr,"utxos: %u > %u, ind.%d, len.%d\n",timestamp,pfrom->prevtimes[ind],ind,len);
             if ( timestamp > pfrom->prevtimes[ind] )
@@ -868,10 +868,10 @@ int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
                     pfrom->PushMessage("nSPV",response);
                     pfrom->prevtimes[ind] = timestamp;
                     NSPV_remoterpc_purge(&R);
-                }                
+                }
             }
-        }
+        }*/
     }
 }
-*/
+
 #endif // KOMODO_NSPVFULLNODE_H

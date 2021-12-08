@@ -17,6 +17,7 @@
 #ifndef KOMODO_NSPVSUPERLITE_H
 #define KOMODO_NSPVSUPERLITE_H
 
+#include <komodo_validation021.h>
 #include <boost/foreach.hpp>
 #include <mini-gmp.c>
 #include <netmessagemaker.h>

@@ -16,6 +16,9 @@
 #ifndef KOMODO_DEFS_H
 #define KOMODO_DEFS_H
 
+#include <stdint.h>
+#include <uint256.h>
+
 extern int32_t KOMODO_NSPV;
 static uint256 ignoretxid;
 static int32_t ignorevin;
