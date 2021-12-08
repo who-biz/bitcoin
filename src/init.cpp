@@ -653,7 +653,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 }
 
 /** Sanity checks
- *  Ensure that Bitcoin is running in a usable environment with all
+ *  Ensure that Milevium is running in a usable environment with all
  *  necessary library support.
  */
 bool InitSanityCheck(void)
@@ -781,6 +781,8 @@ void InitLogging()
     LogPrintf("MIL version %s\n", FormatFullVersion());
 }
 
+int32_t komodo_init();
+
 /** Initialize milcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
@@ -846,6 +848,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     const CChainParams& chainparams = Params();
 
     // also see: InitParameterInteraction()
+
+    komodo_init();
 
     // if using block pruning, then disable txindex
     if (GetArg("-prune", 0)) {
@@ -1051,7 +1055,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     std::string strDataDir = GetDataDir().string();
 
-    // Make sure only a single Bitcoin process is using the data directory.
+    // Make sure only a single Milevium process is using the data directory.
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
     if (file) fclose(file);
