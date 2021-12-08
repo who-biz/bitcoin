@@ -467,7 +467,14 @@ RPCHelpMan nspv_spentinfo()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    uint256 txid; int32_t vout;
+    if ( request.params.size() != 2 )
+        throw std::runtime_error("nspv_spentinfo txid vout\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    txid = Parseuint256((char *)request.params[0].get_str().c_str());
+    vout = atoi((char *)request.params[1].get_str().c_str());
+    return(NSPV_spentinfo(txid,vout));
 },
     };
 }
