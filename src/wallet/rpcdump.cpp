@@ -492,7 +492,13 @@ RPCHelpMan nspv_notarizations()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t height;
+    if ( request.params.size() != 1 )
+        throw std::runtime_error("nspv_notarizations height\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    height = atoi((char *)request.params[0].get_str().c_str());
+    return(NSPV_notarizations(height));
 },
     };
 }
@@ -511,7 +517,14 @@ RPCHelpMan nspv_hdrsproof()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t prevheight,nextheight;
+    if ( request.params.size() != 2 )
+        throw std::runtime_error("nspv_hdrsproof prevheight nextheight\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    prevheight = atoi((char *)request.params[0].get_str().c_str());
+    nextheight = atoi((char *)request.params[1].get_str().c_str());
+    return(NSPV_hdrsproof(prevheight,nextheight));
 },
     };
 }
