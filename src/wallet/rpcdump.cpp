@@ -6,6 +6,7 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
+#include <komodo_defs.h>
 #include <merkleblock.h>
 #include <rpc/util.h>
 #include <script/descriptor.h>
@@ -256,15 +257,7 @@ void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, const std
         pwallet->SetAddressBook(dest, strLabel, "receive");
 }
 
-/*
-extern int32_t KOMODO_NSPV;
-#ifndef KOMODO_NSPV_FULLNODE
-#define KOMODO_NSPV_FULLNODE (KOMODO_NSPV <= 0)
-#endif // !KOMODO_NSPV_FULLNODE
-#ifndef KOMODO_NSPV_SUPERLITE
-#define KOMODO_NSPV_SUPERLITE (KOMODO_NSPV > 0)
-#endif // !KOMODO_NSPV_SUPERLITE
-uint256 zeroid;
+
 UniValue NSPV_getinfo_req(int32_t reqht);
 UniValue NSPV_login(char *wifstr);
 UniValue NSPV_logout();
@@ -277,7 +270,7 @@ UniValue NSPV_spentinfo(uint256 txid,int32_t vout);
 UniValue NSPV_notarizations(int32_t height);
 UniValue NSPV_hdrsproof(int32_t prevheight,int32_t nextheight);
 UniValue NSPV_txproof(int32_t vout,uint256 txid,int32_t height);
-*/
+
 
 RPCHelpMan nspv_getinfo()
 {
@@ -292,7 +285,14 @@ RPCHelpMan nspv_getinfo()
                 },
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
-    return NullUniValue;
+    int32_t reqht = 0;
+    if ( request.params.size() > 1 )
+        throw std::runtime_error("nspv_getinfo [hdrheight]\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    if ( request.params.size() == 1 )
+        reqht = atoi((char *)request.params[0].get_str().c_str());
+    return(NSPV_getinfo_req(reqht));
 },
     };
 }
