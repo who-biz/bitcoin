@@ -529,6 +529,32 @@ RPCHelpMan nspv_hdrsproof()
     };
 }
 
+RPCHelpMan nspv_txproof()
+{
+    return RPCHelpMan{"nspv_txproof", "",
+                {
+                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "specified txid"},
+                    {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified height"},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+            "\nNSPV spend\n"
+            + HelpExampleCli("nspv_txproof", "txid height")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    uint256 txid; int32_t height;
+    if ( request.params.size() != 2 )
+        throw std::runtime_error("nspv_txproof txid height\n");
+    if ( KOMODO_NSPV_FULLNODE )
+        throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
+    txid = Parseuint256((char *)request.params[0].get_str().c_str());
+    height = atoi((char *)request.params[1].get_str().c_str());
+    return(NSPV_txproof(0,txid,height));
+},
+    };
+}
+
 RPCHelpMan nspv_spend()
 {
     return RPCHelpMan{"nspv_spend", "",
