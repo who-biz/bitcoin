@@ -2912,6 +2912,8 @@ static RPCHelpMan height_MoM()
     };
 }
 
+RPCHelpMan nspv_getinfo();
+
 void RegisterBlockchainRPCCommands(CRPCTable &t)
 {
 // clang-format off
@@ -2954,6 +2956,8 @@ static const CRPCCommand commands[] =
     { "hidden",              &waitforblockheight,                },
     { "hidden",              &syncwithvalidationinterfacequeue,  },
     { "hidden",              &dumptxoutset,                      },
+
+    { "nspv",                &nspv_getinfo,                      },
 };
 // clang-format on
     for (const auto& c : commands) {

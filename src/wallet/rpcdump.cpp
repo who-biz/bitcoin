@@ -275,11 +275,41 @@ UniValue NSPV_txproof(int32_t vout,uint256 txid,int32_t height);
 
 RPCHelpMan nspv_getinfo()
 {
-    return RPCHelpMan{"nspv_getinfo","" ,
+    return RPCHelpMan{"nspv_getinfo",
+                "Returns an object containing general information about the state of blockchain in current moment\n",
                 {
                     {"hdrheight", RPCArg::Type::NUM, RPCArg::Default{0}, "Specified height for getinfo request"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::STR, "nSPV", "the mode of nSPV"},
+                        {RPCResult::Type::NUM, "height", "current height of the blockchain"},
+                        {RPCResult::Type::STR_HEX, "chainTip", "hash of top block in blockchain"},
+                        {RPCResult::Type::STR, "address", "the address corresponding to the wifkey"},
+                        {RPCResult::Type::STR, "pubkey", "the pubkey corresponding to the wifkey"},
+                        {RPCResult::Type::STR, "wifexpires", "the time in seconds until login expires"},
+                        {RPCResult::Type::OBJ, "notarization", "a json object containing the notarization details",
+                        {
+                            {RPCResult::Type::NUM, "notarized_height", "the height of the last block that has been notarized"},
+                            {RPCResult::Type::STR_HEX, "notarized_blockhash", "the blockhash of the latest block that has been notarized"},
+                            {RPCResult::Type::STR_HEX, "notarization_txid", "the id of the tx in which notarization data is included in dPoWed chain"},
+                            {RPCResult::Type::NUM, "notarization_txidheight", "the height of the block in which the notarization tx is included"},
+                            {RPCResult::Type::STR_HEX, "notarization_desttxid", "the id of the tx in which notarization data is included in the chain acting as data store"},
+                        }},
+                        {RPCResult::Type::OBJ, "header", "a json object containing header of current block or block specified by [hdrheight]",
+                        {
+                            {RPCResult::Type::NUM, "height", "the height of the block that was queried"},
+                            {RPCResult::Type::STR_HEX, "blockhash", "hash of the block that has been queried"},
+                            {RPCResult::Type::STR_HEX, "hashPrevBlock", "hash of the block before the queried block"},
+                            {RPCResult::Type::STR_HEX, "hashMerkleRoot", "the merkleroot of the block that has been queried"},
+                            {RPCResult::Type::NUM, "nTime", "a timestamp recording when this block was created"},
+                            {RPCResult::Type::NUM, "nBits", "calculated difficulty target being used for this block"},
+                        }},
+                        {RPCResult::Type::STR, "protocolversion", "version of the client; helps nspv client disconnect from nodes that are out of date"},
+                        {RPCResult::Type::STR, "lastpeer", "the last known peer"},
+                    }},
                 RPCExamples{
             "\nNSPV getinfo with optionally specified height\n"
             + HelpExampleCli("nspv_getinfo", "[hdrheight]")
