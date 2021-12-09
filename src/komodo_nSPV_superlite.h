@@ -229,6 +229,12 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         memset(pnodes,0,sizeof(pnodes));
         //LOCK(cs_vNodes);
         n = 0;
+
+        if (g_rpc_node->connman->vNodes.size() == 0)
+          LogPrintf(">>>>> (%s): no vNodes available!\n",__func__);
+        else
+          LogPrintf(">>>>> (%s): vNodes.size() = %d\n",__func__,g_rpc_node->connman->vNodes.size());
+
         BOOST_FOREACH(CNode *ptr,g_rpc_node->connman->vNodes)
         {
             if ( ptr->prevtimes[ind] > timestamp )
@@ -258,7 +264,7 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         g_rpc_node->connman->PushMessage(pnode,CNetMsgMaker(pnode->GetCommonVersion()).Make(NetMsgType::NSPV,request));
         pnode->prevtimes[ind] = timestamp;
         return(pnode);
-    } else fprintf(stderr,"no pnodes\n");
+    } else LogPrintf(">>>>> (%s): no pnodes available!\n",__func__);
     return(0);
 }
 
