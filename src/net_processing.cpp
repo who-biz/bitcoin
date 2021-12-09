@@ -3532,6 +3532,7 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
 
     if (gArgs.GetArg("-nspv_msg", DEFAULT_NSPV_PROCESSING) && msg_type == NetMsgType::NSPV)
     {
+        LogPrintf(">>>>>> nspv_condition met! (msg_type = %s)\n",msg_type);
         std::vector<uint8_t> payload;
         vRecv >> payload;
 
