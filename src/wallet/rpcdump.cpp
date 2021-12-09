@@ -339,6 +339,7 @@ RPCHelpMan nspv_logout()
                     RPCResult::Type::OBJ, "", "",
                     {
                         {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::STR, "status", "information about result"},
                     }},
                 RPCExamples{
             "\nNSPV logout\n"
@@ -426,14 +427,28 @@ RPCHelpMan nspv_listunspent()
 
 RPCHelpMan nspv_mempool()
 {
-    return RPCHelpMan{"nspv_mempool","" ,
+    return RPCHelpMan{"nspv_mempool",
+                "This method return the current transactions in mempool. Various parameters can be used to filter the transactions.",
                 {
                     {"funcid", RPCArg::Type::NUM, RPCArg::Default{0}, "func(0 all, 1 address recv, 2 txid/vout)"},
                     {"address", RPCArg::Type::STR, RPCArg::Default{""}, "Specified address for mempool request"},
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Default{""}, "Optionally specified txid"},
                     {"vout", RPCArg::Type::NUM, RPCArg::Default{0}, "Optionally specified vout number"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::ARR, "txids", "",
+                        {
+                            {RPCResult::Type::STR_HEX, "", "the transaction id"},
+                        }},
+                        {RPCResult::Type::STR, "address", "the adress that was used to filter the mempool"},
+                        {RPCResult::Type::NUM, "height", "the height of the blockchain when this response was returned"},
+                        {RPCResult::Type::NUM, "numtxids", "the number of transaction ids that are being returned"},
+                        {RPCResult::Type::STR, "type", "the type of filter applied to the mempool"},
+                        {RPCResult::Type::STR, "lastpeer", "the last known peer"},
+                    }},
                 RPCExamples{
             "\nNSPV mempool with funcid + address parameters\n"
             + HelpExampleCli("nspv_mempool", "funcid \"address\"") +
@@ -464,7 +479,7 @@ RPCHelpMan nspv_mempool()
 
 RPCHelpMan nspv_listtransactions()
 {
-    return RPCHelpMan{"nspv_mempool", "",
+    return RPCHelpMan{"nspv_listtransactions", "",
                 {
                     {"address", RPCArg::Type::STR, RPCArg::Default{""}, "Specified address for transactions"},
                     {"skipcount", RPCArg::Type::NUM, RPCArg::Default{0}, "Optionally specified skipcount"},

@@ -2915,6 +2915,7 @@ static RPCHelpMan height_MoM()
 RPCHelpMan nspv_getinfo();
 RPCHelpMan nspv_logout();
 RPCHelpMan nspv_login();
+RPCHelpMan nspv_mempool();
 
 void RegisterBlockchainRPCCommands(CRPCTable &t)
 {
@@ -2962,6 +2963,7 @@ static const CRPCCommand commands[] =
     { "nspv",                &nspv_getinfo,                      },
     { "nspv",                &nspv_login,                        },
     { "nspv",                &nspv_logout,                       },
+    { "nspv",                &nspv_mempool,                       },
 };
 // clang-format on
     for (const auto& c : commands) {
