@@ -31,6 +31,7 @@
 #include <pow.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
+#include <rpc/blockchain.h>
 #include <random.h>
 #include <reverse_iterator.h>
 #include <script/script.h>
@@ -70,8 +71,6 @@ char ASSETCHAINS_SYMBOL[65] = { "CHIPS" };
 
 /** Default NSPV support enabled */
 const bool DEFAULT_NSPV_PROCESSING = false;
-
-ChainstateManager* chainman;
 
 /**
  * An extra transaction can be added to a package, as long as it only has one
@@ -1208,7 +1207,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
 
         if (fAllowSlow) { // use coin database to locate block that contains transaction, and scan it
             const Coin& coin = AccessByTxid(*pcoinsTip, hash);
-            if (!coin.IsSpent()) pindexSlow = chainman->ActiveChain()[coin.nHeight];
+            if (!coin.IsSpent()) pindexSlow = g_rpc_node->chainman->ActiveChain()[coin.nHeight];
         }
     }
 
@@ -3093,7 +3092,7 @@ static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& st
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
-    if (chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
+    if (g_rpc_node->chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
         if (block.GetBlockTime() > GetAdjustedTime() + 4) {
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "block-from-future", "CheckBlockHeader block from future");
         }
@@ -3265,7 +3264,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         }
         else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
         {
-            CBlockIndex *heightblock = chainman->ActiveChain()[nHeight];
+            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
             if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
                 return true;
             } else {
