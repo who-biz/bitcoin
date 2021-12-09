@@ -69,9 +69,6 @@
 
 char ASSETCHAINS_SYMBOL[65] = { "CHIPS" };
 
-/** Default NSPV support enabled */
-const bool DEFAULT_NSPV_PROCESSING = false;
-
 /**
  * An extra transaction can be added to a package, as long as it only has one
  * ancestor and is no larger than this. Not really any reason to make this

@@ -4,12 +4,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <protocol.h>
+#include <init.h>
 
 #include <util/system.h>
 
 static std::atomic<bool> g_initial_block_download_completed(false);
-
-extern const bool DEFAULT_NSPV_PROCESSING;
 
 namespace NetMsgType {
 const char *VERSION="version";
@@ -137,6 +136,23 @@ ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
 
 void SetServiceFlagsIBDCache(bool state) {
     g_initial_block_download_completed = state;
+}
+
+CAddress::CAddress() : CService()
+{
+  Init();
+}
+
+CAddress::CAddress(CService ipIn, ServiceFlags nServicesIn) : CService(ipIn)
+{
+  Init();
+  nServices = nServicesIn;
+}
+
+void CAddress::Init()
+{
+  nServices = gArgs.GetArg("-nspv_msg", DEFAULT_NSPV_PROCESSING) ? ServiceFlags(NODE_NETWORK | NODE_NSPV) : ServiceFlags(NODE_NETWORK);
+  nTime = TIME_INIT;
 }
 
 CInv::CInv()

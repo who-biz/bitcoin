@@ -15,6 +15,7 @@
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>
+#include <validation.h>
 #include <version.h>
 
 #include <limits>
@@ -391,9 +392,11 @@ class CAddress : public CService
     static_assert((DISK_VERSION_ADDRV2 & DISK_VERSION_IGNORE_MASK) == 0, "DISK_VERSION_ADDRV2 must not be covered by DISK_VERSION_IGNORE_MASK");
 
 public:
-    CAddress() : CService{} {};
-    CAddress(CService ipIn, ServiceFlags nServicesIn) : CService{ipIn}, nServices{nServicesIn} {};
-    CAddress(CService ipIn, ServiceFlags nServicesIn, uint32_t nTimeIn) : CService{ipIn}, nTime{nTimeIn}, nServices{nServicesIn} {};
+    CAddress();
+    CAddress(CService ipIn, ServiceFlags nServicesIn);
+    CAddress(CService ipIn, ServiceFlags nServicesIn, uint32_t nTimeIn);
+
+    void Init();
 
     SERIALIZE_METHODS(CAddress, obj)
     {
