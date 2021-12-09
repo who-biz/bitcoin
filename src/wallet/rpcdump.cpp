@@ -330,10 +330,16 @@ RPCHelpMan nspv_getinfo()
 
 RPCHelpMan nspv_logout()
 {
-    return RPCHelpMan{"nspv_logout", "",
+    return RPCHelpMan{"nspv_logout",
+                "Use the method to log out of the current active address",
                 {
+                  // no arguments
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                    }},
                 RPCExamples{
             "\nNSPV logout\n"
                 },
@@ -350,11 +356,21 @@ RPCHelpMan nspv_logout()
 
 RPCHelpMan nspv_login()
 {
-    return RPCHelpMan{"nspv_login", "" ,
+    return RPCHelpMan{"nspv_login",
+                "Use this method to log in to an address using its wifkey\n",
                 {
                     {"wif", RPCArg::Type::STR, RPCArg::Optional::NO, "wif for login to nspv"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::STR, "status", "the time til expiry of the login"},
+                        {RPCResult::Type::STR, "address", "the address corresponding to the wifkey"},
+                        {RPCResult::Type::STR, "pubkey", "the pubkey corresponding to the wifkey"},
+                        {RPCResult::Type::NUM, "wifprefix", "the prefix of the wifkey (indicates intended network for wifkey)"},
+                        {RPCResult::Type::BOOL, "compressed", "indicates whether the wifkey is compressed"},
+                    }},
                 RPCExamples{
             "\nNSPV login with specified wif\n"
             + HelpExampleCli("nspv_login", "wif")
