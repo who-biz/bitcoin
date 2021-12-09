@@ -235,19 +235,25 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         else
           LogPrintf(">>>>> (%s): vNodes.size() = %d\n",__func__,g_rpc_node->connman->vNodes.size());
 
-        BOOST_FOREACH(CNode *ptr,g_rpc_node->connman->vNodes)
+        for ( CNode *ptr : g_rpc_node->connman->vNodes )
         {
             if ( ptr->prevtimes[ind] > timestamp )
+            {
+                LogPrintf(">>> (%s) condition ((ptr->prevtimes[%d] = %d) > (timestamp = %d))\n",__func__,ind,ptr->prevtimes[ind],timestamp);
                 ptr->prevtimes[ind] = 0;
+            }
             if ( ptr->hSocket == INVALID_SOCKET )
+            {
+                LogPrintf(">>> (%s) condition ((ptr->hSocket = %d) == INVALID_SOCKET)\n",__func__,ptr->hSocket);
                 continue;
+            }
             if ( (ptr->nServices & mask) == mask && timestamp > ptr->prevtimes[ind] )
             {
                 flag = 1;
                 pnodes[n++] = ptr;
                 if ( n == sizeof(pnodes)/sizeof(*pnodes) )
                     break;
-            } // else fprintf(stderr,"nServices %llx vs mask %llx, t%u vs %u, ind.%d\n",(long long)ptr->nServices,(long long)mask,timestamp,ptr->prevtimes[ind],ind);
+            } else LogPrintf(">>>> error (%s): ptr->addr(%s): nServices %llx vs mask %llx, t%u vs %u, ind.%d\n",__func__,ptr->addr.ToString(),(long long)ptr->nServices,(long long)mask,timestamp,ptr->prevtimes[ind],ind);
         }
         if ( n > 0 )
             pnode = pnodes[rand() % n];
