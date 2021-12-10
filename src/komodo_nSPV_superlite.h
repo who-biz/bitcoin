@@ -253,7 +253,7 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
                 pnodes[n++] = ptr;
                 if ( n == sizeof(pnodes)/sizeof(*pnodes) )
                     break;
-            } else LogPrintf(">>>> error (%s): ptr->addr(%s): nServices %llx vs mask %llx, t%u vs %u, ind.%d\n",__func__,ptr->addr.ToString(),(long long)ptr->nServices,(long long)mask,timestamp,ptr->prevtimes[ind],ind);
+            } else LogPrintf(">>>> error (%s): ptr->addr(%s): nServices %d vs mask %d, t%u vs %u, ind.%d\n",__func__,ptr->addr.ToString(),(long long)ptr->nServices,(long long)mask,timestamp,ptr->prevtimes[ind],ind);
         }
         if ( n > 0 )
             pnode = pnodes[rand() % n];
