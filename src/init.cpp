@@ -724,7 +724,7 @@ namespace { // Variables internal to initialization process only
 int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
-ServiceFlags nLocalServices = gArgs.GetArg("-nSPV",DEFAULT_NSPV_PROCESSING) ? ServiceFlags(NODE_NETWORK | NODE_NSPV) : ServiceFlags(NODE_NETWORK);
+ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK | NODE_NETWORK_LIMITED);
 int64_t peer_connect_timeout;
 std::set<BlockFilterType> g_enabled_filter_types;
 
@@ -853,6 +853,8 @@ bool AppInitParameterInteraction(const ArgsManager& args)
 
         nLocalServices = ServiceFlags(nLocalServices | NODE_COMPACT_FILTERS);
     }
+
+    nLocalServices = args.GetBoolArg("-nspv_msg",DEFAULT_NSPV_PROCESSING) ? ServiceFlags(NODE_NETWORK | NODE_NSPV) : ServiceFlags(NODE_NETWORK);
 
     // if using block pruning, then disallow txindex and coinstatsindex
     if (args.GetArg("-prune", 0)) {
