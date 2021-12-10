@@ -138,23 +138,6 @@ void SetServiceFlagsIBDCache(bool state) {
     g_initial_block_download_completed = state;
 }
 
-CAddress::CAddress() : CService()
-{
-  Init();
-}
-
-CAddress::CAddress(CService ipIn, ServiceFlags nServicesIn) : CService(ipIn)
-{
-  Init();
-  nServices = nServicesIn;
-}
-
-void CAddress::Init()
-{
-  nServices = gArgs.GetArg("-nspv_msg", DEFAULT_NSPV_PROCESSING) ? ServiceFlags(NODE_NETWORK | NODE_NSPV) : ServiceFlags(NODE_NETWORK);
-  nTime = TIME_INIT;
-}
-
 CInv::CInv()
 {
     type = 0;
