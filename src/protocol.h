@@ -142,7 +142,11 @@ extern const char* GETADDR;
  * @since protocol version 60002.
  */
 extern const char* MEMPOOL;
+/**
+ * nSPV-related messaging
+ */
 extern const char* NSPV;
+extern const char* GETNSPV;
 /**
  * The ping message is sent periodically to help confirm that the receiving
  * peer is still connected.

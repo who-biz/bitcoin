@@ -27,6 +27,7 @@ const char *BLOCK="block";
 const char *GETADDR="getaddr";
 const char *MEMPOOL="mempool";
 const char *NSPV="nSPV";
+const char *GETNSPV="getnSPV";
 const char *PING="ping";
 const char *PONG="pong";
 const char *NOTFOUND="notfound";
@@ -68,6 +69,7 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::GETADDR,
     NetMsgType::MEMPOOL,
     NetMsgType::NSPV,
+    NetMsgType::GETNSPV,
     NetMsgType::PING,
     NetMsgType::PONG,
     NetMsgType::NOTFOUND,

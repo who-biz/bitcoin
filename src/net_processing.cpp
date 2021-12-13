@@ -2819,6 +2819,25 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
         return;
     }
 
+
+    if (gArgs.GetArg("-nspv_msg", DEFAULT_NSPV_PROCESSING) &&
+       (msg_type == NetMsgType::NSPV || msg_type == NetMsgType::GETNSPV)) {
+
+        LogPrintf(">>>>>> nspv_condition met! (msg_type = %s) (vRecv == %s)\n",msg_type, vRecv.str());
+        std::vector<uint8_t> payload;
+        vRecv >> payload;
+
+        if ( msg_type == NetMsgType::GETNSPV && KOMODO_NSPV == 0 ) {
+            komodo_nSPVreq(&pfrom, payload);
+        } else if ( msg_type == NetMsgType::NSPV && KOMODO_NSPV_SUPERLITE ) {
+            komodo_nSPVresp(&pfrom, payload);
+        }
+        return;
+    }
+    else if (KOMODO_NSPV_SUPERLITE)
+      return; //TODO: Figure out why this is necessary
+
+
     if (msg_type == NetMsgType::INV) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
@@ -3529,24 +3548,6 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
         }
         return;
     }
-
-    if (gArgs.GetArg("-nspv_msg", DEFAULT_NSPV_PROCESSING) && msg_type == NetMsgType::NSPV)
-    {
-        LogPrintf(">>>>>> nspv_condition met! (msg_type = %s)\n",msg_type);
-        std::vector<uint8_t> payload;
-        vRecv >> payload;
-
-        if ( KOMODO_NSPV == 0 ) {
-            komodo_nSPVreq(&pfrom, payload);
-        } else if ( KOMODO_NSPV_SUPERLITE ) {
-            komodo_nSPVresp(&pfrom, payload);
-        }
-        return;
-    }
-// TODO: research if below is DoS mitigation or what... likely will interfere with testing while nspv is under develop
-//    else if ( KOMODO_NSPV_SUPERLITE )
-//        return(true);
-
 
     if (msg_type == NetMsgType::BLOCKTXN)
     {
