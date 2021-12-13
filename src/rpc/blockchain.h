@@ -26,6 +26,8 @@ class UniValue;
 struct NodeContext;
 
 extern NodeContext* g_rpc_node;
+extern CTxMemPool* mempool;
+
 static constexpr int NUM_GETBLOCKSTATS_PERCENTILES = 5;
 
 /**
