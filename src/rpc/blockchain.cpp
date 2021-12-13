@@ -62,7 +62,6 @@ struct CUpdatedBlock
 };
 
 NodeContext* g_rpc_node = nullptr;
-CTxMemPool* mempool = nullptr;
 
 static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;

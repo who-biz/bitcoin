@@ -292,11 +292,12 @@ int32_t NSPV_getaddresstxids(struct NSPV_txidsresp *ptr,char *coinaddr,int32_t s
     return(0);
 }
 
-int32_t NSPV_mempoolfuncs(bits256 *satoshisp,int32_t *vindexp,std::vector<uint256> &txids,char *coinaddr,uint8_t funcid,uint256 txid,int32_t vout)
+/*int32_t NSPV_mempoolfuncs(bits256 *satoshisp,int32_t *vindexp,std::vector<uint256> &txids,char *coinaddr,uint8_t funcid,uint256 txid,int32_t vout)
 {
     int32_t num = 0,vini = 0,vouti = 0; uint8_t evalcode=0,func=0;  std::vector<uint8_t> vopret; char destaddr[64];
     *vindexp = -1;
     memset(satoshisp,0,sizeof(*satoshisp));
+    mempool = EnsureAnyMempool(
     if ( mempool->size() == 0 )
         return(0);
     LOCK(mempool->cs);
@@ -380,7 +381,7 @@ int32_t NSPV_mempooltxids(struct NSPV_mempoolresp *ptr,char *coinaddr,uint8_t fu
     memset(ptr,0,sizeof(*ptr));
     return(0);
 }
-
+*/
 int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
 {
     std::vector<uint256> txids; int32_t i,len = 0; UniValue result; std::string response;
