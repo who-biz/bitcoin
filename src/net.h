@@ -674,48 +674,6 @@ public:
         m_min_ping_time = std::min(m_min_ping_time.load(), ping_time);
     }
 
-    // TODO: Document the postcondition of this function.  Is cs_vSend locked?
-    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend);
-
-    // TODO: Document the precondition of this function.  Is cs_vSend locked?
-    void AbortMessage() UNLOCK_FUNCTION(cs_vSend);
-
-    // TODO: Document the precondition of this function.  Is cs_vSend locked?
-    void EndMessage() UNLOCK_FUNCTION(cs_vSend);
-
-    void PushMessage(const char* pszCommand)
-    {
-        //fprintf(stderr,"push.(%s)\n",pszCommand);
-        try
-        {
-            BeginMessage(pszCommand);
-            EndMessage();
-        }
-        catch (...)
-        {
-            AbortMessage();
-            throw;
-        }
-    }
-
-    template<typename T1>
-    void PushMessage(const char* pszCommand, const T1& a1)
-    {
-        //fprintf(stderr,"push.(%s)\n",pszCommand);
-        try
-        {
-            BeginMessage(pszCommand);
-            ssSend << a1;
-            EndMessage();
-        }
-        catch (...)
-        {
-            AbortMessage();
-            throw;
-        }
-    }
-
-
 private:
     const NodeId id;
     const uint64_t nLocalHostNonce;
