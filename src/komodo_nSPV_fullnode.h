@@ -20,6 +20,7 @@
 
 #include "addressindex.h"
 //#include "notarisationdb.h"
+#include <boost/foreach.hpp>
 #include "rpc/server.h"
 #include "komodo_defs.h"
 
@@ -69,16 +70,17 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
     return(desttxid);
 }
 
-/*int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
+int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
-    int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; Notarisation nota; char *symbol; std::vector<uint8_t> opret;
+    uint256* ignore_ntzhash;
+    int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; char *symbol; std::vector<uint8_t> opret; uint256 nota_txid;
     symbol = (ASSETCHAINS_SYMBOL[0] == 0) ? (char *)"KMD" : ASSETCHAINS_SYMBOL;
     memset(args,0,sizeof(*args));
     if ( dir > 0 )
         height += 10;
-    if ( (args->txidht= ScanNotarisationsDB(height,symbol,1440,nota)) == 0 )
+    if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
         return(-1);
-    args->txid = nota.first;
+    args->txid = nota_txid;
     if ( !GetTransaction(args->txid,tx,Params().GetConsensus(),hashBlock,false) || tx->vout.size() < 2 )
         return(-2);
     GetOpReturnData(tx->vout[1].scriptPubKey,opret);
@@ -143,7 +145,7 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
     }
     return(sizeof(*ptr));
 }
-*/
+
 int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 {
     CBlockIndex *pindex;
@@ -245,12 +247,12 @@ int32_t NSPV_getaddressutxos(struct NSPV_utxosresp *ptr,char *coinaddr,int32_t s
     return(0);
 }
 
-/*int32_t NSPV_getaddresstxids(struct NSPV_txidsresp *ptr,char *coinaddr,int32_t skipcount,uint32_t filter)
+int32_t NSPV_getaddresstxids(struct NSPV_txidsresp *ptr,char *coinaddr,int32_t skipcount,uint32_t filter)
 {
     int32_t maxlen,txheight,ind=0,n = 0,len = 0; CTransactionRef tx; uint256 hashBlock;
     std::vector<std::pair<CAddressIndexKey, CAmount> > txids;
     ptr->nodeheight = g_rpc_node->chainman->ActiveChain().Tip()->nHeight;
-    maxlen = MAX_BLOCK_SIZE(ptr->nodeheight) - 512;
+    maxlen = DEFAULT_BLOCK_MAX_SIZE - 512;
     maxlen /= sizeof(*ptr->txids);
     strncpy(ptr->coinaddr,coinaddr,sizeof(ptr->coinaddr)-1);
     ptr->filter = filter;
@@ -295,12 +297,12 @@ int32_t NSPV_mempoolfuncs(bits256 *satoshisp,int32_t *vindexp,std::vector<uint25
     int32_t num = 0,vini = 0,vouti = 0; uint8_t evalcode=0,func=0;  std::vector<uint8_t> vopret; char destaddr[64];
     *vindexp = -1;
     memset(satoshisp,0,sizeof(*satoshisp));
-    if ( mempool.size() == 0 )
+    if ( mempool->size() == 0 )
         return(0);
-    LOCK(mempool.cs);
-    BOOST_FOREACH(const CTxMemPoolEntry &e,mempool.mapTx)
+    LOCK(mempool->cs);
+    BOOST_FOREACH(const CTxMemPoolEntry &e,mempool->mapTx)
     {
-        const CTransactionRef &tx = e.GetTx();
+        const CTransaction tx = e.GetTx();
         const uint256 &hash = tx.GetHash();
         if ( funcid == NSPV_MEMPOOL_ALL )
         {
@@ -378,7 +380,7 @@ int32_t NSPV_mempooltxids(struct NSPV_mempoolresp *ptr,char *coinaddr,uint8_t fu
     memset(ptr,0,sizeof(*ptr));
     return(0);
 }
-*/
+
 int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
 {
     std::vector<uint256> txids; int32_t i,len = 0; UniValue result; std::string response;
@@ -585,6 +587,7 @@ int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
 
 void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a request
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     const CNetMsgMaker msgMaker(pfrom->GetCommonVersion());
     int32_t len,slen,ind,reqheight,n; std::vector<uint8_t> response; uint32_t timestamp = (uint32_t)time(NULL);
     if ( (len= request.size()) > 0 )
@@ -726,7 +729,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     }
                 } else fprintf(stderr,"len.%d req1.%d\n",len,request[1]);
             }
-        }
+        }*/
         else if ( request[0] == NSPV_NTZS )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
@@ -742,7 +745,8 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_NTZSRESP;
                         if ( NSPV_rwntzsresp(1,&response[1],&N) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
+                            //pfrom->PushMessage("nSPV",response);
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_ntzsresp_purge(&N);
@@ -750,7 +754,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                 }
             }
         }
-        else if ( request[0] == NSPV_NTZSPROOF )
+        /*else if ( request[0] == NSPV_NTZSPROOF )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
             {
@@ -802,7 +806,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     } else fprintf(stderr,"gettxproof error.%d\n",slen);
                 } else fprintf(stderr,"txproof reqlen.%d\n",len);
             }
-        }
+        }*/
         else if ( request[0] == NSPV_SPENTINFO )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
@@ -819,7 +823,8 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_SPENTINFORESP;
                         if ( NSPV_rwspentinfo(1,&response[1],&S) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
+                            //pfrom->PushMessage("nSPV",response);
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_spentinfo_purge(&S);
@@ -827,7 +832,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                 }
             }
         }
-        else if ( request[0] == NSPV_BROADCAST )
+        /*else if ( request[0] == NSPV_BROADCAST )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
             {
@@ -851,7 +856,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     }
                 }
             }
-        }
+        }*/
         else if ( request[0] == NSPV_REMOTERPC )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
@@ -865,12 +870,13 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     response.resize(1 + slen);
                     response[0] = NSPV_REMOTERPCRESP;
                     NSPV_rwremoterpcresp(1,&response[1],&R,slen);
-                    pfrom->PushMessage("nSPV",response);
+                    g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
+                    //pfrom->PushMessage("nSPV",response);
                     pfrom->prevtimes[ind] = timestamp;
                     NSPV_remoterpc_purge(&R);
                 }
             }
-        }*/
+        }
     }
 }
 

@@ -51,6 +51,7 @@ struct NSPV_txproof NSPV_txproof_cache[NSPV_MAXVINS * 4];
 
 struct NSPV_ntzsresp *NSPV_ntzsresp_find(int32_t reqheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t i;
     for (i=0; i<sizeof(NSPV_ntzsresp_cache)/sizeof(*NSPV_ntzsresp_cache); i++)
         if ( NSPV_ntzsresp_cache[i].reqheight == reqheight )
@@ -138,6 +139,7 @@ struct NSPV_ntzsproofresp *NSPV_ntzsproof_add(struct NSPV_ntzsproofresp *ptr)
 
 void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a response
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     struct NSPV_inforesp I; int32_t len; uint32_t timestamp = (uint32_t)time(NULL);
     strncpy(NSPV_lastpeer,pfrom->addr.ToString().c_str(),sizeof(NSPV_lastpeer)-1);
     if ( (len= response.size()) > 0 )
@@ -293,6 +295,7 @@ UniValue NSPV_logout()
 
 void komodo_nSPV(CNode *pto) // polling loop from SendMessages
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint8_t msg[256]; int32_t i,len=0; uint32_t timestamp = (uint32_t)time(NULL);
     if ( NSPV_logintime != 0 && timestamp > NSPV_logintime+NSPV_AUTOLOGOUT )
         NSPV_logout();
@@ -344,6 +347,7 @@ UniValue NSPV_spentinfo_json(struct NSPV_spentinfo *ptr)
 
 UniValue NSPV_ntz_json(struct NSPV_ntz *ptr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ);
     result.pushKV("notarized_height",(int64_t)ptr->height);
     result.pushKV("notarized_blockhash",ptr->blockhash.GetHex());
@@ -355,6 +359,7 @@ UniValue NSPV_ntz_json(struct NSPV_ntz *ptr)
 
 UniValue NSPV_header_json(struct NSPV_equihdr *hdr,int32_t height)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue item(UniValue::VOBJ);
     item.pushKV("height",(int64_t)height);
     item.pushKV("blockhash",NSPV_hdrhash(hdr).GetHex());
@@ -375,6 +380,7 @@ UniValue NSPV_headers_json(struct NSPV_equihdr *hdrs,int32_t numhdrs,int32_t hei
 
 UniValue NSPV_getinfo_json(struct NSPV_inforesp *ptr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ); int32_t expiration; uint32_t timestamp = (uint32_t)time(NULL);
     result.pushKV("result","success");
     result.pushKV("nSPV",KOMODO_NSPV==-1?"disabled":(KOMODO_NSPV_SUPERLITE?"superlite":"fullnode"));
@@ -479,6 +485,7 @@ UniValue NSPV_mempoolresp_json(struct NSPV_mempoolresp *ptr)
 
 UniValue NSPV_ntzsresp_json(struct NSPV_ntzsresp *ptr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ);
     result.pushKV("result","success");
     result.pushKV("prev",NSPV_ntz_json(&ptr->prevntz));
@@ -508,6 +515,7 @@ UniValue NSPV_ntzsproof_json(struct NSPV_ntzsproofresp *ptr)
 
 UniValue NSPV_broadcast_json(struct NSPV_broadcastresp *ptr,uint256 txid)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ);
     result.pushKV("result","success");
     result.pushKV("expected",txid.GetHex());
@@ -528,6 +536,7 @@ UniValue NSPV_broadcast_json(struct NSPV_broadcastresp *ptr,uint256 txid)
 
 UniValue NSPV_login(char *wifstr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ); char coinaddr[64]; uint8_t data[128]; int32_t len,valid = 0;
     NSPV_logout();
     len = bitcoin_base58decode(data,wifstr);
@@ -566,6 +575,7 @@ UniValue NSPV_login(char *wifstr)
 
 UniValue NSPV_getinfo_req(int32_t reqht)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_inforesp I;
     NSPV_inforesp_purge(&NSPV_inforesult);
     msg[len++] = NSPV_INFO;
@@ -586,6 +596,7 @@ UniValue NSPV_getinfo_req(int32_t reqht)
 
 uint32_t NSPV_blocktime(int32_t hdrheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint32_t timestamp; struct NSPV_inforesp old = NSPV_inforesult;
     if ( hdrheight > 0 )
     {
@@ -678,6 +689,7 @@ UniValue NSPV_addresstxids(char *coinaddr,int32_t skipcount,int32_t filter)
 
 UniValue NSPV_mempooltxids(char *coinaddr,uint8_t funcid,uint256 txid,int32_t vout)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ); uint8_t msg[512]; char zeroes[64]; int32_t i,iter,slen,len = 0;
     NSPV_mempoolresp_purge(&NSPV_mempoolresult);
     memset(zeroes,0,sizeof(zeroes));
@@ -715,6 +727,7 @@ UniValue NSPV_mempooltxids(char *coinaddr,uint8_t funcid,uint256 txid,int32_t vo
 
 int32_t NSPV_coinaddr_inmempool(char const *logcategory,char *coinaddr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     NSPV_mempooltxids(coinaddr,NSPV_MEMPOOL_ADDRESS,zeroid,-1);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids >= 1 && strcmp(NSPV_mempoolresult.coinaddr,coinaddr) == 0 )
     {
@@ -725,6 +738,7 @@ int32_t NSPV_coinaddr_inmempool(char const *logcategory,char *coinaddr)
 
 bool NSPV_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int32_t vout)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     NSPV_mempooltxids((char *)"",NSPV_MEMPOOL_ISSPENT,txid,vout);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids == 1 && NSPV_mempoolresult.txid == txid )
     {
@@ -736,6 +750,7 @@ bool NSPV_spentinmempool(uint256 &spenttxid,int32_t &spentvini,uint256 txid,int3
 
 bool NSPV_inmempool(uint256 txid)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     NSPV_mempooltxids((char *)"",NSPV_MEMPOOL_INMEMPOOL,txid,0);
     if ( NSPV_mempoolresult.txids != 0 && NSPV_mempoolresult.numtxids == 1 && NSPV_mempoolresult.txids[0] == txid )
         return(true);
@@ -754,6 +769,7 @@ bool NSPV_evalcode_inmempool(uint8_t evalcode,uint8_t funcid)
 
 UniValue NSPV_notarizations(int32_t reqheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_ntzsresp N,*ptr;
     if ( (ptr= NSPV_ntzsresp_find(reqheight)) != 0 )
     {
