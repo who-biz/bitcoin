@@ -266,7 +266,7 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         request.resize(len);
         memcpy(&request[0],msg,len);
         if ( (0) && KOMODO_NSPV_SUPERLITE )
-            fprintf(stderr,"pushmessage [%d] len.%d\n",msg[0],len);
+            LogPrintf(">>> Error(%s): pushmessage [%d] len.%d\n",__func__,msg[0],len);
         LogPrintf(">>>> (%s) Before PushMessage(): pnode->addr(%s): nServices %d vs mask %d, t%u vs %u, ind.%d\n",__func__,pnode->addr.ToString(),(long long)pnode->nServices,(long long)mask,timestamp,pnode->prevtimes[ind],ind);
         g_rpc_node->connman->PushMessage(pnode,CNetMsgMaker(pnode->GetCommonVersion()).Make(NetMsgType::GETNSPV,request));
         pnode->prevtimes[ind] = timestamp;
@@ -579,6 +579,7 @@ UniValue NSPV_getinfo_req(int32_t reqht)
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_inforesp I;
     NSPV_inforesp_purge(&NSPV_inforesult);
     msg[len++] = NSPV_INFO;
+    LogPrintf(">>> (%s): msg[0] = %d\n",__func__,msg[0]);
     len += iguana_rwnum(1,&msg[len],sizeof(reqht),&reqht);
     for (iter=0; iter<3; iter++)
     if ( NSPV_req(0,msg,len,NODE_NSPV,msg[0]>>1) != 0 )
