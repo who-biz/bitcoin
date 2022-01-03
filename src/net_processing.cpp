@@ -2827,10 +2827,10 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
         std::vector<uint8_t> payload;
         vRecv >> payload;
 
-        if ( msg_type == NetMsgType::GETNSPV && KOMODO_NSPV == 0 ) {
+        if ( msg_type == NetMsgType::GETNSPV /*&& KOMODO_NSPV == 0*/ ) {
             LogPrintf(">>> (%s) prior to komodo_nSPVreq, pfrom->addr(%s) \n",__func__,pfrom.addr.ToString());
             komodo_nSPVreq(&pfrom, payload);
-        } else if ( msg_type == NetMsgType::NSPV && KOMODO_NSPV_SUPERLITE ) {
+        } else if ( msg_type == NetMsgType::NSPV /*&& KOMODO_NSPV_SUPERLITE*/ ) {
             LogPrintf(">>> (%s) prior to komodo_nSPVresp, pfrom->addr(%s) \n",__func__,pfrom.addr.ToString());
             komodo_nSPVresp(&pfrom, payload);
         }

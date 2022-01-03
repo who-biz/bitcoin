@@ -59,6 +59,7 @@ struct NSPV_ntzargs
 
 uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std::vector<uint8_t> opret,uint256 txid)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint256 desttxid; int32_t i;
     iguana_rwnum(0,&opret[32],sizeof(*heightp),heightp);
     for (i=0; i<32; i++)
@@ -72,6 +73,7 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
 
 int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint256* ignore_ntzhash;
     int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; char *symbol; std::vector<uint8_t> opret; uint256 nota_txid;
     symbol = (ASSETCHAINS_SYMBOL[0] == 0) ? (char *)"KMD" : ASSETCHAINS_SYMBOL;
@@ -91,6 +93,7 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
 
 int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *next,int32_t height)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     uint256 bhash; int32_t txidht,ntzht,nextht,i=0;
     memset(prev,0,sizeof(*prev));
     memset(next,0,sizeof(*next));
@@ -113,6 +116,7 @@ int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *ne
 
 int32_t NSPV_ntzextract(struct NSPV_ntz *ptr,uint256 ntztxid,int32_t txidht,uint256 desttxid,int32_t ntzheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     CBlockIndex *pindex;
     ptr->blockhash = *g_rpc_node->chainman->ActiveChain()[ntzheight]->phashBlock;
     ptr->height = ntzheight;
@@ -126,6 +130,7 @@ int32_t NSPV_ntzextract(struct NSPV_ntz *ptr,uint256 ntztxid,int32_t txidht,uint
 
 int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     struct NSPV_ntzargs prev,next; int32_t reqheight = origreqheight;
     if ( reqheight < g_rpc_node->chainman->ActiveChain().Tip()->nHeight )
         reqheight++;
@@ -148,6 +153,7 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
 
 int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     CBlockIndex *pindex;
     if ( (pindex= komodo_chainactive(height)) != 0 )
     {
@@ -166,6 +172,7 @@ int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 
 int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t prevMoMheight,len = 0; CBlockIndex *pindex, *pindex2; struct NSPV_ntzsresp pair;
     if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
@@ -384,6 +391,7 @@ int32_t NSPV_mempooltxids(struct NSPV_mempoolresp *ptr,char *coinaddr,uint8_t fu
 */
 int32_t NSPV_remoterpc(struct NSPV_remoterpcresp *ptr,char *json,int n)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     std::vector<uint256> txids; int32_t i,len = 0; UniValue result; std::string response;
     UniValue request(UniValue::VOBJ),rpc_result(UniValue::VOBJ); JSONRPCRequest jreq; CPubKey mypk;
 
@@ -589,7 +597,6 @@ int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
 void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a request
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
-    const CNetMsgMaker msgMaker(pfrom->GetCommonVersion());
     int32_t len,slen,ind,reqheight,n; std::vector<uint8_t> response; uint32_t timestamp = (uint32_t)time(NULL);
     if ( (len= request.size()) > 0 )
     {
@@ -616,7 +623,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     if ( NSPV_rwinforesp(1,&response[1],&I) == slen )
                     {
                         //fprintf(stderr,"send info resp to id %d\n",(int32_t)pfrom->id);
-                        g_rpc_node->connman->PushMessage(pfrom,msgMaker.Make(NetMsgType::NSPV,response));
+                        g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                         pfrom->prevtimes[ind] = timestamp;
                     }
                     NSPV_inforesp_purge(&I);

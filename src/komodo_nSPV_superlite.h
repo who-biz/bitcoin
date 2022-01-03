@@ -267,6 +267,8 @@ CNode *NSPV_req(CNode *pnode,uint8_t *msg,int32_t len,uint64_t mask,int32_t ind)
         memcpy(&request[0],msg,len);
         if ( (0) && KOMODO_NSPV_SUPERLITE )
             LogPrintf(">>> Error(%s): pushmessage [%d] len.%d\n",__func__,msg[0],len);
+        for (int i = 0; i < len; i++)
+            LogPrintf(">>> (%s): No error, before pushmessage [%d] len.%d\n",__func__,msg[i],len);
         LogPrintf(">>>> (%s) Before PushMessage(): pnode->addr(%s): nServices %d vs mask %d, t%u vs %u, ind.%d\n",__func__,pnode->addr.ToString(),(long long)pnode->nServices,(long long)mask,timestamp,pnode->prevtimes[ind],ind);
         g_rpc_node->connman->PushMessage(pnode,CNetMsgMaker(pnode->GetCommonVersion()).Make(NetMsgType::GETNSPV,request));
         pnode->prevtimes[ind] = timestamp;
