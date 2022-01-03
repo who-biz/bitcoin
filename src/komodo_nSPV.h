@@ -246,6 +246,7 @@ void NSPV_mempoolresp_copy(struct NSPV_mempoolresp *dest,struct NSPV_mempoolresp
 
 int32_t NSPV_rwntz(int32_t rwflag,uint8_t *serialized,struct NSPV_ntz *ptr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t len = 0;
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->blockhash),(uint8_t *)&ptr->blockhash);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->txid),(uint8_t *)&ptr->txid);
@@ -278,6 +279,7 @@ void NSPV_ntzsresp_purge(struct NSPV_ntzsresp *ptr)
 
 int32_t NSPV_rwinforesp(int32_t rwflag,uint8_t *serialized,struct NSPV_inforesp *ptr)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t len = 0;
     len += NSPV_rwntz(rwflag,&serialized[len],&ptr->notarization);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->blockhash),(uint8_t *)&ptr->blockhash);
