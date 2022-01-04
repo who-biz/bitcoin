@@ -281,7 +281,7 @@ int32_t NSPV_rwinforesp(int32_t rwflag,uint8_t *serialized,struct NSPV_inforesp 
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t len = 0;
-    //len += NSPV_rwntz(rwflag,&serialized[len],&ptr->notarization);
+    len += NSPV_rwntz(rwflag,&serialized[len],&ptr->notarization);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->blockhash),(uint8_t *)&ptr->blockhash);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->height),&ptr->height);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->hdrheight),&ptr->hdrheight);

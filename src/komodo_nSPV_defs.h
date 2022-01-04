@@ -120,7 +120,7 @@ struct NSPV_ntzsresp
 
 struct NSPV_inforesp
 {
-    //struct NSPV_ntz notarization;
+    struct NSPV_ntz notarization;
     uint256 blockhash;
     int32_t height,hdrheight;
     struct NSPV_equihdr H;
