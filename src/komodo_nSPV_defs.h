@@ -60,7 +60,6 @@ struct NSPV_equihdr
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
-    uint256 hashFinalSaplingRoot;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
@@ -121,7 +120,7 @@ struct NSPV_ntzsresp
 
 struct NSPV_inforesp
 {
-    struct NSPV_ntz notarization;
+    //struct NSPV_ntz notarization;
     uint256 blockhash;
     int32_t height,hdrheight;
     struct NSPV_equihdr H;
