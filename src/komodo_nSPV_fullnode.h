@@ -619,10 +619,12 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                 {
                     response.resize(1 + slen);
                     response[0] = NSPV_INFORESP;
-                    //fprintf(stderr,"slen.%d version.%d\n",slen,I.version);
-                    if ( NSPV_rwinforesp(1,&response[1],&I) == slen )
+                    int32_t NSPV_inforet = 0;
+                    NSPV_inforet = NSPV_rwinforesp(1,&response[1],&I);
+                    LogPrintf(">>> (%s): NSPV_inforet.%d slen.%d version.%d\n",__func__,NSPV_inforet,slen,I.version);
+                    if ( NSPV_inforet == slen )
                     {
-                        //fprintf(stderr,"send info resp to id %d\n",(int32_t)pfrom->id);
+                        LogPrintf(">>> (%s): send info resp to address %s\n",__func__,pfrom->addr.ToString());
                         g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                         pfrom->prevtimes[ind] = timestamp;
                     }
