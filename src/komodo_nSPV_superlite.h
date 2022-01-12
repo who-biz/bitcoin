@@ -398,7 +398,7 @@ UniValue NSPV_getinfo_json(struct NSPV_inforesp *ptr)
     }
     result.pushKV("height",(int64_t)ptr->height);
     result.pushKV("chaintip",ptr->blockhash.GetHex());
-    //result.pushKV("notarization",NSPV_ntz_json(&ptr->notarization));
+    result.pushKV("notarization",NSPV_ntz_json(&ptr->notarization));
     result.pushKV("header",NSPV_header_json(&ptr->H,ptr->hdrheight));
     result.pushKV("protocolversion",(int64_t)ptr->version);
     result.pushKV("lastpeer",NSPV_lastpeer);
