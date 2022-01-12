@@ -73,7 +73,7 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
 
 int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, height(%d), dir(%d) <<<\n",__func__,height,dir);
     uint256* ignore_ntzhash;
     int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; char *symbol; std::vector<uint8_t> opret; uint256 nota_txid;
     symbol = (ASSETCHAINS_SYMBOL[0] == 0) ? (char *)"KMD" : ASSETCHAINS_SYMBOL;
@@ -81,10 +81,17 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
     if ( dir > 0 )
         height += 10;
     if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
+    {
+        LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
         return(-1);
+    }
     args->txid = nota_txid;
+    LogPrintf(">>> (%s) breakpoint.2, nota_txid(%s)\n",__func__,nota_txid.GetHex());
     if ( !GetTransaction(args->txid,tx,Params().GetConsensus(),hashBlock,false) || tx->vout.size() < 2 )
+    {
+        LogPrintf(">>> (%s) breakpoint.3, return(-2)\n",__func__);
         return(-2);
+    }
     GetOpReturnData(tx->vout[1].scriptPubKey,opret);
     if ( opret.size() >= 32*2+4 )
         args->desttxid = NSPV_opretextract(&args->ntzheight,&args->blockhash,symbol,opret,args->txid);
