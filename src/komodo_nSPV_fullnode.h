@@ -93,17 +93,20 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
 
 int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *next,int32_t height)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, height = %d <<<\n",__func__,height);
     uint256 bhash; int32_t txidht,ntzht,nextht,i=0;
     memset(prev,0,sizeof(*prev));
     memset(next,0,sizeof(*next));
     if ( (ntzht= NSPV_notarization_find(prev,height,-1)) < 0 || ntzht > height || ntzht == 0 )
+    {
+        LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__,height);
         return(-1);
+    }
     txidht = height+1;
     while ( (ntzht=  NSPV_notarization_find(next,txidht,1)) < height )
     {
         nextht = next->txidht + 10*i;
-//fprintf(stderr,"found forward ntz, but ntzht.%d vs height.%d, txidht.%d -> nextht.%d\n",next->ntzheight,height,txidht,nextht);
+        LogPrintf(">>> (%s) breakpoint.2, found forward ntz, but ntzht.%d vs height.%d, txidht.%d -> nextht.%d\n",next->ntzheight,height,txidht,nextht);
         memset(next,0,sizeof(*next));
         txidht = nextht;
         if ( ntzht <= 0 )
@@ -130,7 +133,7 @@ int32_t NSPV_ntzextract(struct NSPV_ntz *ptr,uint256 ntztxid,int32_t txidht,uint
 
 int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, reqheight = %d <<<\n",__func__,origreqheight);
     struct NSPV_ntzargs prev,next; int32_t reqheight = origreqheight;
     if ( reqheight < g_rpc_node->chainman->ActiveChain().Tip()->nHeight )
         reqheight++;
