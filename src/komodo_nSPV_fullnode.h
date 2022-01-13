@@ -80,7 +80,7 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
     memset(args,0,sizeof(*args));
     if ( dir > 0 )
         height += 10;
-    LogPrintf(">>> (%s) prior to komodo_notarizeddata\n",__func__);
+    LogPrintf(">>> (%s) prior to ScanNotarisationDB\n",__func__);
     if ( (args->txidht= ScanNotarisationsDB(height,symbol,1440,nota)) == 0 )
     {
         LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
@@ -148,7 +148,7 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
 {
     LogPrintf(">>> (%s) called, reqheight = %d <<<\n",__func__,origreqheight);
     struct NSPV_ntzargs prev,next; int32_t reqheight = origreqheight;
-    if ( reqheight < g_rpc_node->chainman->ActiveChain().Tip()->nHeight )
+    if ( reqheight < g_rpc_node->chainman->ActiveChain().Height() )
         reqheight++;
     if ( NSPV_notarized_bracket(&prev,&next,reqheight) == 0 )
     {
