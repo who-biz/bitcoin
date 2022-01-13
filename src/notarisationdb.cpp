@@ -19,6 +19,7 @@ bool IsTXSCL(const char* symbol)
 
 bool GetBlockNotarisations(uint256 blockHash, NotarisationsInBlock &nibs)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     return pnotarisations->Read(blockHash, nibs);
 }
 
@@ -75,6 +76,7 @@ int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Not
         if (!GetBlockNotarisations(blockHash, notarisations))
             continue;
 
+        LogPrintf(">>> (%s) breakpoint.3\n",__func__);
         BOOST_FOREACH(Notarisation& nota, notarisations) {
             if (strcmp(nota.second.symbol, symbol.data()) == 0) {
                 out = nota;
