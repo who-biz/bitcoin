@@ -25,6 +25,7 @@ bool GetBlockNotarisations(uint256 blockHash, NotarisationsInBlock &nibs)
 
 bool GetBackNotarisation(uint256 notarisationHash, Notarisation &n)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     return pnotarisations->Read(notarisationHash, n);
 }
 
@@ -60,6 +61,7 @@ void EraseBackNotarisations(const NotarisationsInBlock notarisations, CDBBatch &
  */
 int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Notarisation& out)
 {
+    LogPrintf(">>> (%s) called <<<\n",__func__);
     if (height < 0 || height > g_rpc_node->chainman->ActiveChain().Height())
         return false;
 
