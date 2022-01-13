@@ -354,6 +354,7 @@ libbitcoin_server_a_SOURCES = \
   node/psbt.cpp \
   node/transaction.cpp \
   node/ui_interface.cpp \
+  notarisationdb.cpp \
   noui.cpp \
   policy/fees.cpp \
   policy/packages.cpp \

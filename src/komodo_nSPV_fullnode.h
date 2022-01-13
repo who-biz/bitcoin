@@ -19,7 +19,7 @@
 // NSPV_get... functions need to return the exact serialized length, which is the size of the structure minus size of pointers, plus size of allocated data
 
 #include "addressindex.h"
-//#include "notarisationdb.h"
+#include "notarisationdb.h"
 #include <boost/foreach.hpp>
 #include "rpc/server.h"
 #include "komodo_defs.h"
@@ -75,17 +75,22 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
 {
     LogPrintf(">>> (%s) called, height(%d), dir(%d) <<<\n",__func__,height,dir);
     uint256* ignore_ntzhash;
-    int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; char *symbol; std::vector<uint8_t> opret; uint256 nota_txid;
+    int32_t ntzheight = 0; uint256 hashBlock; CTransactionRef tx; char *symbol; std::vector<uint8_t> opret; uint256 nota_txid; Notarisation nota;
     symbol = (ASSETCHAINS_SYMBOL[0] == 0) ? (char *)"KMD" : ASSETCHAINS_SYMBOL;
     memset(args,0,sizeof(*args));
     if ( dir > 0 )
         height += 10;
     LogPrintf(">>> (%s) prior to komodo_notarizeddata\n",__func__);
-    if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
+    if ( (args->txidht= ScanNotarisationsDB(height,symbol,1440,nota)) == 0 )
     {
         LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
         return(-1);
     }
+    //if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
+    //{
+    //    LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
+    //    return(-1);
+    //}
     args->txid = nota_txid;
     LogPrintf(">>> (%s) breakpoint.2, nota_txid(%s)\n",__func__,nota_txid.GetHex());
     if ( !GetTransaction(args->txid,tx,Params().GetConsensus(),hashBlock,false) || tx->vout.size() < 2 )
