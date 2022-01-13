@@ -80,6 +80,7 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
     memset(args,0,sizeof(*args));
     if ( dir > 0 )
         height += 10;
+    LogPrintf(">>> (%s) prior to komodo_notarizeddata\n",__func__);
     if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
     {
         LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
