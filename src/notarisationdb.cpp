@@ -61,14 +61,17 @@ void EraseBackNotarisations(const NotarisationsInBlock notarisations, CDBBatch &
  */
 int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Notarisation& out)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, height(%d), symbol(%s), scanLimitBlocks(%s) <<<\n",__func__,height,symbol,scanLimitBlocks);
     if (height < 0 || height > g_rpc_node->chainman->ActiveChain().Height())
-        return false;
-
+    {
+       LogPrintf(">>> (%s) breakpoint.1\n",__func__);
+       return false;
+    }
     for (int i=0; i<scanLimitBlocks; i++) {
         if (i > height) break;
         NotarisationsInBlock notarisations;
         uint256 blockHash = *g_rpc_node->chainman->ActiveChain()[height-i]->phashBlock;
+        LogPrintf(">>> (%s) breakpoint.1\n",__func__);
         if (!GetBlockNotarisations(blockHash, notarisations))
             continue;
 
