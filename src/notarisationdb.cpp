@@ -64,7 +64,7 @@ int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Not
     LogPrintf(">>> (%s) called, height(%d), symbol(%s), scanLimitBlocks(%s) <<<\n",__func__,height,symbol,scanLimitBlocks);
     if (height < 0 || height > g_rpc_node->chainman->ActiveChain().Height())
     {
-       LogPrintf(">>> (%s) breakpoint.1\n",__func__);
+       LogPrintf(">>> (%s) breakpoint.1, height(%d) ActiveChain()->Height().(%d)\n",__func__,height,g_rpc_node->chainman->ActiveChain().Height());
        return false;
     }
     for (int i=0; i<scanLimitBlocks; i++) {
