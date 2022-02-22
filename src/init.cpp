@@ -38,6 +38,7 @@
 #include <node/blockstorage.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
+#include <notarisationdb.h>
 #include <policy/feerate.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
@@ -1380,6 +1381,9 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
                 // fails if it's still open from the previous loop. Close it first:
                 pblocktree.reset();
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
+
+                delete pnotarisations;
+                pnotarisations = new NotarisationDB(100*1024*1024, false, fReindex);
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);

@@ -26,6 +26,7 @@
 #include <node/blockstorage.h>
 #include <node/coinstats.h>
 #include <node/ui_interface.h>
+#include <notarisationdb.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow.h>
@@ -1602,6 +1603,35 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
     view.AddCoin(out, std::move(undo), !fClean);
 
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
+}
+
+void ConnectNotarisations(const CBlock &block, int height)
+{
+    // Record Notarisations
+    NotarisationsInBlock notarisations = ScanBlockNotarisations(block, height);
+    if (notarisations.size() > 0) {
+        CDBBatch batch = CDBBatch(*pnotarisations);
+        batch.Write(block.GetHash(), notarisations);
+        WriteBackNotarisations(notarisations, batch);
+        pnotarisations->WriteBatch(batch, true);
+        LogPrintf("ConnectBlock: wrote %i block notarisations in block: %s\n",
+                notarisations.size(), block.GetHash().GetHex().data());
+    }
+}
+
+
+void DisconnectNotarisations(const CBlock &block)
+{
+    // Delete from notarisations cache
+    NotarisationsInBlock nibs;
+    if (GetBlockNotarisations(block.GetHash(), nibs)) {
+        CDBBatch batch = CDBBatch(*pnotarisations);
+        batch.Erase(block.GetHash());
+        EraseBackNotarisations(nibs, batch);
+        pnotarisations->WriteBatch(batch, true);
+        LogPrintf("DisconnectTip: deleted %i block notarisations in block: %s\n",
+            nibs.size(), block.GetHash().GetHex().data());
+    }
 }
 
 /** Undo the effects of this block (with given index) on the UTXO set represented by coins.
