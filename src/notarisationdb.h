@@ -18,7 +18,7 @@ public:
 /*
  * Data from notarisation OP_RETURN from chain being notarised
  */
-/*class NotarisationData
+class NotarisationData
 {
 public:
     int IsBackNotarisation = 0;
@@ -73,7 +73,7 @@ public:
         char *nullPos = (char*) memchr(&s[0], 0, readlen);
         if (!nullPos)
             throw std::ios_base::failure("couldn't parse symbol");
-        s.read(symbol, nullPos-&s[0]+1);
+        s.read(symbol, nullPos-&s.str().data()[0]+1);
     }
 
     template <typename Stream>
@@ -81,8 +81,8 @@ public:
     {
         if (ASSETCHAINS_SYMBOL[0]) return 1;
         if (s.size() >= 72) {
-            if (strcmp("BTC", &s[68]) == 0) return 1;
-            if (strcmp("KMD", &s[68]) == 0) return 1;
+            if (strcmp("BTC", &s.str().data()[68]) == 0) return 1;
+            if (strcmp("KMD", &s.str().data()[68]) == 0) return 1;
         }
         return 0;
     }
@@ -90,86 +90,6 @@ public:
     template <typename Stream>
     bool DetectBackNotarisation(Stream& s, CSerActionSerialize act)
     {
-        return !txHash.IsNull();
-    }
-};
-*/
-
-class NotarisationData
-{
-public:
-    int IsBackNotarisation = 0;
-    uint256 blockHash      = uint256();
-    uint32_t height        = 0;
-    uint256 txHash         = uint256();
-    char symbol[64];
-    uint256 MoM            = uint256();
-    uint16_t MoMDepth      = 0;
-    //uint16_t ccId          = 0;
-    uint256 MoMoM          = uint256();
-    uint32_t MoMoMDepth    = 0;
-
-    NotarisationData(int IsBack=2) : IsBackNotarisation(IsBack) {
-        symbol[0] = '\0';
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        LogPrintf(">>> (%s) called <<<\n",__func__);
-        bool IsBack = IsBackNotarisation;
-        if (2 == IsBackNotarisation) IsBack = DetectBackNotarisation(s, ser_action);
-
-        READWRITE(blockHash);
-        READWRITE(height);
-        if (IsBack)
-            READWRITE(txHash);
-        SerSymbol(s, ser_action);
-        if (s.size() == 0) return;
-        READWRITE(MoM);
-        READWRITE(MoMDepth);
-        //READWRITE(ccId);
-        if (s.size() == 0) return;
-        if (IsBack) {
-            READWRITE(MoMoM);
-            READWRITE(MoMoMDepth);
-        }
-    }
-
-    template <typename Stream>
-    void SerSymbol(Stream& s, CSerActionSerialize act)
-    {
-        s.write(symbol, strlen(symbol)+1);
-    }
-
-    template <typename Stream>
-    void SerSymbol(Stream& s, CSerActionUnserialize act)
-    {
-        size_t readlen = std::min(sizeof(symbol), s.size());
-        uint8_t *nullPos = (uint8_t*) memchr(&s[0], 0, readlen);
-        if (!nullPos)
-            throw std::ios_base::failure("couldn't parse symbol");
-        s.read(symbol, nullPos-&s[0]+1);
-    }
-
-    template <typename Stream>
-    bool DetectBackNotarisation(Stream& s, CSerActionUnserialize act)
-    {
-        LogPrintf(">>> (%s) called <<<\n",__func__);
-        if (ASSETCHAINS_SYMBOL[0]) return 1;
-        //TODO: Fix below if necessary
-        //if (s.size() >= 72) {
-        //    if (strcmp("BTC", &s[68]) == 0) return 1;
-        //    if (strcmp("KMD", &s[68]) == 0) return 1;
-        //}
-        return 0;
-    }
-
-    template <typename Stream>
-    bool DetectBackNotarisation(Stream& s, CSerActionSerialize act)
-    {
-        LogPrintf(">>> (%s) called <<<\n",__func__);
         return !txHash.IsNull();
     }
 };
