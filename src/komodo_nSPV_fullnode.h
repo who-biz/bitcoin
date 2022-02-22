@@ -129,7 +129,7 @@ int32_t NSPV_notarization_find(struct NSPV_ntz* ntz, int32_t height, int32_t dir
     ntz->ntzheight = nota.second.height;
     ntz->ntzblockhash = nota.second.blockHash;
     ntz->desttxid = nota.second.txHash;
-    ntz->depth = nota.second.MoMDepth;
+    //ntz->depth = nota.second.MoMDepth;
     /*
     if (!GetTransaction(args->txid, tx, hashBlock, false) || tx.vout.size() < 2)
         return (-2);

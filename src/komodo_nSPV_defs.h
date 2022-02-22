@@ -112,9 +112,7 @@ struct NSPV_ntz
     uint256 ntzblockhash;  // notarization tx blockhash
     int32_t txidheight;     // notarization tx height
     int32_t ntzheight;  // notarized height by this notarization tx
-    int16_t depth;
-    //uint256 blockhash, txid, othertxid;
-    //int32_t height, txidheight;
+    //int16_t depth;
     uint32_t timestamp; // timestamp of the notarization tx block
 };
 

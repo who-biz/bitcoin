@@ -254,7 +254,7 @@ int32_t NSPV_rwntz(int32_t rwflag,uint8_t *serialized,struct NSPV_ntz *ptr)
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->ntzheight),&ptr->ntzheight);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->txidheight),&ptr->txidheight);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->timestamp),&ptr->timestamp);
-    len += iguana_rwnum(rwflag, &serialized[len], sizeof(ptr->depth), &ptr->depth);
+    //len += iguana_rwnum(rwflag, &serialized[len], sizeof(ptr->depth), &ptr->depth);
     return(len);
 }
 
