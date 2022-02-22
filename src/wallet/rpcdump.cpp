@@ -546,7 +546,20 @@ RPCHelpMan nspv_notarizations()
                 {
                     {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified height for notarizations request"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::OBJ, "ntz", "a json object containing the notarization details",
+                        {
+                            {RPCResult::Type::NUM, "notarized_height", "the height of the last block that has been notarized"},
+                            {RPCResult::Type::STR_HEX, "notarized_blockhash", "the blockhash of the latest block that has been notarized"},
+                            {RPCResult::Type::STR_HEX, "notarization_txid", "the id of the tx in which notarization data is included in dPoWed chain"},
+                            {RPCResult::Type::NUM, "notarization_txidheight", "the height of the block in which the notarization tx is included"},
+                            {RPCResult::Type::STR_HEX, "notarization_desttxid", "the id of the tx in which notarization data is included in the chain acting as data store"},
+                        }},
+                        {RPCResult::Type::STR, "lastpeer", "the last known peer"},
+                    }},
                 RPCExamples{
             "\nNSPV notarizations\n"
             + HelpExampleCli("nspv_notarizations", "height")
