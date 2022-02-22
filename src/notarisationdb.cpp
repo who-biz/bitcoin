@@ -19,7 +19,7 @@ bool IsTXSCL(const char* symbol)
 
 bool GetBlockNotarisations(uint256 blockHash, NotarisationsInBlock &nibs)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, blockHash(%s)\n",__func__, blockHash.GetHex());
     return pnotarisations->Read(blockHash, nibs);
 }
 
