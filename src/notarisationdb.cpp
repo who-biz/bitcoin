@@ -9,7 +9,7 @@
 NotarisationDB *pnotarisations;
 
 
-NotarisationDB::NotarisationDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper(gArgs.GetDataDirNet() / "notarizations", nCacheSize, fMemory, fWipe, false) { }
+NotarisationDB::NotarisationDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper(gArgs.GetDataDirNet() / "notarisations", nCacheSize, fMemory, fWipe, false) { }
 
 bool ParseNotarisationOpReturn(const CTransactionRef &tx, NotarisationData &data)
 {
