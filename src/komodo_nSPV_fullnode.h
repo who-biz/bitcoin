@@ -758,19 +758,27 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
         }*/
         else if ( request[0] == NSPV_NTZS )
         {
+            LogPrintf("(%s) >>> request[0] = NSPV_NTZS\n",__func__);
             if ( timestamp > pfrom->prevtimes[ind] )
             {
+                LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.1\n",__func__);
                 struct NSPV_ntzsresp N; int32_t height;
                 if ( len == 1+sizeof(height) )
                 {
+                    LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.2\n",__func__);
                     iguana_rwnum(0,&request[1],sizeof(height),&height);
                     memset(&N,0,sizeof(N));
-                    if ( (slen= NSPV_getntzsresp(&N,height)) > 0 )
+                    int32_t getntzsresp = NSPV_getntzsresp(&N,height);
+                    if (slen = getntzsresp > 0 )
                     {
+                        LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.3, slen(%d), getntzsresp(%d)\n",__func__,slen,getntzsresp);
                         response.resize(1 + slen);
                         response[0] = NSPV_NTZSRESP;
-                        if ( NSPV_rwntzsresp(1,&response[1],&N) == slen )
+                        int32_t rwntzsresp = NSPV_rwntzsresp(1,&response[1],&N);
+                        LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.4, slen(%d), rwntzsresp(%d)\n",__func__,slen,rwntzsresp);
+                        if ( rwntzsresp == slen )
                         {
+                            LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.5, prior to PushMessage()\n",__func__);
                             g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             //pfrom->PushMessage("nSPV",response);
                             pfrom->prevtimes[ind] = timestamp;
