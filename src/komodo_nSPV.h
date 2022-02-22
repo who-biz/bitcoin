@@ -246,7 +246,7 @@ void NSPV_mempoolresp_copy(struct NSPV_mempoolresp *dest,struct NSPV_mempoolresp
 
 int32_t NSPV_rwntz(int32_t rwflag,uint8_t *serialized,struct NSPV_ntz *ptr)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, ntzheight(%d), ntzblockhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
     int32_t len = 0;
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->ntzblockhash),(uint8_t *)&ptr->ntzblockhash);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->txid),(uint8_t *)&ptr->txid);

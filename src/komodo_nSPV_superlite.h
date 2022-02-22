@@ -358,7 +358,7 @@ UniValue NSPV_spentinfo_json(struct NSPV_spentinfo *ptr)
 
 UniValue NSPV_ntz_json(struct NSPV_ntz *ptr)
 {
-    LogPrintf(">>> (%s) called <<<\n",__func__);
+    LogPrintf(">>> (%s) called, ntz_height(%d), ntzhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
     UniValue result(UniValue::VOBJ);
     result.pushKV("notarized_height",(int64_t)ptr->ntzheight);
     result.pushKV("notarized_blockhash",ptr->ntzblockhash.GetHex());
