@@ -852,7 +852,8 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     iguana_rwnum(0,&request[1],sizeof(height),&height);
                     memset(&N,0,sizeof(N));
                     int32_t getntzsresp = NSPV_getntzsresp(&N,height);
-                    if (slen = getntzsresp > 0 )
+                    slen = getntzsresp;
+                    if (slen > 0 )
                     {
                         LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.3, slen(%d), getntzsresp(%d)\n",__func__,slen,getntzsresp);
                         response.resize(1 + slen);
