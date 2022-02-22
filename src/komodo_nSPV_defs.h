@@ -107,20 +107,33 @@ struct NSPV_mempoolresp
 
 struct NSPV_ntz
 {
+    uint256 txid;       // notarization txid
+    uint256 desttxid;   // for back notarizations this is notarization txid from KMD/BTC chain 
+    uint256 ntzblockhash;  // notarization tx blockhash
+    int32_t txidheight;     // notarization tx height
+    int32_t ntzheight;  // notarized height by this notarization tx
+    int16_t depth;
+    //uint256 blockhash, txid, othertxid;
+    //int32_t height, txidheight;
+    uint32_t timestamp; // timestamp of the notarization tx block
+};
+
+/*struct NSPV_ntz
+{
     uint256 blockhash,txid,othertxid;
     int32_t height,txidheight;
     uint32_t timestamp;
-};
+};*/
 
 struct NSPV_ntzsresp
 {
-    struct NSPV_ntz prevntz,nextntz;
+    struct NSPV_ntz ntz;
     int32_t reqheight;
 };
 
 struct NSPV_inforesp
 {
-    struct NSPV_ntz notarization;
+    struct NSPV_ntz ntz;
     uint256 blockhash;
     int32_t height,hdrheight;
     struct NSPV_equihdr H;
