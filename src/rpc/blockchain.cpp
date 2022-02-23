@@ -2918,6 +2918,7 @@ RPCHelpMan nspv_login();
 RPCHelpMan nspv_mempool();
 RPCHelpMan nspv_notarizations();
 RPCHelpMan nspv_txproof();
+RPCHelpMan nspv_hdrsproof();
 
 void RegisterBlockchainRPCCommands(CRPCTable &t)
 {
@@ -2968,6 +2969,7 @@ static const CRPCCommand commands[] =
     { "nspv",                &nspv_mempool,                      },
     { "nspv",                &nspv_notarizations,                },
     { "nspv",                &nspv_txproof,                      },
+    { "nspv",                &nspv_hdrsproof,                    },
 };
 // clang-format on
     for (const auto& c : commands) {

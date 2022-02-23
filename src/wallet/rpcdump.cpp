@@ -585,7 +585,32 @@ RPCHelpMan nspv_hdrsproof()
                     {"prevheight", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified prevheight"},
                     {"nextheight", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified nextheight"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::NUM, "prevheight", "previous notarized height for hdrsproof"},
+                        {RPCResult::Type::NUM, "nextheight", "next notarized height for hdrsproof"},
+                        {RPCResult::Type::STR_HEX, "prevtxid", "the txid corresponding to notarization at prevheight"},
+                        {RPCResult::Type::NUM, "prevtxidht", "block height of the prevtxid notarizing transaction"},
+                        {RPCResult::Type::NUM, "prevtxlen", "length of transaction data with hash of prevtxid"},
+                        {RPCResult::Type::STR_HEX, "nexttxid", "the txid corresponding to notarization at nextheight"},
+                        {RPCResult::Type::NUM, "nexttxidht", "block height of the nexttxid notarizing transaction"},
+                        {RPCResult::Type::NUM, "nexttxlen", "length of transaction data with hash of nexttxid"},
+                        {RPCResult::Type::NUM, "numhdrs", "number of headers included in proof"},
+                        {RPCResult::Type::ARR, "headers", "array of block headers included in hdrsproof",
+                        {
+                            {RPCResult::Type::OBJ, "", "", {
+                                {RPCResult::Type::NUM, "height", "the height of the block that was queried"},
+                                {RPCResult::Type::STR_HEX, "blockhash", "hash of the block that has been queried"},
+                                {RPCResult::Type::STR_HEX, "hashPrevBlock", "hash of the block before the queried block"},
+                                {RPCResult::Type::STR_HEX, "hashMerkleRoot", "the merkleroot of the block that has been queried"},
+                                {RPCResult::Type::NUM, "nTime", "a timestamp recording when this block was created"},
+                                {RPCResult::Type::NUM, "nBits", "calculated difficulty target being used for this block"},
+                            }},
+                        }},
+                        {RPCResult::Type::STR, "lastpeer", "the last known peer"},
+                    }},
                 RPCExamples{
             "\nNSPV hdrsproof\n"
             + HelpExampleCli("nspv_hdrsproof", "prevheight nextheight")
