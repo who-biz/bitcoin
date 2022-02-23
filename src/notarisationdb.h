@@ -28,7 +28,7 @@ public:
     char symbol[64];
     uint256 MoM            = uint256();
     uint16_t MoMDepth      = 0;
-    uint16_t ccId          = 0;
+    //uint16_t ccId          = 0;
     uint256 MoMoM          = uint256();
     uint32_t MoMoMDepth    = 0;
 
@@ -52,7 +52,7 @@ public:
         if (s.size() == 0) return;
         READWRITE(MoM);
         READWRITE(MoMDepth);
-        READWRITE(ccId);
+        //READWRITE(ccId);
         if (s.size() == 0) return;
         if (IsBack) {
             READWRITE(MoMoM);

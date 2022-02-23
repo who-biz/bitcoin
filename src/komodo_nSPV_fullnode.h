@@ -86,11 +86,6 @@ int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t 
         LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
         return(-1);
     }
-    //if ( (args->txidht= komodo_notarizeddata(height,ignore_ntzhash,&nota_txid)) == 0 )
-    //{
-    //    LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__);
-    //    return(-1);
-    //}
     args->txid = nota_txid;
     LogPrintf(">>> (%s) breakpoint.2, nota_txid(%s)\n",__func__,nota_txid.GetHex());
     if ( !GetTransaction(args->txid,tx,Params().GetConsensus(),hashBlock,false) || tx->vout.size() < 2 )
@@ -185,7 +180,7 @@ int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *ne
     memset(next,0,sizeof(*next));
     if ( (ntzht= NSPV_notarization_find(prev,height,-1)) < 0 || ntzht > height || ntzht == 0 )
     {
-        LogPrintf(">>> (%s) breakpoint.1, return(-1)\n",__func__,height);
+        LogPrintf(">>> (%s) breakpoint.1, height(%d), return(-1)\n",__func__,height);
         return(-1);
     }
     txidht = height+1;
