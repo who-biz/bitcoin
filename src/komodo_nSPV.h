@@ -246,34 +246,35 @@ void NSPV_mempoolresp_copy(struct NSPV_mempoolresp *dest,struct NSPV_mempoolresp
 
 int32_t NSPV_rwntz(int32_t rwflag,uint8_t *serialized,struct NSPV_ntz *ptr)
 {
-    LogPrintf(">>> (%s) called, ntzheight(%d), ntzblockhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
+    //LogPrintf(">>> (%s) called, ntzheight(%d), ntzblockhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
+    LogPrintf(">>> (%s) called, ntzheight(%d), ntzblockhash(%s) <<<\n",__func__, ptr->height, ptr->blockhash.GetHex());
     int32_t len = 0;
-    len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->ntzblockhash),(uint8_t *)&ptr->ntzblockhash);
+    len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->blockhash),(uint8_t *)&ptr->blockhash);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->txid),(uint8_t *)&ptr->txid);
-    len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->desttxid),(uint8_t *)&ptr->desttxid);
-    len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->ntzheight),&ptr->ntzheight);
+    len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->othertxid),(uint8_t *)&ptr->othertxid);
+    len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->height),&ptr->height);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->txidheight),&ptr->txidheight);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->timestamp),&ptr->timestamp);
     //len += iguana_rwnum(rwflag, &serialized[len], sizeof(ptr->depth), &ptr->depth);
     return(len);
 }
 
-int32_t NSPV_rwntzsresp(int32_t rwflag,uint8_t *serialized,struct NSPV_ntzsresp *ptr)
+/*int32_t NSPV_rwntzsresp(int32_t rwflag,uint8_t *serialized,struct NSPV_ntzsresp *ptr)
 {
     int32_t len = 0;
     len += NSPV_rwntz(rwflag,&serialized[len],&ptr->ntz);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->reqheight),&ptr->reqheight);
     return(len);
-}
+}*/
 
-/*int32_t NSPV_rwntzsresp(int32_t rwflag,uint8_t *serialized,struct NSPV_ntzsresp *ptr)
+int32_t NSPV_rwntzsresp(int32_t rwflag,uint8_t *serialized,struct NSPV_ntzsresp *ptr)
 {
     int32_t len = 0;
     len += NSPV_rwntz(rwflag,&serialized[len],&ptr->prevntz);
     len += NSPV_rwntz(rwflag,&serialized[len],&ptr->nextntz);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->reqheight),&ptr->reqheight);
     return(len);
-}*/
+}
 
 void NSPV_ntzsresp_copy(struct NSPV_ntzsresp *dest,struct NSPV_ntzsresp *ptr)
 {
@@ -290,7 +291,7 @@ int32_t NSPV_rwinforesp(int32_t rwflag,uint8_t *serialized,struct NSPV_inforesp 
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t len = 0;
-    len += NSPV_rwntz(rwflag,&serialized[len],&ptr->ntz);
+    len += NSPV_rwntz(rwflag,&serialized[len],&ptr->notarization);
     len += iguana_rwbignum(rwflag,&serialized[len],sizeof(ptr->blockhash),(uint8_t *)&ptr->blockhash);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->height),&ptr->height);
     len += iguana_rwnum(rwflag,&serialized[len],sizeof(ptr->hdrheight),&ptr->hdrheight);

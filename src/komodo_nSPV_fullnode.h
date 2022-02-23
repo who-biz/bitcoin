@@ -71,7 +71,7 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
     return(desttxid);
 }
 
-/*int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
+int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
     LogPrintf(">>> (%s) called, height(%d), dir(%d) <<<\n",__func__,height,dir);
     uint256* ignore_ntzhash;
@@ -102,10 +102,10 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
     if ( opret.size() >= 32*2+4 )
         args->desttxid = NSPV_opretextract(&args->ntzheight,&args->blockhash,symbol,opret,args->txid);
     return(args->ntzheight);
-}*/
+}
 
 // search for notary txid starting from 'height' in the backward or forward direction
-int32_t NSPV_notarization_find(struct NSPV_ntz* ntz, int32_t height, int32_t dir)
+/*int32_t NSPV_notarization_find(struct NSPV_ntz* ntz, int32_t height, int32_t dir)
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     int32_t ntzheight = 0;
@@ -130,21 +130,20 @@ int32_t NSPV_notarization_find(struct NSPV_ntz* ntz, int32_t height, int32_t dir
     ntz->ntzblockhash = nota.second.blockHash;
     ntz->desttxid = nota.second.txHash;
     //ntz->depth = nota.second.MoMDepth;
-    /*
-    if (!GetTransaction(args->txid, tx, hashBlock, false) || tx.vout.size() < 2)
-        return (-2);
-    GetOpReturnData(tx.vout[1].scriptPubKey, vopret);
-    if (vopret.size() >= 32 * 2 + 4)
-        args->desttxid = NSPV_opretextract(&args->ntzheight, &args->blockhash, symbol, vopret, args->txid);
-    */
+
+    //if (!GetTransaction(args->txid, tx, hashBlock, false) || tx.vout.size() < 2)
+    //    return (-2);
+    //GetOpReturnData(tx.vout[1].scriptPubKey, vopret);
+    //if (vopret.size() >= 32 * 2 + 4)
+    //    args->desttxid = NSPV_opretextract(&args->ntzheight, &args->blockhash, symbol, vopret, args->txid);
     return ntz->ntzheight;
-}
+}*/
 
 // finds prev notarisation
 // prev notary txid with notarized height < height
 // and next notary txid with notarised height >= height
 // if not found or chain not notarised returns zeroed 'prev'
-int32_t NSPV_notarized_prev(struct NSPV_ntz* prev, int32_t height)
+/*int32_t NSPV_notarized_prev(struct NSPV_ntz* prev, int32_t height)
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     const int BACKWARD = -1;
@@ -177,8 +176,8 @@ int32_t NSPV_notarized_next(struct NSPV_ntz* next, int32_t height)
     }
     return 0;  // always okay even if chain non-notarised
 }
-
-/*int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *next,int32_t height)
+*/
+int32_t NSPV_notarized_bracket(struct NSPV_ntzargs *prev,struct NSPV_ntzargs *next,int32_t height)
 {
     LogPrintf(">>> (%s) called, height = %d <<<\n",__func__,height);
     uint256 bhash; int32_t txidht,ntzht,nextht,i=0;
@@ -217,11 +216,12 @@ int32_t NSPV_ntzextract(struct NSPV_ntz *ptr,uint256 ntztxid,int32_t txidht,uint
         ptr->timestamp = pindex->nTime;
     return(0);
 }
-*/
-int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ntzp,int32_t reqheight)
+
+//int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ntzp,int32_t reqheight)
+int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ptr,int32_t origreqheight)
 {
-    LogPrintf(">>> (%s) called, reqheight = %d <<<\n",__func__,reqheight);
-    if (NSPV_notarized_next(&ntzp->ntz, reqheight) >= 0) { // find notarization txid for which reqheight is in its scope (or it is zeroed if not found or the chain is not notarised)
+    LogPrintf(">>> (%s) called, reqheight = %d <<<\n",__func__,origreqheight);
+    /*if (NSPV_notarized_next(&ntzp->ntz, reqheight) >= 0) { // find notarization txid for which reqheight is in its scope (or it is zeroed if not found or the chain is not notarised)
         LOCK(cs_main);
         CBlockIndex *pindexNtz = komodo_chainactive(ntzp->ntz.txidheight);
         if (pindexNtz != nullptr)
@@ -231,10 +231,10 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ntzp,int32_t reqheight)
     }
     else
         return -1;
-
+    */
     // TODO: Below is legacy chips code for this function, above is ported from TKL
 
-    /*struct NSPV_ntzargs prev,next; int32_t reqheight = origreqheight;
+    struct NSPV_ntzargs prev,next; int32_t reqheight = origreqheight;
     if ( reqheight < g_rpc_node->chainman->ActiveChain().Height() )
         reqheight++;
     if ( NSPV_notarized_bracket(&prev,&next,reqheight) == 0 )
@@ -251,13 +251,14 @@ int32_t NSPV_getntzsresp(struct NSPV_ntzsresp *ntzp,int32_t reqheight)
                 return(-1);
         }
     }
-    return(sizeof(*ptr));*/
+    return(sizeof(*ptr));
 }
 
 int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     CBlockIndex *pindex;
+    LOCK(cs_main);
     if ( (pindex= komodo_chainactive(height)) != 0 )
     {
         hdr->nVersion = pindex->nVersion;
@@ -268,6 +269,7 @@ int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
         hdr->nTime = pindex->nTime;
         hdr->nBits = pindex->nBits;
         hdr->nNonce = pindex->nNonce;
+        LogPrintf(">>> (%s) call successful, returning sizeof(*hdr) = %d\n",__func__,sizeof(*hdr));
         return(sizeof(*hdr));
     }
     return(-1);
@@ -276,15 +278,23 @@ int32_t NSPV_setequihdr(struct NSPV_equihdr *hdr,int32_t height)
 int32_t NSPV_getinfo(struct NSPV_inforesp *ptr,int32_t reqheight)
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
-    int32_t prevMoMheight,len = 0; CBlockIndex *pindex, *pindexNtz; struct NSPV_ntzsresp pair;
+    int32_t prevMoMheight,len = 0; CBlockIndex *pindex, *pindex2; struct NSPV_ntzsresp pair;
     if ( (pindex= g_rpc_node->chainman->ActiveChain().Tip()) != 0 )
     {
         ptr->height = pindex->nHeight;
         ptr->blockhash = pindex->GetBlockHash();
-        if (NSPV_notarized_prev(&ptr->ntz, ptr->height) < 0)  
+        memset(&pair,0,sizeof(pair));
+        //TODO: figure out solution for NotarisationDB headache
+        if ( NSPV_getntzsresp(&pair,ptr->height-1) < 0 )
+            return(-1);
+        ptr->notarization = pair.prevntz;
+        if ( (pindex2= komodo_chainactive(ptr->notarization.txidheight)) != 0 )
+            ptr->notarization.timestamp = pindex->nTime;
+        //fprintf(stderr, "timestamp.%i\n", ptr->notarization.timestamp );
+        /*if (NSPV_notarized_prev(&ptr->ntz, ptr->height) < 0)
             return (-1);
         if ((pindexNtz = komodo_chainactive(ptr->ntz.txidheight)) != 0)
-            ptr->ntz.timestamp = pindexNtz->nTime;
+            ptr->ntz.timestamp = pindexNtz->nTime;*/
         if ( reqheight == 0 )
             reqheight = ptr->height;
         ptr->hdrheight = reqheight;

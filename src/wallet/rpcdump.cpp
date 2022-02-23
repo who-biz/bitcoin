@@ -269,7 +269,8 @@ UniValue NSPV_broadcast(char *hex);
 UniValue NSPV_spend(char *srcaddr,char *destaddr,int64_t satoshis);
 UniValue NSPV_spentinfo(uint256 txid,int32_t vout);
 UniValue NSPV_notarizations(int32_t height);
-UniValue NSPV_hdrsproof(int32_t nextheight);
+//UniValue NSPV_hdrsproof(int32_t nextheight);
+UniValue NSPV_hdrsproof(int32_t prevheight,int32_t nextheight);
 UniValue NSPV_txproof(int32_t vout,uint256 txid,int32_t height);
 
 
@@ -598,7 +599,8 @@ RPCHelpMan nspv_hdrsproof()
         throw std::runtime_error("-nSPV=1 must be set to use nspv\n");
     prevheight = atoi((char *)request.params[0].get_str().c_str());
     nextheight = atoi((char *)request.params[1].get_str().c_str());
-    return(NSPV_hdrsproof(nextheight));
+    //return(NSPV_hdrsproof(nextheight));
+    return(NSPV_hdrsproof(prevheight,nextheight));
 },
     };
 }

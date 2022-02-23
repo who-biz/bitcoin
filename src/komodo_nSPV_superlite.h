@@ -112,23 +112,23 @@ struct NSPV_txproof *NSPV_txproof_add(struct NSPV_txproof *ptr)
     return(&NSPV_txproof_cache[i]);
 }
 
-struct NSPV_ntzsproofresp *NSPV_ntzsproof_find(uint256 nexttxid)
+/*struct NSPV_ntzsproofresp *NSPV_ntzsproof_find(uint256 nexttxid)
 {
     int32_t i;
     for (i=0; i<sizeof(NSPV_ntzsproofresp_cache)/sizeof(*NSPV_ntzsproofresp_cache); i++)
         if ( NSPV_ntzsproofresp_cache[i].nexttxid == nexttxid )
             return(&NSPV_ntzsproofresp_cache[i]);
     return(0);
-}
+}*/
 
-/*struct NSPV_ntzsproofresp *NSPV_ntzsproof_find(uint256 prevtxid,uint256 nexttxid)
+struct NSPV_ntzsproofresp *NSPV_ntzsproof_find(uint256 prevtxid,uint256 nexttxid)
 {
     int32_t i;
     for (i=0; i<sizeof(NSPV_ntzsproofresp_cache)/sizeof(*NSPV_ntzsproofresp_cache); i++)
         if ( NSPV_ntzsproofresp_cache[i].prevtxid == prevtxid && NSPV_ntzsproofresp_cache[i].nexttxid == nexttxid )
             return(&NSPV_ntzsproofresp_cache[i]);
     return(0);
-}*/
+}
 
 struct NSPV_ntzsproofresp *NSPV_ntzsproof_add(struct NSPV_ntzsproofresp *ptr)
 {
@@ -195,14 +195,17 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
                 NSPV_rwntzsresp(0,&response[1],&NSPV_ntzsresult);
                 if ( NSPV_ntzsresp_find(NSPV_ntzsresult.reqheight) == 0 )
                     NSPV_ntzsresp_add(&NSPV_ntzsresult);
-                LogPrintf(">>> (%s) got ntzs response %u size.%d ntz.txid %s ntzed.height.%d\n",__func__,timestamp,(int32_t)response.size(), NSPV_ntzsresult.ntz.txid.GetHex().c_str(), NSPV_ntzsresult.ntz.ntzheight);
+                LogPrintf(">>> (%s) got ntzs response %u size.%d %s prev.%d, %s next.%d\n",__func__,timestamp,(int32_t)response.size(),NSPV_ntzsresult.prevntz.txid.GetHex().c_str(),NSPV_ntzsresult.prevntz.height,NSPV_ntzsresult.nextntz.txid.GetHex().c_str(),NSPV_ntzsresult.nextntz.height);
+                //LogPrintf(">>> (%s) got ntzs response %u size.%d ntz.txid %s ntzed.height.%d\n",__func__,timestamp,(int32_t)response.size(), NSPV_ntzsresult.ntz.txid.GetHex().c_str(), NSPV_ntzsresult.ntz.ntzheight);
                 break;
             case NSPV_NTZSPROOFRESP:
                 NSPV_ntzsproofresp_purge(&NSPV_ntzsproofresult);
                 NSPV_rwntzsproofresp(0,&response[1],&NSPV_ntzsproofresult);
-                if ( NSPV_ntzsproof_find(NSPV_ntzsproofresult.nexttxid) == 0 )
+                //if ( NSPV_ntzsproof_find(NSPV_ntzsproofresult.nexttxid) == 0 )
+                if ( NSPV_ntzsproof_find(NSPV_ntzsproofresult.prevtxid,NSPV_ntzsproofresult.nexttxid) == 0 )
                     NSPV_ntzsproof_add(&NSPV_ntzsproofresult);
-                fprintf(stderr,"got ntzproof response %u size.%d next.%d\n",timestamp,(int32_t)response.size(), NSPV_ntzsproofresult.common.nextht);
+                LogPrintf("got ntzproof response %u size.%d prev.%d next.%d\n",timestamp,(int32_t)response.size(),NSPV_ntzsproofresult.common.prevht,NSPV_ntzsproofresult.common.nextht);
+                //fprintf(stderr,"got ntzproof response %u size.%d next.%d\n",timestamp,(int32_t)response.size(), NSPV_ntzsproofresult.common.nextht);
                 break;
             case NSPV_TXPROOFRESP:
                 NSPV_txproof_purge(&NSPV_txproofresult);
@@ -358,13 +361,17 @@ UniValue NSPV_spentinfo_json(struct NSPV_spentinfo *ptr)
 
 UniValue NSPV_ntz_json(struct NSPV_ntz *ptr)
 {
-    LogPrintf(">>> (%s) called, ntz_height(%d), ntzhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
+    //LogPrintf(">>> (%s) called, ntz_height(%d), ntzhash(%s) <<<\n",__func__, ptr->ntzheight, ptr->ntzblockhash.GetHex());
+    LogPrintf(">>> (%s) called, ntz_height(%d), ntzhash(%s) <<<\n",__func__, ptr->height, ptr->blockhash.GetHex());
     UniValue result(UniValue::VOBJ);
-    result.pushKV("notarized_height",(int64_t)ptr->ntzheight);
-    result.pushKV("notarized_blockhash",ptr->ntzblockhash.GetHex());
+    //result.pushKV("notarized_height",(int64_t)ptr->ntzheight);
+    result.pushKV("notarized_height",(int64_t)ptr->height);
+    //result.pushKV("notarized_blockhash",ptr->ntzblockhash.GetHex());
+    result.pushKV("notarized_blockhash",ptr->blockhash.GetHex());
     result.pushKV("notarization_txid",ptr->txid.GetHex());
     result.pushKV("notarization_txidheight",(int64_t)ptr->txidheight);
-    result.pushKV("notarization_desttxid",ptr->desttxid.GetHex());
+    //result.pushKV("notarization_desttxid",ptr->desttxid.GetHex());
+    result.pushKV("notarization_desttxid",ptr->othertxid.GetHex());
     return(result);
 }
 
@@ -407,7 +414,8 @@ UniValue NSPV_getinfo_json(struct NSPV_inforesp *ptr)
     }
     result.pushKV("height",(int64_t)ptr->height);
     result.pushKV("chaintip",ptr->blockhash.GetHex());
-    result.pushKV("notarization",NSPV_ntz_json(&ptr->ntz));
+    //result.pushKV("notarization",NSPV_ntz_json(&ptr->ntz));
+    result.pushKV("notarization",NSPV_ntz_json(&ptr->notarization));
     result.pushKV("header",NSPV_header_json(&ptr->H,ptr->hdrheight));
     result.pushKV("protocolversion",(int64_t)ptr->version);
     result.pushKV("lastpeer",NSPV_lastpeer);
@@ -499,7 +507,9 @@ UniValue NSPV_ntzsresp_json(struct NSPV_ntzsresp *ptr)
     LogPrintf(">>> (%s) called <<<\n",__func__);
     UniValue result(UniValue::VOBJ);
     result.pushKV("result","success");
-    result.pushKV("ntz",NSPV_ntz_json(&ptr->ntz));
+    //result.pushKV("ntz",NSPV_ntz_json(&ptr->ntz));
+    result.pushKV("prev",NSPV_ntz_json(&ptr->prevntz));
+    result.pushKV("next",NSPV_ntz_json(&ptr->nextntz));
     result.pushKV("lastpeer",NSPV_lastpeer);
     return(result);
 }
@@ -805,9 +815,10 @@ UniValue NSPV_notarizations(int32_t reqheight)
     return(NSPV_ntzsresp_json(&N));
 }
 
-UniValue NSPV_txidhdrsproof(uint256 nexttxid)
+//UniValue NSPV_txidhdrsproof(uint256 nexttxid)
+UniValue NSPV_txidhdrsproof(uint256 prevtxid,uint256 nexttxid)
 {
-    uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_ntzsproofresp P,*ptr;
+    /*uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_ntzsproofresp P,*ptr;
     if ( (ptr= NSPV_ntzsproof_find(nexttxid)) != 0 )
     {
         fprintf(stderr,"FROM CACHE NSPV_txidhdrsproof %s\n", ptr->nexttxid.GetHex().c_str());
@@ -830,9 +841,9 @@ UniValue NSPV_txidhdrsproof(uint256 nexttxid)
     } else sleep(1);
     memset(&P,0,sizeof(P));
     return(NSPV_ntzsproof_json(&P));
-
+    */
 // TODO: Below is legacy chips code, above ported from Tokel
-/*
+
     uint8_t msg[512]; int32_t i,iter,len = 0; struct NSPV_ntzsproofresp P,*ptr;
     if ( (ptr= NSPV_ntzsproof_find(prevtxid,nexttxid)) != 0 )
     {
@@ -857,15 +868,23 @@ UniValue NSPV_txidhdrsproof(uint256 nexttxid)
     } else sleep(1);
     memset(&P,0,sizeof(P));
     return(NSPV_ntzsproof_json(&P));
-*/
 }
 
-UniValue NSPV_hdrsproof(int32_t nextht)
+/*UniValue NSPV_hdrsproof(int32_t nextht)
 {
     uint256 nexttxid;
     NSPV_notarizations(nextht);
     nexttxid = NSPV_ntzsresult.ntz.txid;
     return NSPV_txidhdrsproof(nexttxid);
+}*/
+
+UniValue NSPV_hdrsproof(int32_t prevht,int32_t nextht)
+{
+    uint256 prevtxid,nexttxid;
+    NSPV_notarizations(prevht);
+    prevtxid = NSPV_ntzsresult.prevntz.txid;
+    nexttxid = NSPV_ntzsresult.nextntz.txid;
+    return(NSPV_txidhdrsproof(prevtxid,nexttxid));
 }
 
 UniValue NSPV_txproof(int32_t vout,uint256 txid,int32_t height)
