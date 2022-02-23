@@ -29,6 +29,8 @@ unsigned char _decode_hex(char *hex);
 int32_t decode_hex(uint8_t *bytes,int32_t n,char *hex);
 char hexbyte(int32_t c);
 int32_t init_hexbytes_noT(char *hexbytes,unsigned char *message,long len);
+int32_t komodo_blockload(CBlock& block,CBlockIndex *pindex);
+int32_t komodo_blockheight(uint256 hash);
 uint32_t komodo_chainactive_timestamp();
 CBlockIndex *komodo_chainactive(int32_t height);
 uint32_t komodo_heightstamp(int32_t height);
@@ -51,6 +53,7 @@ void komodo_notarized_update(int32_t nHeight,int32_t notarized_height,uint256 no
 int32_t komodo_checkpoint(int32_t *notarized_heightp,int32_t nHeight,uint256 hash);
 void komodo_voutupdate(int32_t txi,int32_t vout,uint8_t *scriptbuf,int32_t scriptlen,int32_t height,int32_t *specialtxp,int32_t *notarizedheightp,uint64_t value,int32_t notarized,uint64_t signedmask);
 void komodo_connectblock(CBlockIndex *pindex,CBlock& block);
+CPubKey buf2pk(uint8_t *buf33);
 
 
 

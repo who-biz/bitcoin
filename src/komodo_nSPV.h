@@ -489,7 +489,7 @@ int32_t NSPV_txextract(CMutableTransaction &tx,uint8_t *data,int32_t datalen)
 
 bool NSPV_SignTx(CMutableTransaction &mtx,int32_t vini,int64_t utxovalue,const CScript scriptPubKey,uint32_t nTime);
 
-/*int32_t NSPV_fastnotariescount(CTransaction tx,uint8_t elected[64][33],uint32_t nTime)
+int32_t NSPV_fastnotariescount(CTransaction tx,uint8_t elected[64][33],uint32_t nTime)
 {
     CPubKey pubkeys[64]; uint8_t sig[512]; CScript scriptPubKeys[64]; CMutableTransaction mtx(tx); int32_t vini,j,siglen,retval; uint64_t mask = 0; char *str; std::vector<std::vector<unsigned char>> vData;
     for (j=0; j<64; j++)
@@ -525,7 +525,7 @@ bool NSPV_SignTx(CMutableTransaction &mtx,int32_t vini,int64_t utxovalue,const C
         }
     }
     return(bitweight(mask));
-}*/
+}
 
 /*
  NSPV_notariescount is the slowest process during full validation as it requires looking up 13 transactions.
@@ -562,6 +562,21 @@ bool NSPV_SignTx(CMutableTransaction &mtx,int32_t vini,int64_t utxovalue,const C
     return(numsigs);
 }
 
+*/
+
+uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std::vector<uint8_t> opret,uint256 txid)
+{
+    LogPrintf(">>> (%s) called <<<\n",__func__);
+    uint256 desttxid; int32_t i;
+    iguana_rwnum(0,&opret[32],sizeof(*heightp),heightp);
+    for (i=0; i<32; i++)
+        ((uint8_t *)blockhashp)[i] = opret[i];
+    for (i=0; i<32; i++)
+        ((uint8_t *)&desttxid)[i] = opret[4 + 32 + i];
+    if ( 0 && *heightp != 2690 )
+        fprintf(stderr," ntzht.%d %s <- txid.%s size.%d\n",*heightp,(*blockhashp).GetHex().c_str(),(txid).GetHex().c_str(),(int32_t)opret.size());
+    return(desttxid);
+}
 
 int32_t NSPV_notarizationextract(int32_t verifyntz,int32_t *ntzheightp,uint256 *blockhashp,uint256 *desttxidp,CTransaction tx)
 {
@@ -589,5 +604,5 @@ int32_t NSPV_notarizationextract(int32_t verifyntz,int32_t *ntzheightp,uint256 *
             return(-2);
         }
     } else return(-1);
-}*/
+}
 #endif // KOMODO_NSPV_H

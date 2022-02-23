@@ -14,7 +14,7 @@
  ******************************************************************************/
 
 #include <komodo_validation021.h>
-
+#include <node/blockstorage.h>
 // API endpoints required for dPoW:
 //   - validateaddress
 //   - getinfo
@@ -931,6 +931,34 @@ int32_t init_hexbytes_noT(char *hexbytes,unsigned char *message,long len)
     return((int32_t)len*2+1);
 }
 
+int32_t komodo_blockheight(uint256 hash)
+{
+    BlockMap::const_iterator it; CBlockIndex *pindex = 0;
+    if ( (it = g_rpc_node->chainman->m_blockman.m_block_index.find(hash)) != g_rpc_node->chainman->m_blockman.m_block_index.end() )
+    {
+        if ( (pindex= it->second) != 0 )
+            return(pindex->nHeight);
+    }
+    return(0);
+}
+
+int32_t komodo_blockload(CBlock& block,CBlockIndex *pindex)
+{
+    block.SetNull();
+    // Open history file to read
+    CAutoFile filein(OpenBlockFile(pindex->GetBlockPos(),true),SER_DISK,CLIENT_VERSION);
+    if (filein.IsNull())
+        return(-1);
+    // Read block
+    try { filein >> block; }
+    catch (const std::exception& e)
+    {
+        fprintf(stderr,"readblockfromdisk err B\n");
+        return(-1);
+    }
+    return(0);
+}
+
 uint32_t komodo_chainactive_timestamp()
 {
     if ( g_rpc_node->chainman->ActiveChain().Tip() != 0 )
@@ -1466,3 +1494,13 @@ void komodo_connectblock(CBlockIndex *pindex,CBlock& block)
         }
     } else fprintf(stderr,"komodo_connectblock: unexpected null pindex\n");
 }
+
+CPubKey buf2pk(uint8_t *buf33)
+{
+    CPubKey pk; int32_t i; uint8_t *dest;
+    dest = (uint8_t *)pk.begin();
+    for (i=0; i<33; i++)
+        dest[i] = buf33[i];
+    return(pk);
+}
+

@@ -57,7 +57,7 @@ struct NSPV_ntzargs
     int32_t txidht,ntzheight;
 };
 
-uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std::vector<uint8_t> opret,uint256 txid)
+/*uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std::vector<uint8_t> opret,uint256 txid)
 {
     LogPrintf(">>> (%s) called <<<\n",__func__);
     uint256 desttxid; int32_t i;
@@ -69,7 +69,7 @@ uint256 NSPV_opretextract(int32_t *heightp,uint256 *blockhashp,char *symbol,std:
     if ( 0 && *heightp != 2690 )
         fprintf(stderr," ntzht.%d %s <- txid.%s size.%d\n",*heightp,(*blockhashp).GetHex().c_str(),(txid).GetHex().c_str(),(int32_t)opret.size());
     return(desttxid);
-}
+}*/
 
 int32_t NSPV_notarization_find(struct NSPV_ntzargs *args,int32_t height,int32_t dir)
 {
@@ -596,7 +596,7 @@ uint8_t *NSPV_getrawtx(CTransactionRef &tx,uint256 &hashBlock,int32_t *txlenp,ui
     } else ptr->retcode = -1;
     return(sizeof(*ptr));
 }
-
+*/
 int32_t NSPV_gettxproof(struct NSPV_txproof *ptr,int32_t vout,uint256 txid,int32_t height)
 {
     int32_t flag = 0,len = 0; CTransactionRef _tx; uint256 hashBlock; CBlock block; CBlockIndex *pindex;
@@ -615,7 +615,7 @@ int32_t NSPV_gettxproof(struct NSPV_txproof *ptr,int32_t vout,uint256 txid,int32
             {
                 BOOST_FOREACH(const CTransactionRef&tx, block.vtx)
                 {
-                    if ( tx.GetHash() == txid )
+                    if ( tx->GetHash() == txid )
                     {
                         flag = 1;
                         break;
@@ -623,7 +623,7 @@ int32_t NSPV_gettxproof(struct NSPV_txproof *ptr,int32_t vout,uint256 txid,int32
                 }
                 if ( flag != 0 )
                 {
-                    set<uint256> setTxids;
+                    std::set<uint256> setTxids;
                     CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION);
                     setTxids.insert(txid);
                     CMerkleBlock mb(block, setTxids);
@@ -650,7 +650,7 @@ int32_t NSPV_getntzsproofresp(struct NSPV_ntzsproofresp *ptr,uint256 prevntztxid
     ptr->prevtxid = prevntztxid;
     ptr->prevntz = NSPV_getrawtx(tx,hashBlock,&ptr->prevtxlen,ptr->prevtxid);
     ptr->prevtxidht = komodo_blockheight(hashBlock);
-    if ( NSPV_notarizationextract(0,&ptr->common.prevht,&bhash0,&desttxid0,tx) < 0 )
+    if ( NSPV_notarizationextract(0,&ptr->common.prevht,&bhash0,&desttxid0,*tx) < 0 )
         return(-2);
     else if ( komodo_blockheight(bhash0) != ptr->common.prevht )
         return(-3);
@@ -658,7 +658,7 @@ int32_t NSPV_getntzsproofresp(struct NSPV_ntzsproofresp *ptr,uint256 prevntztxid
     ptr->nexttxid = nextntztxid;
     ptr->nextntz = NSPV_getrawtx(tx,hashBlock,&ptr->nexttxlen,ptr->nexttxid);
     ptr->nexttxidht = komodo_blockheight(hashBlock);
-    if ( NSPV_notarizationextract(0,&ptr->common.nextht,&bhash1,&desttxid1,tx) < 0 )
+    if ( NSPV_notarizationextract(0,&ptr->common.nextht,&bhash1,&desttxid1,*tx) < 0 )
         return(-5);
     else if ( komodo_blockheight(bhash1) != ptr->common.nextht )
         return(-6);
@@ -686,7 +686,7 @@ int32_t NSPV_getntzsproofresp(struct NSPV_ntzsproofresp *ptr,uint256 prevntztxid
     }
     //fprintf(stderr,"sizeof ptr %ld, common.%ld lens.%d %d\n",sizeof(*ptr),sizeof(ptr->common),ptr->prevtxlen,ptr->nexttxlen);
     return(sizeof(*ptr) + sizeof(*ptr->common.hdrs)*ptr->common.numhdrs - sizeof(ptr->common.hdrs) - sizeof(ptr->prevntz) - sizeof(ptr->nextntz) + ptr->prevtxlen + ptr->nexttxlen);
-}*/
+}
 
 int32_t NSPV_getspentinfo(struct NSPV_spentinfo *ptr,uint256 txid,int32_t vout)
 {

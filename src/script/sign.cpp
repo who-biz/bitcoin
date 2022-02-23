@@ -15,6 +15,8 @@
 
 typedef std::vector<unsigned char> valtype;
 
+uint256 SIG_TXHASH;
+
 MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(const CMutableTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn, int nHashTypeIn)
     : txTo(txToIn), nIn(nInIn), nHashType(nHashTypeIn), amount(amountIn), checker(txTo, nIn, amountIn, MissingDataBehavior::FAIL),
       m_txdata(nullptr)
@@ -50,6 +52,7 @@ bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider& provid
     uint256 hash = SignatureHash(scriptCode, *txTo, nIn, hashtype, amount, sigversion, m_txdata);
     if (!key.Sign(hash, vchSig))
         return false;
+    hash = SIG_TXHASH;
     vchSig.push_back((unsigned char)hashtype);
     return true;
 }

@@ -16,6 +16,8 @@
 
 #ifndef KOMODO_NSPVWALLET_H
 #define KOMODO_NSPVWALLET_H
+
+#include <script/sign.h>
 /*
 // nSPV wallet uses superlite functions (and some komodod built in functions) to implement nSPV_spend
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry);
@@ -235,30 +237,33 @@ int64_t NSPV_addinputs(struct NSPV_utxoresp *used,CMutableTransaction &mtx,int64
         return(totalinputs);
     return(0);
 }
-
+*/
 bool NSPV_SignTx(CMutableTransaction &mtx,int32_t vini,int64_t utxovalue,const CScript scriptPubKey,uint32_t nTime)
 {
-    CTransaction txNewConst(mtx); SignatureData sigdata; CBasicKeyStore keystore; int64_t branchid = NSPV_BRANCHID;
+    int nHashType = SIGHASH_ALL;
+    CTransaction txNewConst(mtx); SignatureData sigdata; FillableSigningProvider tempKeystore; int64_t branchid = NSPV_BRANCHID;
     if ( NSPV_logintime == 0 || time(NULL) > NSPV_logintime+NSPV_AUTOLOGOUT )
     {
         fprintf(stderr,"need to be logged in to get myprivkey\n");
         return false;
     }
-    keystore.AddKey(NSPV_key);
-    if ( nTime != 0 && nTime < KOMODO_SAPLING_ACTIVATION )
+    tempKeystore.AddKey(NSPV_key);
+    if ( nTime != 0 )
     {
         fprintf(stderr,"use legacy sig validation\n");
         branchid = 0;
     }
-    if ( ProduceSignature(TransactionSignatureCreator(&keystore,&txNewConst,vini,utxovalue,SIGHASH_ALL),scriptPubKey,sigdata,branchid) != 0 )
+    const FillableSigningProvider& keystore = tempKeystore;
+    if ( ProduceSignature(keystore,MutableTransactionSignatureCreator(&mtx,vini,utxovalue,nHashType),scriptPubKey,sigdata) != 0 )
     {
-        UpdateTransaction(mtx,vini,sigdata);
+        //TODO: Figure out if we need to UpdateInput,Transaction etc after new signature production
+        //UpdateTransaction(mtx,vini,sigdata);
         fprintf(stderr,"SIG_TXHASH %s vini.%d %.8f\n",SIG_TXHASH.GetHex().c_str(),vini,(double)utxovalue/COIN);
         return(true);
     }  //else fprintf(stderr,"sigerr SIG_TXHASH %s vini.%d %.8f\n",SIG_TXHASH.GetHex().c_str(),vini,(double)utxovalue/COIN);
     return(false);
 }
-
+/*
 std::string NSPV_signtx(int64_t &rewardsum,int64_t &interestsum,UniValue &retcodes,CMutableTransaction &mtx,uint64_t txfee,CScript opret,struct NSPV_utxoresp used[])
 {
     CTransaction vintx; std::string hex; uint256 hashBlock; int64_t interest=0,change,totaloutputs=0,totalinputs=0; int32_t i,utxovout,n,validation,txheight,currentheight;

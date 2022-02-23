@@ -52,17 +52,6 @@ static const std::string HELP_REQUIRING_PASSPHRASE{"\nRequires wallet passphrase
 
 int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
 
-int32_t komodo_blockheight(uint256 hash)
-{
-    BlockMap::const_iterator it; CBlockIndex *pindex = 0;
-    if ( (it = g_rpc_node->chainman->m_blockman.m_block_index.find(hash)) != g_rpc_node->chainman->m_blockman.m_block_index.end() )
-    {
-        if ( (pindex= it->second) != 0 )
-            return(pindex->nHeight);
-    }
-    return(0);
-}
-
 static inline bool GetAvoidReuseFlag(const CWallet& wallet, const UniValue& param) {
     bool can_avoid_reuse = wallet.IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
     bool avoid_reuse = param.isNull() ? can_avoid_reuse : param.get_bool();
