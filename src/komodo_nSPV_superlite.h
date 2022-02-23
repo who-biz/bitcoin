@@ -195,7 +195,7 @@ void komodo_nSPVresp(CNode *pfrom,std::vector<uint8_t> response) // received a r
                 NSPV_rwntzsresp(0,&response[1],&NSPV_ntzsresult);
                 if ( NSPV_ntzsresp_find(NSPV_ntzsresult.reqheight) == 0 )
                     NSPV_ntzsresp_add(&NSPV_ntzsresult);
-                fprintf(stderr,"got ntzs response %u size.%d ntz.txid %s ntzed.height.%d\n",timestamp,(int32_t)response.size(), NSPV_ntzsresult.ntz.txid.GetHex().c_str(), NSPV_ntzsresult.ntz.ntzheight);
+                LogPrintf(">>> (%s) got ntzs response %u size.%d ntz.txid %s ntzed.height.%d\n",__func__,timestamp,(int32_t)response.size(), NSPV_ntzsresult.ntz.txid.GetHex().c_str(), NSPV_ntzsresult.ntz.ntzheight);
                 break;
             case NSPV_NTZSPROOFRESP:
                 NSPV_ntzsproofresp_purge(&NSPV_ntzsproofresult);

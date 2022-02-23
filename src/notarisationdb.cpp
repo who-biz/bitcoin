@@ -132,7 +132,7 @@ int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Not
         if (i > height) break;
         NotarisationsInBlock notarisations;
         uint256 blockHash = *g_rpc_node->chainman->ActiveChain()[height-i]->phashBlock;
-        LogPrintf(">>> (%s) breakpoint.2, blockHash(%s)\n",__func__,blockHash.GetHex());
+        //LogPrintf(">>> (%s) breakpoint.2, blockHash(%s)\n",__func__,blockHash.GetHex());
         if (!GetBlockNotarisations(blockHash, notarisations))
             continue;
 
