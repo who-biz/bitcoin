@@ -13,9 +13,17 @@ NotarisationDB::NotarisationDB(size_t nCacheSize, bool fMemory, bool fWipe) : CD
 
 bool ParseNotarisationOpReturn(const CTransactionRef &tx, NotarisationData &data)
 {
-    if (tx->vout.size() < 2) return false;
+    if (tx->vout.size() < 2)
+    {
+         LogPrintf(">>> (%s) tx->vout.size() < 2, returning false\n",__func__);
+         return false;
+    }
     std::vector<unsigned char> vdata;
-    if (!GetOpReturnData(tx->vout[1].scriptPubKey, vdata)) return false;
+    if (!GetOpReturnData(tx->vout[1].scriptPubKey, vdata))
+    {
+         LogPrintf(">>> (%s) GetOpReturnData failed, returning false\n",__func__);
+         return false;
+    }
     bool out = E_UNMARSHAL(vdata, ss >> data);
     return out;
 }
