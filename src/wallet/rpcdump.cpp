@@ -612,7 +612,16 @@ RPCHelpMan nspv_txproof()
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "specified txid"},
                     {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "specified height"},
                 },
-                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "result", "whether the command was successful"},
+                        {RPCResult::Type::STR_HEX, "txid", "txid for the transaction requested"},
+                        {RPCResult::Type::NUM, "height", "block height of the transaction requested"},
+                        {RPCResult::Type::NUM, "txlen", "length of the transaction data"},
+                        {RPCResult::Type::NUM, "txprooflen", "length of the transaction proof"},
+                        {RPCResult::Type::STR, "lastpeer", "the last known peer"},
+                    }},
                 RPCExamples{
             "\nNSPV spend\n"
             + HelpExampleCli("nspv_txproof", "txid height")
