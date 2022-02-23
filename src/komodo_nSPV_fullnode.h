@@ -901,7 +901,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     } else fprintf(stderr,"err.%d\n",slen);
                 }
             }
-        }
+        }*/
         else if ( request[0] == NSPV_TXPROOF )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
@@ -922,14 +922,14 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         if ( NSPV_rwtxproof(1,&response[1],&P) == slen )
                         {
                             //fprintf(stderr,"send response\n");
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_txproof_purge(&P);
                     } else fprintf(stderr,"gettxproof error.%d\n",slen);
                 } else fprintf(stderr,"txproof reqlen.%d\n",len);
             }
-        }*/
+        }
         else if ( request[0] == NSPV_SPENTINFO )
         {
             if ( timestamp > pfrom->prevtimes[ind] )
