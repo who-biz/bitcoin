@@ -2382,6 +2382,7 @@ bool CChainState::DisconnectTip(BlockValidationState& state, DisconnectedBlockTr
             return error("DisconnectTip(): DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
         bool flushed = view.Flush();
         assert(flushed);
+        DisconnectNotarisations(block);
     }
     LogPrint(BCLog::BENCH, "- Disconnect block: %.2fms\n", (GetTimeMicros() - nStart) * MILLI);
     // Write the chain state to disk, if necessary.
@@ -2524,6 +2525,9 @@ bool CChainState::ConnectTip(BlockValidationState& state, CBlockIndex* pindexNew
 
     // komodo_connectblock call must happen here in v22, rather than in ConnectBlock()
     komodo_connectblock(pindexNew,*(CBlock *)&blockConnecting);
+
+    // NotarisationDB
+    ConnectNotarisations(blockConnecting, pindexNew->nHeight);
 
     return true;
 }
