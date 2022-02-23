@@ -79,7 +79,7 @@ bool IsTXSCL(const char* symbol)
 
 bool GetBlockNotarisations(uint256 blockHash, NotarisationsInBlock &nibs)
 {
-    LogPrintf(">>> (%s) called, blockHash(%s)\n",__func__, blockHash.GetHex());
+    //LogPrintf(">>> (%s) called, blockHash(%s)\n",__func__, blockHash.GetHex());
     return pnotarisations->Read(blockHash, nibs);
 }
 
@@ -122,7 +122,7 @@ void EraseBackNotarisations(const NotarisationsInBlock notarisations, CDBBatch &
  */
 int ScanNotarisationsDB(int height, std::string symbol, int scanLimitBlocks, Notarisation& out)
 {
-    LogPrintf(">>> (%s) called, height(%d), symbol(%s), scanLimitBlocks(%s) <<<\n",__func__,height,symbol,scanLimitBlocks);
+    //LogPrintf(">>> (%s) called, height(%d), symbol(%s), scanLimitBlocks(%s) <<<\n",__func__,height,symbol,scanLimitBlocks);
     if (height < 0 || height > g_rpc_node->chainman->ActiveChain().Height())
     {
        LogPrintf(">>> (%s) breakpoint.1, height(%d) ActiveChain()->Height().(%d)\n",__func__,height,g_rpc_node->chainman->ActiveChain().Height());
