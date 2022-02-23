@@ -765,7 +765,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_UTXOSRESP;
                         if ( NSPV_rwutxosresp(1,&response[1],&U) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_utxosresp_purge(&U);
@@ -802,7 +802,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_TXIDSRESP;
                         if ( NSPV_rwtxidsresp(1,&response[1],&T) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_txidsresp_purge(&T);
@@ -835,7 +835,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                             response[0] = NSPV_MEMPOOLRESP;
                             if ( NSPV_rwmempoolresp(1,&response[1],&M) == slen )
                             {
-                                pfrom->PushMessage("nSPV",response);
+                                g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                                 pfrom->prevtimes[ind] = timestamp;
                             }
                             NSPV_mempoolresp_purge(&M);
@@ -869,7 +869,6 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         {
                             LogPrintf("(%s) >>> request[0] = NSPV_NTZS.breakpoint.5, prior to PushMessage()\n",__func__);
                             g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
-                            //pfrom->PushMessage("nSPV",response);
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_ntzsresp_purge(&N);
@@ -894,7 +893,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_NTZSPROOFRESP;
                         if ( NSPV_rwntzsproofresp(1,&response[1],&P) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_ntzsproofresp_purge(&P);
@@ -921,7 +920,6 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_TXPROOFRESP;
                         if ( NSPV_rwtxproof(1,&response[1],&P) == slen )
                         {
-                            //fprintf(stderr,"send response\n");
                             g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
@@ -947,7 +945,6 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         if ( NSPV_rwspentinfo(1,&response[1],&S) == slen )
                         {
                             g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
-                            //pfrom->PushMessage("nSPV",response);
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_spentinfo_purge(&S);
@@ -972,7 +969,7 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                         response[0] = NSPV_BROADCASTRESP;
                         if ( NSPV_rwbroadcastresp(1,&response[1],&B) == slen )
                         {
-                            pfrom->PushMessage("nSPV",response);
+                            g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
                             pfrom->prevtimes[ind] = timestamp;
                         }
                         NSPV_broadcast_purge(&B);
@@ -994,7 +991,6 @@ void komodo_nSPVreq(CNode *pfrom,std::vector<uint8_t> request) // received a req
                     response[0] = NSPV_REMOTERPCRESP;
                     NSPV_rwremoterpcresp(1,&response[1],&R,slen);
                     g_rpc_node->connman->PushMessage(pfrom,CNetMsgMaker(pfrom->GetCommonVersion()).Make(NetMsgType::NSPV,response));
-                    //pfrom->PushMessage("nSPV",response);
                     pfrom->prevtimes[ind] = timestamp;
                     NSPV_remoterpc_purge(&R);
                 }
