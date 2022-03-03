@@ -29,6 +29,7 @@ using namespace std;
 
 int64_t nWalletUnlockTime;
 static CCriticalSection cs_nWalletUnlockTime;
+int32_t komodo_dpowconfs(int32_t height,int32_t numconfs);
 
 std::string HelpRequiringPassphrase()
 {
@@ -55,20 +56,34 @@ void EnsureWalletIsUnlocked()
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
+int32_t komodo_blockheight(uint256 hash)
+{
+    BlockMap::const_iterator it; CBlockIndex *pindex = 0;
+    if ( (it = mapBlockIndex.find(hash)) != mapBlockIndex.end() )
+    {
+        if ( (pindex= it->second) != 0 )
+            return(pindex->nHeight);
+    }
+    return(0);
+}
+
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
 {
     int confirms = wtx.GetDepthInMainChain();
-    entry.push_back(Pair("confirmations", confirms));
+    entry.push_back(Pair("rawconfirmations", confirms));
     if (wtx.IsCoinBase())
         entry.push_back(Pair("generated", true));
     if (confirms > 0)
     {
+        entry.push_back(Pair("confirmations", komodo_dpowconfs((int32_t)komodo_blockheight(wtx.hashBlock),confirms)));
         entry.push_back(Pair("blockhash", wtx.hashBlock.GetHex()));
         entry.push_back(Pair("blockindex", wtx.nIndex));
         entry.push_back(Pair("blocktime", mapBlockIndex[wtx.hashBlock]->GetBlockTime()));
     } else {
+        entry.push_back(Pair("confirmations", confirms));
         entry.push_back(Pair("trusted", wtx.IsTrusted()));
     }
+
     uint256 hash = wtx.GetHash();
     entry.push_back(Pair("txid", hash.GetHex()));
     UniValue conflicts(UniValue::VARR);
@@ -2649,9 +2664,14 @@ UniValue listunspent(const UniValue& params, bool fHelp)
             }
         }
 
+        int32_t txheight = -1;
+        if ( chainActive.Tip() != NULL )
+            txheight = (chainActive.Tip()->nHeight - out.nDepth - 1);
+
         entry.push_back(Pair("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
         entry.push_back(Pair("amount", ValueFromAmount(out.tx->vout[out.i].nValue)));
-        entry.push_back(Pair("confirmations", out.nDepth));
+        entry.push_back(Pair("rawconfirmations", out.nDepth));
+        entry.push_back(Pair("confirmations", komodo_dpowconfs(txheight,out.nDepth)));
         entry.push_back(Pair("spendable", out.fSpendable));
         entry.push_back(Pair("solvable", out.fSolvable));
         results.push_back(entry);
