@@ -16,6 +16,7 @@
 #include <univalue.h>
 
 #include <boost/bind.hpp>
+#include <boost/bind/placeholders.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/iostreams/concepts.hpp>
@@ -58,12 +59,12 @@ void RPCServer::OnStopped(boost::function<void ()> slot)
 
 void RPCServer::OnPreCommand(boost::function<void (const CRPCCommand&)> slot)
 {
-    g_rpcSignals.PreCommand.connect(boost::bind(slot, _1));
+    g_rpcSignals.PreCommand.connect(boost::bind(slot, boost::placeholders::_1));
 }
 
 void RPCServer::OnPostCommand(boost::function<void (const CRPCCommand&)> slot)
 {
-    g_rpcSignals.PostCommand.connect(boost::bind(slot, _1));
+    g_rpcSignals.PostCommand.connect(boost::bind(slot, boost::placeholders::_1));
 }
 
 void RPCTypeCheck(const UniValue& params,
