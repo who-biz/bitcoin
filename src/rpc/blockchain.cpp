@@ -179,7 +179,7 @@ CBlockIndex* ParseHashOrHeight(const UniValue& param, ChainstateManager& chainma
     }
 }
 
-UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex)
+UniValue blockheaderToJSON(const NodeContext& node, const CBlockIndex* tip, const CBlockIndex* blockindex)
 {
     // Serialize passed information without accessing chain state of the active chain!
     AssertLockNotHeld(cs_main); // For performance reasons
@@ -188,8 +188,8 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
     result.pushKV("hash", blockindex->GetBlockHash().GetHex());
     int confirmations = -1;
     // Only report confirmations if the block is on the main chain
-    if (g_rpc_node->chainman->ActiveChain().Contains(blockindex))
-        confirmations = g_rpc_node->chainman->ActiveChain().Height() - blockindex->nHeight + 1;
+    if (node.chainman->ActiveChain().Contains(blockindex))
+        confirmations = node.chainman->ActiveChain().Height() - blockindex->nHeight + 1;
     result.pushKV("rawconfirmations", confirmations);
     result.pushKV("confirmations", komodo_dpowconfs(blockindex->nHeight,confirmations));
     result.pushKV("height", blockindex->nHeight);
@@ -206,21 +206,21 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
 
     if (blockindex->pprev)
         result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
-    CBlockIndex *pnext = g_rpc_node->chainman->ActiveChain().Next(blockindex);
+    CBlockIndex *pnext = node.chainman->ActiveChain().Next(blockindex);
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
     return result;
 }
 
-UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIndex* blockindex, bool txDetails)
+UniValue blockToJSON(const NodeContext& node, const CBlock& block, const CBlockIndex* tip, const CBlockIndex* blockindex, bool txDetails)
 {
-    UniValue result = blockheaderToJSON(tip, blockindex);
+    UniValue result = blockheaderToJSON(node, tip, blockindex);
 
     result.pushKV("hash", blockindex->GetBlockHash().GetHex());
     int confirmations = -1;
     // Only report confirmations if the block is on the main chain
-    if (g_rpc_node->chainman->ActiveChain().Contains(blockindex))
-        confirmations = g_rpc_node->chainman->ActiveChain().Height() - blockindex->nHeight + 1;
+    if (node.chainman->ActiveChain().Contains(blockindex))
+        confirmations = node.chainman->ActiveChain().Height() - blockindex->nHeight + 1;
     result.pushKV("rawconfirmations", confirmations);
     result.pushKV("confirmations", komodo_dpowconfs(blockindex->nHeight,confirmations));
     result.pushKV("strippedsize", (int)::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS));
@@ -247,7 +247,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
 
     if (blockindex->pprev)
         result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
-    CBlockIndex *pnext = g_rpc_node->chainman->ActiveChain().Next(blockindex);
+    CBlockIndex *pnext = node.chainman->ActiveChain().Next(blockindex);
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
     return result;
@@ -921,6 +921,8 @@ static RPCHelpMan getblockheader()
 {
     uint256 hash(ParseHashV(request.params[0], "hash"));
 
+    NodeContext& node = EnsureAnyNodeContext(request.context);
+
     bool fVerbose = true;
     if (!request.params[1].isNull())
         fVerbose = request.params[1].get_bool();
@@ -928,10 +930,9 @@ static RPCHelpMan getblockheader()
     const CBlockIndex* pblockindex;
     const CBlockIndex* tip;
     {
-        ChainstateManager& chainman = EnsureAnyChainman(request.context);
         LOCK(cs_main);
-        pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
-        tip = chainman.ActiveChain().Tip();
+        pblockindex = node.chainman->m_blockman.LookupBlockIndex(hash);
+        tip = node.chainman->ActiveChain().Tip();
     }
 
     if (!pblockindex) {
@@ -946,7 +947,7 @@ static RPCHelpMan getblockheader()
         return strHex;
     }
 
-    return blockheaderToJSON(tip, pblockindex);
+    return blockheaderToJSON(node, tip, pblockindex);
 },
     };
 }
@@ -1073,8 +1074,8 @@ static RPCHelpMan getblock()
         std::string strHex = HexStr(ssBlock);
         return strHex;
     }
-
-    return blockToJSON(block, tip, pblockindex, verbosity >= 2);
+    NodeContext& node = EnsureAnyNodeContext(request.context);
+    return blockToJSON(node, block, tip, pblockindex, verbosity >= 2);
 },
     };
 }
@@ -2879,12 +2880,13 @@ static RPCHelpMan height_MoM()
     height = atoi(request.params[0].get_str().c_str());
     if ( height <= 0 )
     {
-        if ( g_rpc_node->chainman->ActiveChain().Tip() == 0 )
+        ChainstateManager& chainman = EnsureAnyChainman(request.context);
+        if ( chainman.ActiveChain().Tip() == 0 )
         {
             ret.pushKV("error",(char *)"no active chain yet");
             return(ret);
         }
-        height = g_rpc_node->chainman->ActiveChain().Height();
+        height = chainman.ActiveChain().Height();
     }
     //fprintf(stderr,"height_MoM height.%d\n",height);
     depth = komodo_MoM(&notarized_height,&MoM,&kmdtxid,height,&MoMoM,&MoMoMoffset,&MoMoMdepth,&kmdstarti,&kmdendi);

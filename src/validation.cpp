@@ -1172,7 +1172,9 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
     LOCK(cs_main);
 
     if (!blockIndex) {
-        CTransactionRef ptx = g_rpc_node->mempool->get(hash);
+        std::any context;
+        NodeContext const& node = EnsureAnyNodeContext(context);
+        CTransactionRef ptx = node.mempool->get(hash);
         if (ptx) {
             txOut = ptx;
             return true;
@@ -1204,7 +1206,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
 
         if (fAllowSlow) { // use coin database to locate block that contains transaction, and scan it
             const Coin& coin = AccessByTxid(*pcoinsTip, hash);
-            if (!coin.IsSpent()) pindexSlow = g_rpc_node->chainman->ActiveChain()[coin.nHeight];
+            if (!coin.IsSpent()) pindexSlow = node.chainman->ActiveChain()[coin.nHeight];
         }
     }
 
@@ -3118,11 +3120,14 @@ void CChainState::ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pi
 
 static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
+    std::any context;
+    NodeContext const& node = EnsureAnyNodeContext(context);
+
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
-    if (g_rpc_node->chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
+    if (node.chainman->ActiveChain().Height() > consensusParams.nAdaptivePoWActivationThreshold) {
         if (block.GetBlockTime() > GetAdjustedTime() + 4) {
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "block-from-future", "CheckBlockHeader block from future");
         }
@@ -3294,7 +3299,9 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         }
         else if ( komodo_checkpoint(&notarized_height,(int32_t)nHeight,hash) < 0 )
         {
-            CBlockIndex *heightblock = g_rpc_node->chainman->ActiveChain()[nHeight];
+            std::any context;
+            ChainstateManager& chainman = EnsureAnyChainman(context);
+            CBlockIndex *heightblock = chainman.ActiveChain()[nHeight];
             if ( heightblock != 0 && heightblock->GetBlockHash() == hash ) {
                 return true;
             } else {

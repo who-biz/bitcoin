@@ -934,7 +934,9 @@ int32_t init_hexbytes_noT(char *hexbytes,unsigned char *message,long len)
 int32_t komodo_blockheight(uint256 hash)
 {
     BlockMap::const_iterator it; CBlockIndex *pindex = 0;
-    if ( (it = g_rpc_node->chainman->m_blockman.m_block_index.find(hash)) != g_rpc_node->chainman->m_blockman.m_block_index.end() )
+    std::any context;
+    ChainstateManager& chainman = EnsureAnyChainman(context);
+    if ( (it = chainman.m_blockman.m_block_index.find(hash)) != chainman.m_blockman.m_block_index.end() )
     {
         if ( (pindex= it->second) != 0 )
             return(pindex->nHeight);
