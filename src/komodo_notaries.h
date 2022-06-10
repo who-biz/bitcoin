@@ -26,8 +26,7 @@
  // third season ending is approx. on June 14th, 2020 03:00:00 PM UTC at block approx. 2988679
  // fourth season ending height 3914855 around Monday, June 14th, 2021 (03:00:00 PM UTC)
  // 5th season end height must be an estimated height that will happen at 1656077853 Fri Jun 24 2022 13:37:33 GMT+0000
- // FIXME replace 777333777333
- static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {0, 1, 2, 133999, 777333777333, 999999999};
+ static const int32_t KMD_SEASON_HEIGHTS[NUM_KMD_SEASONS] = {0, 1, 2, 133999, 274446, 999999999};
 
  // Era array of pubkeys. Add extra seasons to bottom as requried, after adding appropriate info above. 
  static const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] =
@@ -427,6 +426,6 @@
         {"who-biz_NA", "0268d30efafc6ac84b1c8210e99fd4936e178794581d348b87f64fcbbfa8d5e73b"},
         {"yurii-khi_DEV", "0243977da0533c7c1a37f0f6e30175225c9012d9f3f426180ff6e5710f5a50e32b"},
         {"ca333_EU", "03c34a62c8c89889e4529962578e0b75a010a6e1d9bcbe8f4bb9cc680d82c7261e"},
-        {"dragonhound_DEV", "02b3c168ed4acd96594288cee3114c77de51b6afe1ab6a866887a13a96ee80f33c"},
-   },
+        {"dragonhound_DEV", "02b3c168ed4acd96594288cee3114c77de51b6afe1ab6a866887a13a96ee80f33c"}
+   }
  };
